@@ -11,10 +11,24 @@ and they are three different kinds — worth separating, because only the first 
 | kind | n | |
 |---|---|---|
 | bare `hole` — **ours to transcribe** | **8** | 2 in `grh.b4m`, 6 in `trace-formula/` |
-| `hole … cites` — assumed | 9 | 4 the author's gaps + 5 classical (`standard/`) |
+| `hole … cites` — assumed | 10 | 4 the author's gaps + 6 classical (`standard/`) |
 | DEFINITION clause | 2 | `theTraceFormulaHoldsAt`, `isAdmissibleFor` |
 
-(8 + 9 + 2 = 19, which is what `--axioms` reports.)
+(8 + 10 + 2 = 20, which is what `--axioms` reports.)
+
+### The classical tier so far
+
+| cited | source |
+|---|---|
+| Lebesgue differentiation (loc. cpt. abelian) | Federer §2.9; Hewitt-Ross I §44 |
+| Hardy-Littlewood maximal | Stein-Weiss Ch. II |
+| Poisson summation (jump singularities) | Tate's thesis; Weil BNT §VII |
+| non-vanishing of L(s,χ) on Re(s)=1 | Hadamard-de la Vallée Poussin; Iwaniec-Kowalski Thm 5.10 |
+| countable additivity of a Haar integral | Halmos §25; Hewitt-Ross I §15 |
+| bump functions + mollifier convergence | Hörmander I §1.2-1.4; Rudin FA Thm 6.20 |
+| ideal class group finiteness ⇒ Pic(O_{F,S})=1 | Neukirch I §6, §12 |
+| finitely many Archimedean/ramified places | Neukirch I §8, III §2 |
+| x + 0 = x | (additive unit law, `Quantity` being opaque here) |
 
 **The bare count can go UP, and did.** Splitting the kernel decomposition traded one opaque
 hole for two sharper ones plus a classical citation (countable additivity, Halmos §25). That

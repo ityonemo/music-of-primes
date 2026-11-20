@@ -121,3 +121,37 @@ proof
     forall l: Locus; partitionsTheDomain(l) -> integralIsAdditiveOver(l)
     [by cite theIntegralIsCountablyAdditive]
 qed
+
+// ---------------------------------------------------------------------------------------
+// MOLLIFIERS AND BUMP FUNCTIONS — the §1.4.2 construction's classical ingredients.
+// ---------------------------------------------------------------------------------------
+
+/// a smooth compactly supported function on R_{>0}
+sort SmoothCompactlySupported
+
+/// convolving with a mollifier smooths a function and converges to it pointwise as eps -> 0
+pred mollifierConvolutionSmoothsAndConverges(g: SmoothCompactlySupported)
+/// a bump function supported in (1, +infinity) and valued in [0,1] exists
+pred bumpFunctionsExist()
+
+intheory mollifiersSmoothAndBumpsExist
+
+/// Existence of smooth bump functions with prescribed support, and that convolution with a
+/// mollifier smooths while converging pointwise. The manuscript's §1.4.2 builds
+/// `phi_{h,eps,z} := h(t) * (rho_eps * phi_z)` out of exactly these two, so they are the
+/// construction's classical ingredients — not the part that is specific to this proof.
+hole mollifiersAndBumpFunctionsExist
+  cites "standard: smooth bump functions with prescribed support, and mollifier convolution converging pointwise — Hormander, The Analysis of Linear Partial Differential Operators I §1.2-1.4; Rudin, Functional Analysis Thm 6.20. The manuscript builds phi_{h,eps,z} from these at §1.4.2":
+  bumpFunctionsExist() and
+  (forall g: SmoothCompactlySupported; mollifierConvolutionSmoothsAndConverges(g))
+
+theorem mollifiersSmoothAndBumpsExist: bumpFunctionsExist()
+proof
+  @both |
+    bumpFunctionsExist() and
+      (forall g: SmoothCompactlySupported; mollifierConvolutionSmoothsAndConverges(g))
+    [by cite mollifiersAndBumpFunctionsExist]
+  @conclusion |
+    bumpFunctionsExist()
+    [by and_lhs both]
+qed

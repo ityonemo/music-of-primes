@@ -62,10 +62,18 @@ intheory generalizedRiemannHypothesis
 // here it is a citation. Its own six dependencies are the new frontier.
 fact theTraceFormula = trace.theTraceFormula
 
-// §1.4.2 constructs the approximants explicitly (mollifier ρ_ε, bump h) and §1.4.3 bounds
-// the Archimedean integrals uniformly, so Montel applies. The CONSTRUCTION is written out;
-// what is NOT written out is that the limit interchange is valid (see the bare holes).
-hole theMollifiedApproximantsExist:
+// SPLIT. §1.4.2 builds the approximants as `phi_{h,eps,z} := h(t) * (rho_eps * phi_z)` — a
+// bump function times a mollifier convolution. Both ingredients are CLASSICAL and are cited
+// in standard/analysis.b4m (Hormander I §1.2-1.4; Rudin FA Thm 6.20).
+//
+// What remains OURS is the manuscript-specific part: that this construction lands in D(C_F)
+// AND satisfies the standing hypothesis phi(C_F^1) = 0 — the author's conditions (a) and
+// (b). That is a claim about his conventions, not about mollifiers.
+pred bumpFunctionsExist = classical.bumpFunctionsExist
+fact mollifiersSmoothAndBumpsExist = classical.mollifiersSmoothAndBumpsExist
+
+hole theConstructionSatisfiesTheStandingHypotheses:
+  bumpFunctionsExist() ->
   exists f: TestFunction;
   isTestFunction(f) and vanishesOnTheNormOneIdeles(f) and isAMollifiedPowerApproximant(f)
 
@@ -135,10 +143,18 @@ hole everyZeroOffTheLineIsExcluded
 theorem generalizedRiemannHypothesis: forall r: Zero;
   isNonTrivialZero(r) -> onTheCriticalLine(r)
 proof
+  @bumps-exist |
+    bumpFunctionsExist()
+    [by cite mollifiersSmoothAndBumpsExist]
+  @construction-gives |
+    bumpFunctionsExist() ->
+      exists f: TestFunction;
+      isTestFunction(f) and vanishesOnTheNormOneIdeles(f) and isAMollifiedPowerApproximant(f)
+    [by cite theConstructionSatisfiesTheStandingHypotheses]
   @an-approximant-exists |
     exists f: TestFunction;
       isTestFunction(f) and vanishesOnTheNormOneIdeles(f) and isAMollifiedPowerApproximant(f)
-    [by cite theMollifiedApproximantsExist]
+    [by modus_ponens construction-gives bumps-exist]
   @from-the-approximant |
     unpack phi: TestFunction from an-approximant-exists {
       @phi-properties |
