@@ -54,41 +54,41 @@ intheory theTraceFormula
 // theorem and finiteness of the class group, both in Appendix A.
 hole anAdmissibleSetOfPlacesExists:
   forall f: TestFunction;
-    isTestFunction(f) -> exists s: PlaceSet; isAdmissibleFor(s, f)
+  isTestFunction(f) -> exists s: PlaceSet; isAdmissibleFor(s, f)
 
 // Equation (11.3.1.4): the smoothened geometric kernel splits along the diagonal into its
 // S-local part plus one piece per prime not dividing S.
 hole theGeometricKernelDecomposition:
   forall f: TestFunction; forall s: PlaceSet;
-    isAdmissibleFor(s, f) -> theKernelDecomposes(s, f)
+  isAdmissibleFor(s, f) -> theKernelDecomposes(s, f)
 
 // Theorem 11.3.2.1 (Orbital Traces on the Paley-Wiener Levels), txt line 29947 — proved.
 // Gives that each off-S piece integrates to zero.
 hole theOrbitalTracesVanishOffS:
   forall f: TestFunction; forall s: PlaceSet;
-    isAdmissibleFor(s, f) -> theOffSPiecesVanish(s, f)
+  isAdmissibleFor(s, f) -> theOffSPiecesVanish(s, f)
 
 // Theorem 12.4.1.1 (S-local Trace calculation), txt line 31123 — proved. The S-local
 // integral equals the left (geometric) side of (12.5.1.1), after subtracting the two Mellin
 // terms.
 hole theSLocalTraceCalculation:
   forall f: TestFunction; forall s: PlaceSet;
-    isAdmissibleFor(s, f) -> theKernelDecomposes(s, f) ->
-      theSLocalIntegralIsTheGeometricSide(s, f)
+  isAdmissibleFor(s, f) -> theKernelDecomposes(s, f) ->
+  theSLocalIntegralIsTheGeometricSide(s, f)
 
 // Definition 10.4.3.7 (Global Spectral and Geometric Kernels), txt line 28655, together
 // with Theorem 10.4.2.8 (Spectral side: convolution after projection), txt line 27947 —
 // both proved. Equation (12.5.1.4): the global kernel integral IS the spectral side.
 hole theSpectralSideIsTheKernelIntegral:
   forall f: TestFunction;
-    isTestFunction(f) -> theGlobalIntegralIsTheSpectralSide(f)
+  isTestFunction(f) -> theGlobalIntegralIsTheSpectralSide(f)
 
 // The final combination, "Upon combining (12.5.1.4) with the foregoing". Assembly only:
 // given the decomposition, the vanishing, both side identifications, the identity follows.
 hole theTwoSidesCombine:
   forall f: TestFunction; forall s: PlaceSet;
-    theOffSPiecesVanish(s, f) -> theSLocalIntegralIsTheGeometricSide(s, f) ->
-      theGlobalIntegralIsTheSpectralSide(f) -> theTraceFormulaHoldsAt(f)
+  theOffSPiecesVanish(s, f) -> theSLocalIntegralIsTheGeometricSide(s, f) ->
+  theGlobalIntegralIsTheSpectralSide(f) -> theTraceFormulaHoldsAt(f)
 
 // ---------------------------------------------------------------------------------------
 // THE PROOF of Theorem 12.5.1.1, assembled from the above. Every step kernel-checked.
@@ -160,12 +160,12 @@ proof
                   @slocal-all |
                     forall f: TestFunction; forall t: PlaceSet;
                       isAdmissibleFor(t, f) -> theKernelDecomposes(t, f) ->
-                        theSLocalIntegralIsTheGeometricSide(t, f)
+                      theSLocalIntegralIsTheGeometricSide(t, f)
                     [by cite theSLocalTraceCalculation]
                   @slocal-at-phi |
                     forall t: PlaceSet;
                       isAdmissibleFor(t, phi) -> theKernelDecomposes(t, phi) ->
-                        theSLocalIntegralIsTheGeometricSide(t, phi)
+                      theSLocalIntegralIsTheGeometricSide(t, phi)
                     [by apply_at(phi) slocal-all]
                   @slocal-at-s |
                     isAdmissibleFor(s, phi) -> theKernelDecomposes(s, phi) ->
@@ -195,19 +195,19 @@ proof
                   @combine-all |
                     forall f: TestFunction; forall t: PlaceSet;
                       theOffSPiecesVanish(t, f) ->
-                        theSLocalIntegralIsTheGeometricSide(t, f) ->
-                          theGlobalIntegralIsTheSpectralSide(f) -> theTraceFormulaHoldsAt(f)
+                      theSLocalIntegralIsTheGeometricSide(t, f) ->
+                      theGlobalIntegralIsTheSpectralSide(f) -> theTraceFormulaHoldsAt(f)
                     [by cite theTwoSidesCombine]
                   @combine-at-phi |
                     forall t: PlaceSet;
                       theOffSPiecesVanish(t, phi) ->
-                        theSLocalIntegralIsTheGeometricSide(t, phi) ->
-                          theGlobalIntegralIsTheSpectralSide(phi) -> theTraceFormulaHoldsAt(phi)
+                      theSLocalIntegralIsTheGeometricSide(t, phi) ->
+                      theGlobalIntegralIsTheSpectralSide(phi) -> theTraceFormulaHoldsAt(phi)
                     [by apply_at(phi) combine-all]
                   @combine-at-s |
                     theOffSPiecesVanish(s, phi) ->
                       theSLocalIntegralIsTheGeometricSide(s, phi) ->
-                        theGlobalIntegralIsTheSpectralSide(phi) -> theTraceFormulaHoldsAt(phi)
+                      theGlobalIntegralIsTheSpectralSide(phi) -> theTraceFormulaHoldsAt(phi)
                     [by apply_at(s) combine-at-phi]
                   @combine-needs-geometric |
                     theSLocalIntegralIsTheGeometricSide(s, phi) ->

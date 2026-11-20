@@ -27,8 +27,8 @@ Each arrow is a kernel-checked step in `grh.b4m`; no analysis is modelled (see "
   theMollifiedApproximantsExist          [OURS]   §1.4.2 — explicit mollifier + bump
             │
             ▼  unpack φ
-  theTraceFormula at φ                   [OURS]   Thm 12.5.1.1, p.519 — proved, multi-page
-            │                                     (needs φ(C_F^1)=0, the standing hypothesis)
+  theTraceFormula at φ                   [CLOSED] proved in trace-formula/, which now owes
+            │                                     6 located holes of its own
             ▼
   theLimitInterchangeIsValid             [AUTHOR] §1.4.3-4 — the infinite non-Archimedean
             │                                     sum passing to the limit
@@ -57,13 +57,30 @@ Each arrow is a kernel-checked step in `grh.b4m`; no analysis is modelled (see "
   generalizedRiemannHypothesis
 ```
 
-## OURS to transcribe (3) — bare holes, currently failing
+## OURS to transcribe (8) — bare holes, currently failing
+
+**`theTraceFormula` is CLOSED** (2026-11-20): Theorem 12.5.1.1 is now proved in
+`trace-formula/trace-formula.b4m` from the manuscript's own skeleton, and `grh.b4m` cites it.
+Its six dependencies became the new frontier — which is the deepening move working as
+intended: one opaque assumption replaced by six located ones.
+
+In `grh.b4m`:
 
 | hole | manuscript source | status there |
 |---|---|---|
-| `theTraceFormula` | **Theorem 12.5.1.1**, p. 519 | stated, multi-page proof. The work's achievement. |
 | `theMollifiedApproximantsExist` | **§1.4.2** | explicit construction (mollifier ρ_ε, bump h) |
 | `theEulerProductsOnTheOneLine` | **Theorems B.7.2.1, B.7.2.4** | stated and proved, Appendix B.7 |
+
+In `trace-formula/trace-formula.b4m` (the Trace Formula's own proof, txt 31539-31567):
+
+| hole | manuscript source | status there |
+|---|---|---|
+| `anAdmissibleSetOfPlacesExists` | proof ¶1 | by construction; rests on Appendix A (S-units, class group) |
+| `theGeometricKernelDecomposition` | **eq (11.3.1.4)** | the kernel splits along the diagonal |
+| `theOrbitalTracesVanishOffS` | **Theorem 11.3.2.1**, txt 29947 | proved |
+| `theSLocalTraceCalculation` | **Theorem 12.4.1.1**, txt 31123 | proved |
+| `theSpectralSideIsTheKernelIntegral` | **Def 10.4.3.7** + **Thm 10.4.2.8**, txt 28655 / 27947 | both proved |
+| `theTwoSidesCombine` | proof's last line | assembly only |
 
 Also proved in the text and available when the chain needs it: **Theorem B.4.4.7** (Idelic
 Explicit Formulas, Appendix B.4, proof written out) — what §13.1 was to recall. Not currently

@@ -58,7 +58,25 @@ compact group". A reader has to be able to check it. These may become real theor
 their own schedule; nothing downstream changes when they do, which is what makes citing-first
 reversible rather than a shortcut.
 
-**5. Every manuscript reference carries a locator.** A theorem number, or a `.txt` line
+**5. Split `shared/vocabulary.b4m` topically when it grows** (user, 2026-11-20). It already
+carries its own seams — `the objects`, `test functions`, `the Trace Formula`, `the GRH
+deduction (§1.4)` — and those are the split lines. When a section outgrows one screen or a
+new layer brings its own cluster of names, promote it:
+
+    shared/objects.b4m          sorts and constants: TestFunction, Zero, Complex, PlaceSet
+    shared/test-functions.b4m   isTestFunction, vanishesOnTheNormOneIdeles, the §1.4.2 class
+    shared/trace-formula.b4m    theTraceFormulaHoldsAt and the kernel-side predicates
+    shared/zeros.b4m            onTheCriticalLine, isNonTrivialZero, the zero-free regions
+
+Two rules that keep the split safe:
+  - **a name is declared exactly once, ever.** Identity is by ORIGIN, so a redeclaration
+    silently creates a different entity and breaks citation across layers. Everything else
+    aliases (`sort TestFunction = objects.TestFunction`).
+  - **promote only when a second consumer appears.** A predicate one layer uses stays LOCAL
+    to that layer; `shared/` is for what crosses a file boundary. `isAdmissibleFor` lives in
+    `trace-formula/` for exactly this reason.
+
+**6. Every manuscript reference carries a locator.** A theorem number, or a `.txt` line
 number, or both. The `.txt` extraction is committed precisely so those citations stay
 verifiable from a clone alone.
 

@@ -30,38 +30,24 @@
 // keeps every hole's statement readable against the manuscript. A real formalization of
 // the ANALYSIS would be a different (vastly larger) undertaking.
 
-sort Zero // a non-trivial zero of a Hecke L-function
-sort TestFunction // an element of D(C_F), the manuscript's test functions
-sort Complex // a point of the complex plane
+theory vocab <<< "shared/vocabulary.b4m"
+theory trace <<< "trace-formula/trace-formula.b4m"
 
-const theCentralPoint: Complex // s = 1/2
-
-oper realPart(z: Zero) => Complex
-
-// σ(ρ) = 1/2 — the zero lies on the critical line. GRH is: every non-trivial zero does.
-pred onTheCriticalLine(r: Zero)
-// ρ is a non-trivial zero of the Hecke L-function under consideration
-pred isNonTrivialZero(r: Zero)
-
-// the manuscript's standing hypothesis on test functions, φ(C_F^1) = 0 (1.7.2.1). The
-// author is explicit that it "cannot be removed. It stays there until after GRH is
-// deduced from the Trace Formula."
-pred vanishesOnTheNormOneIdeles(f: TestFunction)
-// φ is smooth and compactly supported: φ ∈ D(C_F)
-pred isTestFunction(f: TestFunction)
-// φ is one of the §1.4.2 mollified approximants to φ_z(t) = t^{-z}
-pred isAMollifiedPowerApproximant(f: TestFunction)
-
-// the two sides of the Trace Formula agree at φ
-pred theTraceFormulaHoldsAt(f: TestFunction)
-// the non-Archimedean sum at φ approximates L'_f/L_f (§1.4.4)
-pred theNonArchimedeanSumComputesTheLogDerivative(f: TestFunction)
-// L'_f(s+1/2, χ)/L_f(s+1/2, χ) is holomorphic on C_{>0} minus {1/2} (§1.4.5)
-pred theLogDerivativeIsHolomorphicOffTheCentralPoint()
-// L(s, χ) has no zeros with real part > 1/2
-pred noZerosRightOfTheCriticalLine()
-// L(s, χ) has no zeros with real part < 1/2
-pred noZerosLeftOfTheCriticalLine()
+// The shared vocabulary, declared ONCE in shared/vocabulary.b4m and aliased here. Identity
+// in 2b4m is by ORIGIN, not spelling: redeclaring `TestFunction` locally would make it a
+// DIFFERENT sort from the trace-formula layer's, and the citation below could not typecheck.
+sort Zero = vocab.Zero
+sort TestFunction = vocab.TestFunction
+pred onTheCriticalLine = vocab.onTheCriticalLine
+pred isNonTrivialZero = vocab.isNonTrivialZero
+pred vanishesOnTheNormOneIdeles = vocab.vanishesOnTheNormOneIdeles
+pred isTestFunction = vocab.isTestFunction
+pred isAMollifiedPowerApproximant = vocab.isAMollifiedPowerApproximant
+pred theTraceFormulaHoldsAt = vocab.theTraceFormulaHoldsAt
+pred theNonArchimedeanSumComputesTheLogDerivative = vocab.theNonArchimedeanSumComputesTheLogDerivative
+pred theLogDerivativeIsHolomorphicOffTheCentralPoint = vocab.theLogDerivativeIsHolomorphicOffTheCentralPoint
+pred noZerosRightOfTheCriticalLine = vocab.noZerosRightOfTheCriticalLine
+pred noZerosLeftOfTheCriticalLine = vocab.noZerosLeftOfTheCriticalLine
 
 intheory generalizedRiemannHypothesis
 
@@ -70,11 +56,10 @@ intheory generalizedRiemannHypothesis
 // BARE hole: strict check rejects it, and it stays on the worklist until transcribed.
 // ---------------------------------------------------------------------------------------
 
-// Theorem 12.5.1.1, p. 519. The declared main theorem, with a real multi-page proof. Note
-// it holds only for φ with φ(C_F^1) = 0 — the hypothesis that drives everything below.
-hole theTraceFormula:
-  forall f: TestFunction;
-  isTestFunction(f) -> vanishesOnTheNormOneIdeles(f) -> theTraceFormulaHoldsAt(f)
+// CLOSED. Theorem 12.5.1.1, p. 519 — the declared main theorem. This was a bare hole; it is
+// now PROVED one layer down in trace-formula/, from the manuscript's own proof skeleton, so
+// here it is a citation. Its own six dependencies are the new frontier.
+fact theTraceFormula = trace.theTraceFormula
 
 // §1.4.2 constructs the approximants explicitly (mollifier ρ_ε, bump h) and §1.4.3 bounds
 // the Archimedean integrals uniformly, so Montel applies. The CONSTRUCTION is written out;
