@@ -129,10 +129,21 @@ hole theDivisorialFiltrationSplitsTheIntegral:
   isAdmissibleFor(s, f) -> integralIsAdditiveOver(theFiltrationStrata(s, f)) ->
   theGlobalIntegral(f) = add(theSLocalIntegral(s, f), theOffSPieces(s, f))
 
-/// and that the strata do partition — needed to invoke additivity
-hole theDivisorialFiltrationPartitionsTheIdeles:
+/// SPLIT. The manuscript's strata are the PREIMAGES under the norm map
+/// GL_1(A_F) -> GL_1(A_Q) of the divisorial strata on GL_1(A_Q), with the P_k nested and
+/// exhausting by construction (txt 1166-1169). So partitioning has two halves:
+///
+///   CLASSICAL, cited — successive differences of a nested exhaustion are disjoint and
+///                      cover, and a preimage of a partition is a partition (set theory).
+///   OURS, below      — that the P_k ARE nested and exhausting, which is a claim about the
+///                      manuscript's construction (saturation, finest refinement).
+pred isANestedExhaustion = classical.isANestedExhaustion
+pred successiveDifferencesPartition = classical.successiveDifferencesPartition
+fact nestedExhaustionsPartition = classical.nestedExhaustionsPartition
+
+hole thePrimaryStrataAreNestedAndExhausting:
   forall f: TestFunction; forall s: PlaceSet;
-  isAdmissibleFor(s, f) -> partitionsTheDomain(theFiltrationStrata(s, f))
+  isAdmissibleFor(s, f) -> isANestedExhaustion(theFiltrationStrata(s, f))
 
 // Theorem 11.3.2.1 (Orbital Traces on the Paley-Wiener Levels), txt 29947 — proved. Each
 // off-S piece integrates to zero, so their sum does.
@@ -287,20 +298,48 @@ proof
 
                       // step 2: the kernel decomposes. The alpha_k strata partition (OURS); additivity of
                       // the integral over a partition is CLASSICAL (cited); together they give the split.
-                      @partition-all |
+                      // the P_k are nested + exhausting (OURS)
+                      @nested-all |
                         forall f: TestFunction; forall t: PlaceSet;
-                          isAdmissibleFor(t, f) -> partitionsTheDomain(theFiltrationStrata(t, f))
-                        [by cite theDivisorialFiltrationPartitionsTheIdeles]
-                      @partition-at-phi |
+                          isAdmissibleFor(t, f) -> isANestedExhaustion(theFiltrationStrata(t, f))
+                        [by cite thePrimaryStrataAreNestedAndExhausting]
+                      @nested-at-phi |
                         forall t: PlaceSet;
-                          isAdmissibleFor(t, phi) -> partitionsTheDomain(theFiltrationStrata(t, phi))
-                        [by apply_at(phi) partition-all]
-                      @partition-at-s |
-                        isAdmissibleFor(s, phi) -> partitionsTheDomain(theFiltrationStrata(s, phi))
-                        [by apply_at(s) partition-at-phi]
+                          isAdmissibleFor(t, phi) -> isANestedExhaustion(theFiltrationStrata(t, phi))
+                        [by apply_at(phi) nested-all]
+                      @nested-at-s |
+                        isAdmissibleFor(s, phi) -> isANestedExhaustion(theFiltrationStrata(s, phi))
+                        [by apply_at(s) nested-at-phi]
+                      @is-nested |
+                        isANestedExhaustion(theFiltrationStrata(s, phi))
+                        [by modus_ponens nested-at-s s-admissible]
+                      // successive differences therefore partition (CLASSICAL, cited)
+                      @diffs-all |
+                        forall l: Locus; isANestedExhaustion(l) -> successiveDifferencesPartition(l)
+                        [by cite nestedExhaustionsPartition]
+                      @diffs-at-strata |
+                        isANestedExhaustion(theFiltrationStrata(s, phi)) ->
+                          successiveDifferencesPartition(theFiltrationStrata(s, phi))
+                        [by apply_at(theFiltrationStrata(s, phi)) diffs-all]
+                      @diffs-partition |
+                        successiveDifferencesPartition(theFiltrationStrata(s, phi))
+                        [by modus_ponens diffs-at-strata is-nested]
+                      // and `partitionsTheDomain` is DEFINED as exactly that, so unfold rather than glue
+                      @defn-part-all |
+                        forall l: Locus;
+                          partitionsTheDomain(l) iff successiveDifferencesPartition(l)
+                        [using import(classical) definition(0) classical.partitionsTheDomain]
+                      @defn-part |
+                        partitionsTheDomain(theFiltrationStrata(s, phi)) iff
+                          successiveDifferencesPartition(theFiltrationStrata(s, phi))
+                        [by apply_at(theFiltrationStrata(s, phi)) defn-part-all]
+                      @defn-part-conv |
+                        successiveDifferencesPartition(theFiltrationStrata(s, phi)) ->
+                          partitionsTheDomain(theFiltrationStrata(s, phi))
+                        [by equiv_converse defn-part]
                       @partitions |
                         partitionsTheDomain(theFiltrationStrata(s, phi))
-                        [by modus_ponens partition-at-s s-admissible]
+                        [by modus_ponens defn-part-conv diffs-partition]
                       @additive-all |
                         forall l: Locus; partitionsTheDomain(l) -> integralIsAdditiveOver(l)
                         [by cite countableAdditivity]

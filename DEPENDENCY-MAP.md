@@ -5,16 +5,48 @@ kernel-checked. This file is the index to it.
 
 ## The current frontier, exactly
 
-`2b4m check --draft --axioms grh.b4m generalizedRiemannHypothesis` reports **23 entries**,
+`2b4m check --draft --axioms grh.b4m generalizedRiemannHypothesis` reports **25 entries**,
 and they are three different kinds — worth separating, because only the first is work we owe:
 
 | kind | n | |
 |---|---|---|
 | bare `hole` — **ours to transcribe** | **8** | 2 in `grh.b4m`, 6 in `trace-formula/` |
-| `hole … cites` — assumed | 13 | 4 the author's gaps + 9 classical (`standard/`) |
-| DEFINITION clause | 2 | `theTraceFormulaHoldsAt`, `isAdmissibleFor` |
+| `hole … cites` — assumed | 14 | 4 the author's gaps + 10 classical (`standard/`) |
+| DEFINITION clause | 3 | `theTraceFormulaHoldsAt`, `isAdmissibleFor`, `partitionsTheDomain` |
 
-(8 + 13 + 2 = 23, which is what `--axioms` reports.)
+(8 + 14 + 3 = 25, which is what `--axioms` reports.)
+
+### STRUCTURAL DECOMPOSITION IS COMPLETE
+
+Every hole that could be split without real analytic foundations has been. The eight
+remaining bare holes are now of exactly two kinds:
+
+**Five sharp manuscript-specific claims** — each names a convention or construction of the
+author's, which a reader can check against his text:
+
+| hole | the claim |
+|---|---|
+| `theConstructionSatisfiesTheStandingHypotheses` | §1.4.2's `h·(ρ_ε * φ_z)` lands in D(C_F) and kills φ(C_F¹) |
+| `holomorphyCoversTheWholeRightRegion` | the region bookkeeping, incl. the s=1/2 exception |
+| `finitelyManyEnlargementsSuffice` | enlarging S preserves ramification/class-group while fixing φ |
+| `thePrimaryStrataAreNestedAndExhausting` | the P_k are nested and exhaust (saturation, finest refinement) |
+| `theDivisorialFiltrationSplitsTheIntegral` | the strata's partition yields the kernel-shaped split |
+
+**Three that ARE the analysis** — and splitting these further would be dishonest at this
+altitude, because every piece would be another opaque predicate:
+
+| hole | what it is |
+|---|---|
+| `theOrbitalTracesVanishOffS` | Thm 11.3.2.1 — indicator functions, (ε,Λ)-cutoffs, Hardy-Sobolev convergence |
+| `theSLocalTraceCalculation` | Thm 12.4.1.1 — a 382-line analytic computation |
+| `theSpectralSideIsTheKernelIntegral` | Def 10.4.3.7 + Thm 10.4.2.8 |
+
+**Two glue holes were caught and removed** during this work (`additivityGivesTheKernelSplit`,
+`differencesPartitioningIsTheDomainPartition`). Both related two opaque predicates that meant
+the same thing at this altitude — they made the artifact look deeper while checking nothing.
+The fix in both cases was to DEFINE one predicate in terms of the other, so the step is a
+definition unfold the kernel verifies rather than an assumption. Worth watching for: a hole
+whose statement is `P(x) -> Q(x)` with both opaque is almost always glue.
 
 ### The classical tier so far
 

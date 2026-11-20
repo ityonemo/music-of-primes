@@ -97,9 +97,16 @@ qed
 // MEASURE THEORY — additivity, which the kernel decomposition is an instance of.
 // ---------------------------------------------------------------------------------------
 
-/// the indicator functions {alpha_k} partition the domain: the strata of the divisorial
-/// filtration on GL_1(A_F) cover it, pairwise disjointly
-pred partitionsTheDomain(l: Locus)
+/// an increasing family of sets exhausting its ambient space
+pred isANestedExhaustion(l: Locus)
+/// the successive differences of a nested exhaustion are pairwise disjoint and cover
+pred successiveDifferencesPartition(l: Locus)
+
+/// the domain IS partitioned exactly when the successive differences do: DEFINED, not a
+/// second opaque notion, so no glue hole is needed to get from one to the other. (An earlier
+/// draft had both as opaque predicates plus a hole relating them — which checked nothing.)
+pred partitionsTheDomain(l: Locus):
+  partitionsTheDomain(l) iff successiveDifferencesPartition(l).
 /// integrating over a partition and summing agrees with integrating over the whole
 pred integralIsAdditiveOver(l: Locus)
 
@@ -185,4 +192,31 @@ proof
   @conclusion |
     forall z: Point; lVanishesAt(z) -> logDerivativeHasAPoleAt(z)
     [by cite aZeroForcesAPole]
+qed
+
+// ---------------------------------------------------------------------------------------
+// PREIMAGES AND NESTED EXHAUSTIONS — why a stratification pulls back to a partition.
+// ---------------------------------------------------------------------------------------
+
+intheory nestedExhaustionsPartition
+
+/// The successive differences of a NESTED EXHAUSTION partition: if `A_0 subset A_1 subset …`
+/// with union the whole space, then `{A_{k+1} - A_k}` are pairwise disjoint and cover.
+/// Elementary set theory, and it is exactly why the alpha_k = 1_{A_{k+1}} - 1_{A_k}
+/// indicators chop the ideles cleanly.
+///
+/// The manuscript's strata are the PREIMAGES under the norm map GL_1(A_F) -> GL_1(A_Q) of
+/// the divisorial strata on GL_1(A_Q) (txt 1166-1169), with the P_k nested and exhausting by
+/// construction — and a preimage of a partition is a partition, which is the second half of
+/// why this applies.
+hole nestedExhaustionsHaveDisjointDifferences
+  cites "standard: the successive differences of an increasing exhaustion are pairwise disjoint and cover; and the preimage of a partition under any map is a partition — elementary set theory (e.g. Halmos, Naive Set Theory §9; Halmos, Measure Theory §5 for the measurable version). The manuscript's strata are norm-map preimages of the GL_1(A_Q) divisorial strata, txt 1166-1169":
+  forall l: Locus; isANestedExhaustion(l) -> successiveDifferencesPartition(l)
+
+theorem nestedExhaustionsPartition:
+  forall l: Locus; isANestedExhaustion(l) -> successiveDifferencesPartition(l)
+proof
+  @conclusion |
+    forall l: Locus; isANestedExhaustion(l) -> successiveDifferencesPartition(l)
+    [by cite nestedExhaustionsHaveDisjointDifferences]
 qed
