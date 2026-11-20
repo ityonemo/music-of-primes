@@ -89,7 +89,20 @@ hole theConstructionSatisfiesTheStandingHypotheses:
 pred noZeroOnTheOneLine = classical.noZeroOnTheOneLine
 fact nonVanishingOnTheOneLine = classical.nonVanishingOnTheOneLine
 
-hole holomorphyAndNonVanishingGiveTheZeroFreeRegion:
+// SPLIT. §1.4.5 states this in one sentence with no argument: "This implies that L_f(s, chi)
+// ... has no zeros over C_{>1/2}". The PRINCIPLE behind it is classical — a zero of L forces
+// a pole of L'/L — and is cited in standard/analysis.b4m (Ahlfors Ch. 4 §3).
+//
+// What remains OURS is the manuscript's own application of it: that holomorphy of L'_f/L_f
+// on C_{>0} minus {1/2}, together with non-vanishing on the 1-line, covers the whole region
+// Re(s) > 1/2. The quantifier bookkeeping over the region, and the s=1/2 exception, are his.
+sort Point = classical.Point
+pred lVanishesAt = classical.lVanishesAt
+pred logDerivativeHasAPoleAt = classical.logDerivativeHasAPoleAt
+fact aZeroForcesAPoleOfTheLogDerivative = classical.aZeroForcesAPoleOfTheLogDerivative
+
+hole holomorphyCoversTheWholeRightRegion:
+  (forall z: Point; lVanishesAt(z) -> logDerivativeHasAPoleAt(z)) ->
   theLogDerivativeIsHolomorphicOffTheCentralPoint() -> noZeroOnTheOneLine() ->
   noZerosRightOfTheCriticalLine()
 
@@ -224,10 +237,18 @@ proof
       @one-line |
         noZeroOnTheOneLine()
         [by cite nonVanishingOnTheOneLine]
+      @zero-forces-pole |
+        forall z: Point; lVanishesAt(z) -> logDerivativeHasAPoleAt(z)
+        [by cite aZeroForcesAPoleOfTheLogDerivative]
+      @right-from-poles |
+        (forall z: Point; lVanishesAt(z) -> logDerivativeHasAPoleAt(z)) ->
+          theLogDerivativeIsHolomorphicOffTheCentralPoint() -> noZeroOnTheOneLine() ->
+          noZerosRightOfTheCriticalLine()
+        [by cite holomorphyCoversTheWholeRightRegion]
       @right-implication |
         theLogDerivativeIsHolomorphicOffTheCentralPoint() -> noZeroOnTheOneLine() ->
           noZerosRightOfTheCriticalLine()
-        [by cite holomorphyAndNonVanishingGiveTheZeroFreeRegion]
+        [by modus_ponens right-from-poles zero-forces-pole]
       @right-needs-one-line |
         noZeroOnTheOneLine() -> noZerosRightOfTheCriticalLine()
         [by modus_ponens right-implication holomorphic]

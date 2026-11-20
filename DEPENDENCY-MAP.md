@@ -5,16 +5,16 @@ kernel-checked. This file is the index to it.
 
 ## The current frontier, exactly
 
-`2b4m check --draft --axioms grh.b4m generalizedRiemannHypothesis` reports **13 entries**,
+`2b4m check --draft --axioms grh.b4m generalizedRiemannHypothesis` reports **21 entries**,
 and they are three different kinds — worth separating, because only the first is work we owe:
 
 | kind | n | |
 |---|---|---|
 | bare `hole` — **ours to transcribe** | **8** | 2 in `grh.b4m`, 6 in `trace-formula/` |
-| `hole … cites` — assumed | 10 | 4 the author's gaps + 6 classical (`standard/`) |
+| `hole … cites` — assumed | 11 | 4 the author's gaps + 7 classical (`standard/`) |
 | DEFINITION clause | 2 | `theTraceFormulaHoldsAt`, `isAdmissibleFor` |
 
-(8 + 10 + 2 = 20, which is what `--axioms` reports.)
+(8 + 11 + 2 = 21, which is what `--axioms` reports.)
 
 ### The classical tier so far
 
@@ -28,6 +28,7 @@ and they are three different kinds — worth separating, because only the first 
 | bump functions + mollifier convergence | Hörmander I §1.2-1.4; Rudin FA Thm 6.20 |
 | ideal class group finiteness ⇒ Pic(O_{F,S})=1 | Neukirch I §6, §12 |
 | finitely many Archimedean/ramified places | Neukirch I §8, III §2 |
+| a zero of L forces a pole of L'/L | Ahlfors Ch. 4 §3; Conway VIII §1 |
 | x + 0 = x | (additive unit law, `Quantity` being opaque here) |
 
 **The bare count can go UP, and did.** Splitting the kernel decomposition traded one opaque
@@ -64,41 +65,77 @@ When every bare hole is discharged, what remains is exactly the list to send the
 
 ## The chain
 
-Each arrow is a kernel-checked step in `grh.b4m`; no analysis is modelled (see "Altitude").
+A DAG, not a line — it branched once `standard/` and the trace-formula layer appeared.
+Legend: **bold** = a bare hole we owe, *italic* = cited (classical or the author's), plain =
+kernel-checked.
 
+```mermaid
+graph TD
+  GRH["generalizedRiemannHypothesis<br/>(kernel-checked)"]
+
+  subgraph grh["grh.b4m — the §1.4 deduction"]
+    CONSTR["<b>theConstructionSatisfiesTheStandingHypotheses</b><br/>§1.4.2 lands in D(C_F), φ(C_F¹)=0"]
+    LIMIT["<i>theLimitInterchangeIsValid</i><br/>AUTHOR: §1.4.3-4, the hard step"]
+    POLE["<i>theLogDerivativeHasOnlyTheCentralPole</i><br/>AUTHOR: §1.4.5, stale §5.1 ref"]
+    RIGHT["<b>holomorphyCoversTheWholeRightRegion</b><br/>the region bookkeeping"]
+    REFL["<i>theFunctionalEquationReflects…</i><br/>AUTHOR: §1.4.5, one line"]
+    EXCL["<i>everyZeroOffTheLineIsExcluded</i><br/>AUTHOR: IS Thm 13.3.1.2"]
+  end
+
+  subgraph tf["trace-formula/ — Thm 12.5.1.1, PROVED"]
+    TF["theTraceFormula<br/>(kernel-checked)"]
+    ENL["<b>aPlaceSetCanBeEnlargedToSuitAnyTestFunction</b>"]
+    PART["<b>theDivisorialFiltrationPartitionsTheIdeles</b>"]
+    SPLIT["<b>theDivisorialFiltrationSplitsTheIntegral</b>"]
+    ORB["<b>theOrbitalTracesVanishOffS</b><br/>Thm 11.3.2.1 — ANALYSIS"]
+    SLOC["<b>theSLocalTraceCalculation</b><br/>Thm 12.4.1.1 — ANALYSIS"]
+    SPEC["<b>theSpectralSideIsTheKernelIntegral</b><br/>Def 10.4.3.7 + Thm 10.4.2.8 — ANALYSIS"]
+    UNIT["<i>addingNothingChangesNothing</i>"]
+  end
+
+  subgraph std["standard/ — classical, cited with sources"]
+    MOLL["<i>mollifiers + bump functions</i><br/>Hörmander I §1.2-1.4"]
+    NONV["<i>non-vanishing on Re(s)=1</i><br/>Hadamard-dlVP"]
+    ZPOLE["<i>a zero forces a pole of L'/L</i><br/>Ahlfors Ch.4 §3"]
+    ADD["<i>countable additivity of a Haar integral</i><br/>Halmos §25"]
+    CLS["<i>Pic(O_F,S)=1 for large S</i><br/>Neukirch I §6,§12"]
+    FIN["<i>finitely many ramified places</i><br/>Neukirch I §8"]
+  end
+
+  MOLL --> CONSTR
+  CONSTR --> GRH
+  TF --> GRH
+  LIMIT --> GRH
+  POLE --> GRH
+  ZPOLE --> RIGHT
+  NONV --> RIGHT
+  RIGHT --> GRH
+  REFL --> GRH
+  EXCL --> GRH
+
+  CLS --> ENL
+  FIN --> ENL
+  ENL --> TF
+  ADD --> SPLIT
+  PART --> SPLIT
+  SPLIT --> TF
+  ORB --> TF
+  SLOC --> TF
+  SPEC --> TF
+  UNIT --> TF
 ```
-  theMollifiedApproximantsExist          [OURS]   §1.4.2 — explicit mollifier + bump
-            │
-            ▼  unpack φ
-  theTraceFormula at φ                   [CLOSED] proved in trace-formula/, which now owes
-            │                                     6 located holes of its own
-            ▼
-  theLimitInterchangeIsValid             [AUTHOR] §1.4.3-4 — the infinite non-Archimedean
-            │                                     sum passing to the limit
-            ▼
-  theNonArchimedeanSum… computes L'_f/L_f
-            │
-            ▼
-  theLogDerivativeHasOnlyTheCentralPole  [AUTHOR] §1.4.5 — asserted, cites a stale §5.1
-            │
-            ▼
-  theEulerProductsOnTheOneLine           [OURS]   Thms B.7.2.1, B.7.2.4 — proved
-            │
-            ▼
-  noZerosRightOfTheCriticalLine
-            │
-            ▼
-  theFunctionalEquationReflects…         [AUTHOR] §1.4.5, one line
-            │
-            ▼
-  noZerosLeftOfTheCriticalLine
-            │
-            ▼
-  everyZeroOffTheLineIsExcluded          [AUTHOR] IS Theorem 13.3.1.2 — "Insert statement"
-            │
-            ▼
-  generalizedRiemannHypothesis
-```
+
+### Recorded but NOT yet reachable from GRH
+
+Three `standard/analysis.b4m` citations sit outside the DAG above:
+**Lebesgue differentiation**, **Hardy-Littlewood maximal**, **Poisson summation**. They are
+the classical inputs to *Theorem 11.3.2.1*, which is still the single opaque hole `ORB` —
+so they are recorded (and checked) but nothing yet depends on them. They become live if
+`ORB` is ever decomposed, which needs the foundations
+[`WHAT-IT-WOULD-TAKE.md`](WHAT-IT-WOULD-TAKE.md) measures.
+
+An uncited hole is invisible to `--axioms`, so each is kept load-bearing for a small local
+theorem in its own file rather than left dangling.
 
 ## OURS to transcribe (8) — bare holes, currently failing
 

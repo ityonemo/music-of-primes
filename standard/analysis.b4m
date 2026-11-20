@@ -155,3 +155,34 @@ proof
     bumpFunctionsExist()
     [by and_lhs both]
 qed
+
+// ---------------------------------------------------------------------------------------
+// COMPLEX ANALYSIS — the logarithmic-derivative principle.
+// ---------------------------------------------------------------------------------------
+
+/// a point of the complex plane where L might vanish
+sort Point
+
+/// L vanishes at this point
+pred lVanishesAt(z: Point)
+/// L'/L has a pole at this point
+pred logDerivativeHasAPoleAt(z: Point)
+
+intheory aZeroForcesAPoleOfTheLogDerivative
+
+/// A zero of a meromorphic function forces a POLE of its logarithmic derivative, with
+/// residue the multiplicity. Classical, and it is the principle the manuscript's §1.4.5 uses
+/// without naming: having shown L'_f/L_f holomorphic on C_{>0} minus {1/2}, it concludes
+/// "this implies that L_f(s, chi) ... has no zeros over C_{>1/2}" — i.e. contrapositive of
+/// this fact.
+hole aZeroForcesAPole
+  cites "standard: if f is meromorphic and f(rho) = 0 with multiplicity m, then f'/f has a simple pole at rho with residue m — Ahlfors, Complex Analysis Ch. 4 §3; Conway, Functions of One Complex Variable VIII §1. The manuscript uses the contrapositive at §1.4.5 without naming it":
+  forall z: Point; lVanishesAt(z) -> logDerivativeHasAPoleAt(z)
+
+theorem aZeroForcesAPoleOfTheLogDerivative:
+  forall z: Point; lVanishesAt(z) -> logDerivativeHasAPoleAt(z)
+proof
+  @conclusion |
+    forall z: Point; lVanishesAt(z) -> logDerivativeHasAPoleAt(z)
+    [by cite aZeroForcesAPole]
+qed
