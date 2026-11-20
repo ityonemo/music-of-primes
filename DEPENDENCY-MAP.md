@@ -11,10 +11,17 @@ and they are three different kinds — worth separating, because only the first 
 | kind | n | |
 |---|---|---|
 | bare `hole` — **ours to transcribe** | **7** | 2 in `grh.b4m`, 5 in `trace-formula/` |
-| `hole … cites` — assumed | 7 | 4 the author's gaps + 3 classical (`standard/`) |
+| `hole … cites` — assumed | 8 | 4 the author's gaps + 4 classical (`standard/`) |
 | DEFINITION clause | 2 | `theTraceFormulaHoldsAt`, `isAdmissibleFor` |
 
-(7 + 7 + 2 = 16, which is what `--axioms` reports.)
+(7 + 8 + 2 = 17, which is what `--axioms` reports.)
+
+**The bare count does not fall every round, and that is expected.** Two rounds running, the
+gain was RECLASSIFICATION: an assumption moved from "ours, opaque" to "classical, cited with
+a source a reader can check". `rests on class-group finiteness — Neukirch I §6` is auditable;
+`rests on anAdmissibleSetOfPlacesExists` was not. Both are worth as much to an evaluator as
+a reduction, and a bundled hole hiding a classical fact inside it is the thing actually worth
+fixing.
 
 A definition is not an assumption — it introduces a symbol rather than constraining a
 primitive, which is why `--axioms` labels it separately. Count it apart when quoting totals.

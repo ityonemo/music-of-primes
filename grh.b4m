@@ -32,6 +32,7 @@
 
 theory vocab <<< "shared/vocabulary.b4m"
 theory trace <<< "trace-formula/trace-formula.b4m"
+theory classical <<< "standard/analysis.b4m"
 
 // The shared vocabulary, declared ONCE in shared/vocabulary.b4m and aliased here. Identity
 // in 2b4m is by ORIGIN, not spelling: redeclaring `TestFunction` locally would make it a
@@ -68,10 +69,20 @@ hole theMollifiedApproximantsExist:
   exists f: TestFunction;
   isTestFunction(f) and vanishesOnTheNormOneIdeles(f) and isAMollifiedPowerApproximant(f)
 
-// Theorem B.7.2.1 / B.7.2.4, Euler products on the 1-line. §1.7.2 lists non-vanishing on
-// the 1-line as "used as an input throughout".
-hole theEulerProductsOnTheOneLine:
-  theLogDerivativeIsHolomorphicOffTheCentralPoint() ->
+// SPLIT, as `isAdmissibleFor` was: this bundled two different things. The CLASSICAL half —
+// L(s, chi) has no zero on Re(s) = 1, which the author himself calls an "input" (txt 819) —
+// is cited in standard/analysis.b4m. What remains ours is the manuscript's own step: from
+// holomorphy of L'_f/L_f on C_{>0} minus {1/2}, PLUS that non-vanishing, conclude there are
+// no zeros right of the critical line.
+//
+// (The manuscript's Thms B.7.2.1 / B.7.2.4 are quantitative Euler-product estimates, not a
+// quotable classical statement, so they are NOT what gets cited — the classical fact they
+// refine is.)
+pred noZeroOnTheOneLine = classical.noZeroOnTheOneLine
+fact nonVanishingOnTheOneLine = classical.nonVanishingOnTheOneLine
+
+hole holomorphyAndNonVanishingGiveTheZeroFreeRegion:
+  theLogDerivativeIsHolomorphicOffTheCentralPoint() -> noZeroOnTheOneLine() ->
   noZerosRightOfTheCriticalLine()
 
 // ---------------------------------------------------------------------------------------
@@ -194,12 +205,19 @@ proof
         [by modus_ponens holomorphy-at-phi log-derivative-computed]
 
       // no zeros to the right (grounded: Euler products on the 1-line)
+      @one-line |
+        noZeroOnTheOneLine()
+        [by cite nonVanishingOnTheOneLine]
       @right-implication |
-        theLogDerivativeIsHolomorphicOffTheCentralPoint() -> noZerosRightOfTheCriticalLine()
-        [by cite theEulerProductsOnTheOneLine]
+        theLogDerivativeIsHolomorphicOffTheCentralPoint() -> noZeroOnTheOneLine() ->
+          noZerosRightOfTheCriticalLine()
+        [by cite holomorphyAndNonVanishingGiveTheZeroFreeRegion]
+      @right-needs-one-line |
+        noZeroOnTheOneLine() -> noZerosRightOfTheCriticalLine()
+        [by modus_ponens right-implication holomorphic]
       @no-zeros-right |
         noZerosRightOfTheCriticalLine()
-        [by modus_ponens right-implication holomorphic]
+        [by modus_ponens right-needs-one-line one-line]
 
       // reflect across the line (TRUE GAP)
       @reflection |

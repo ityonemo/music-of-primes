@@ -63,3 +63,32 @@ proof
     forall l: Locus; differentiatesAlmostEverywhere(l)
     [by cite lebesgueDifferentiationTheorem]
 qed
+
+// ---------------------------------------------------------------------------------------
+// ANALYTIC NUMBER THEORY — Appendix B's "Preparations". Classical.
+// ---------------------------------------------------------------------------------------
+
+/// L(s, chi) has no zero on the line Re(s) = 1
+pred noZeroOnTheOneLine()
+
+intheory nonVanishingOnTheOneLine
+
+/// Non-vanishing of the Hecke L-function on the 1-line. The author calls this an INPUT in
+/// his own words (txt 819: "the non-vanishing of L(s, chi) on the 1-line is used as an
+/// input"), and §1.7.2 lists "properties of the Hecke L-function on the 1-line (including
+/// the non-vanishing)" among the things "used as an input throughout".
+///
+/// Classical: Hadamard-de la Vallee Poussin for zeta, extended to Hecke L-functions. The
+/// manuscript's own quantitative versions are Thms B.7.2.1 / B.7.2.4 (Euler products on the
+/// 1-line), which are estimates rather than quotable statements — so what is cited here is
+/// the classical fact they refine, not those theorems.
+hole nonVanishingOnTheOneLineHolds
+  cites "standard: L(s, chi) != 0 on Re(s) = 1 — Hadamard and de la Vallee Poussin for zeta; the Hecke L-function case in Iwaniec-Kowalski, Analytic Number Theory Thm 5.10, or Lang, Algebraic Number Theory XV §4. The author calls it an INPUT at txt 819 and §1.7.2":
+  noZeroOnTheOneLine()
+
+theorem nonVanishingOnTheOneLine: noZeroOnTheOneLine()
+proof
+  @conclusion |
+    noZeroOnTheOneLine()
+    [by cite nonVanishingOnTheOneLineHolds]
+qed
