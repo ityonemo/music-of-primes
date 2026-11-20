@@ -24,7 +24,6 @@ sort TestFunction = vocab.TestFunction
 sort PlaceSet = vocab.PlaceSet
 pred isTestFunction = vocab.isTestFunction
 pred vanishesOnTheNormOneIdeles = vocab.vanishesOnTheNormOneIdeles
-pred theTraceFormulaHoldsAt = vocab.theTraceFormulaHoldsAt
 
 // LOCAL to this layer: the proof's internal stages. Nothing else needs them, so they are
 // declared here rather than in the shared vocabulary.
@@ -34,14 +33,25 @@ pred theTraceFormulaHoldsAt = vocab.theTraceFormulaHoldsAt
 // S-class group, and is large enough for phi's support and invariance.
 pred isAdmissibleFor(s: PlaceSet, f: TestFunction)
 
-// the kernel decomposition of (11.3.1.4): global = S-local + the off-S pieces
-pred theKernelDecomposes(s: PlaceSet, f: TestFunction)
-// each off-S piece integrates to zero
-pred theOffSPiecesVanish(s: PlaceSet, f: TestFunction)
-// the S-local integral equals the GEOMETRIC side of (12.5.1.1)
-pred theSLocalIntegralIsTheGeometricSide(s: PlaceSet, f: TestFunction)
-// the global kernel integral equals the SPECTRAL side, eq (12.5.1.4)
-pred theGlobalIntegralIsTheSpectralSide(f: TestFunction)
+// The proof's quantities, as TERMS rather than opaque booleans. The last step of the
+// manuscript's proof ("Upon combining (12.5.1.4) with the foregoing") is a SUBSTITUTION
+// between equations about the same integral, so modelling these as predicates would have
+// made that step unprovable-by-construction — an opaque `combine` hole standing in for
+// arithmetic the kernel can actually do. With terms it is `rewrite`.
+sort Quantity = vocab.Quantity
+oper theGeometricSide = vocab.theGeometricSide
+oper theSpectralSide = vocab.theSpectralSide
+pred theTraceFormulaHoldsAt = vocab.theTraceFormulaHoldsAt
+
+/// \int_{C_F} k(x,x) dmu — the global kernel integral along the diagonal
+oper theGlobalIntegral(f: TestFunction) => Quantity
+/// \int_{C_F} k_S(x,x) dmu — its S-local part
+oper theSLocalIntegral(s: PlaceSet, f: TestFunction) => Quantity
+/// the sum of the off-S pieces, \sum_{p nmid S} \int k_p(x,x) dmu
+oper theOffSPieces(s: PlaceSet, f: TestFunction) => Quantity
+
+oper add(a: Quantity, b: Quantity) => Quantity
+const noQuantity: Quantity // 0
 intheory theTraceFormula
 
 // ---------------------------------------------------------------------------------------
@@ -49,49 +59,48 @@ intheory theTraceFormula
 // them, so they stay on the worklist.
 // ---------------------------------------------------------------------------------------
 
-// The proof's opening move. Existence of an admissible S is asserted by construction
-// ("We let S be a finite set of places containing…"); it rests on Dirichlet's S-unit
-// theorem and finiteness of the class group, both in Appendix A.
+// The proof's opening move: "We let S be a finite set of places containing…". Existence
+// rests on Dirichlet's S-unit theorem and finiteness of the class group, both Appendix A.
 hole anAdmissibleSetOfPlacesExists:
   forall f: TestFunction;
   isTestFunction(f) -> exists s: PlaceSet; isAdmissibleFor(s, f)
 
 // Equation (11.3.1.4): the smoothened geometric kernel splits along the diagonal into its
-// S-local part plus one piece per prime not dividing S.
+// S-local part plus the off-S pieces.
 hole theGeometricKernelDecomposition:
   forall f: TestFunction; forall s: PlaceSet;
-  isAdmissibleFor(s, f) -> theKernelDecomposes(s, f)
+  isAdmissibleFor(s, f) ->
+  theGlobalIntegral(f) = add(theSLocalIntegral(s, f), theOffSPieces(s, f))
 
-// Theorem 11.3.2.1 (Orbital Traces on the Paley-Wiener Levels), txt line 29947 — proved.
-// Gives that each off-S piece integrates to zero.
+// Theorem 11.3.2.1 (Orbital Traces on the Paley-Wiener Levels), txt 29947 — proved. Each
+// off-S piece integrates to zero, so their sum does.
 hole theOrbitalTracesVanishOffS:
   forall f: TestFunction; forall s: PlaceSet;
-  isAdmissibleFor(s, f) -> theOffSPiecesVanish(s, f)
+  isAdmissibleFor(s, f) -> theOffSPieces(s, f) = noQuantity
 
-// Theorem 12.4.1.1 (S-local Trace calculation), txt line 31123 — proved. The S-local
-// integral equals the left (geometric) side of (12.5.1.1), after subtracting the two Mellin
-// terms.
+// Theorem 12.4.1.1 (S-local Trace calculation), txt 31123 — proved. The S-local integral
+// IS the geometric side (after the two Mellin terms are subtracted, which is folded into
+// `theGeometricSide` here rather than modelled).
 hole theSLocalTraceCalculation:
   forall f: TestFunction; forall s: PlaceSet;
-  isAdmissibleFor(s, f) -> theKernelDecomposes(s, f) ->
-  theSLocalIntegralIsTheGeometricSide(s, f)
+  isAdmissibleFor(s, f) -> theSLocalIntegral(s, f) = theGeometricSide(f)
 
-// Definition 10.4.3.7 (Global Spectral and Geometric Kernels), txt line 28655, together
-// with Theorem 10.4.2.8 (Spectral side: convolution after projection), txt line 27947 —
-// both proved. Equation (12.5.1.4): the global kernel integral IS the spectral side.
+// Definition 10.4.3.7 (Global Spectral and Geometric Kernels), txt 28655, with Theorem
+// 10.4.2.8 (Spectral side: convolution after projection), txt 27947 — both proved. This is
+// equation (12.5.1.4): the global integral IS the spectral side.
 hole theSpectralSideIsTheKernelIntegral:
   forall f: TestFunction;
-  isTestFunction(f) -> theGlobalIntegralIsTheSpectralSide(f)
+  isTestFunction(f) -> theGlobalIntegral(f) = theSpectralSide(f)
 
-// The final combination, "Upon combining (12.5.1.4) with the foregoing". Assembly only:
-// given the decomposition, the vanishing, both side identifications, the identity follows.
-hole theTwoSidesCombine:
-  forall f: TestFunction; forall s: PlaceSet;
-  theOffSPiecesVanish(s, f) -> theSLocalIntegralIsTheGeometricSide(s, f) ->
-  theGlobalIntegralIsTheSpectralSide(f) -> theTraceFormulaHoldsAt(f)
+// Adding zero changes nothing. Standard in any additive structure; `Quantity` is opaque
+// here, so the one algebraic fact the combination needs is stated rather than derived.
+hole addingNothingChangesNothing
+  cites "standard: x + 0 = x in any additive monoid — `Quantity` is opaque in this encoding, so its additive unit law is stated rather than built":
+  forall q: Quantity; add(q, noQuantity) = q
 
 // ---------------------------------------------------------------------------------------
-// THE PROOF of Theorem 12.5.1.1, assembled from the above. Every step kernel-checked.
+// THE PROOF of Theorem 12.5.1.1. The final combination is now a real `rewrite` chain, not
+// an opaque `combine` hole: three equations about the SAME integral, substituted.
 // ---------------------------------------------------------------------------------------
 
 theorem theTraceFormula: forall f: TestFunction;
@@ -119,110 +128,117 @@ proof
                 exists s: PlaceSet; isAdmissibleFor(s, phi)
                 [by modus_ponens admissible-at-phi is-test-function]
 
-              // steps 2-6 inside the witness
               @with-s |
                 unpack s: PlaceSet from some-admissible-s {
                   @s-admissible |
                     isAdmissibleFor(s, phi)
                     [by hypothesis with-s]
 
-                  // step 2: the kernel decomposes
+                  // step 2: the kernel decomposes (11.3.1.4)
                   @decomp-all |
                     forall f: TestFunction; forall t: PlaceSet;
-                      isAdmissibleFor(t, f) -> theKernelDecomposes(t, f)
+                      isAdmissibleFor(t, f) ->
+                      theGlobalIntegral(f) = add(theSLocalIntegral(t, f), theOffSPieces(t, f))
                     [by cite theGeometricKernelDecomposition]
                   @decomp-at-phi |
-                    forall t: PlaceSet; isAdmissibleFor(t, phi) -> theKernelDecomposes(t, phi)
+                    forall t: PlaceSet;
+                      isAdmissibleFor(t, phi) ->
+                      theGlobalIntegral(phi) = add(theSLocalIntegral(t, phi), theOffSPieces(t, phi))
                     [by apply_at(phi) decomp-all]
                   @decomp-at-s |
-                    isAdmissibleFor(s, phi) -> theKernelDecomposes(s, phi)
+                    isAdmissibleFor(s, phi) ->
+                      theGlobalIntegral(phi) = add(theSLocalIntegral(s, phi), theOffSPieces(s, phi))
                     [by apply_at(s) decomp-at-phi]
-                  @decomposes |
-                    theKernelDecomposes(s, phi)
+                  @decomposition |
+                    theGlobalIntegral(phi) = add(theSLocalIntegral(s, phi), theOffSPieces(s, phi))
                     [by modus_ponens decomp-at-s s-admissible]
 
-                  // step 3: off-S pieces vanish (Thm 11.3.2.1)
+                  // step 3: the off-S pieces vanish (Thm 11.3.2.1)
                   @vanish-all |
                     forall f: TestFunction; forall t: PlaceSet;
-                      isAdmissibleFor(t, f) -> theOffSPiecesVanish(t, f)
+                      isAdmissibleFor(t, f) -> theOffSPieces(t, f) = noQuantity
                     [by cite theOrbitalTracesVanishOffS]
                   @vanish-at-phi |
-                    forall t: PlaceSet; isAdmissibleFor(t, phi) -> theOffSPiecesVanish(t, phi)
+                    forall t: PlaceSet;
+                      isAdmissibleFor(t, phi) -> theOffSPieces(t, phi) = noQuantity
                     [by apply_at(phi) vanish-all]
                   @vanish-at-s |
-                    isAdmissibleFor(s, phi) -> theOffSPiecesVanish(s, phi)
+                    isAdmissibleFor(s, phi) -> theOffSPieces(s, phi) = noQuantity
                     [by apply_at(s) vanish-at-phi]
-                  @vanishes |
-                    theOffSPiecesVanish(s, phi)
+                  @off-s-vanishes |
+                    theOffSPieces(s, phi) = noQuantity
                     [by modus_ponens vanish-at-s s-admissible]
 
                   // step 4: the S-local calculation (Thm 12.4.1.1)
                   @slocal-all |
                     forall f: TestFunction; forall t: PlaceSet;
-                      isAdmissibleFor(t, f) -> theKernelDecomposes(t, f) ->
-                      theSLocalIntegralIsTheGeometricSide(t, f)
+                      isAdmissibleFor(t, f) -> theSLocalIntegral(t, f) = theGeometricSide(f)
                     [by cite theSLocalTraceCalculation]
                   @slocal-at-phi |
                     forall t: PlaceSet;
-                      isAdmissibleFor(t, phi) -> theKernelDecomposes(t, phi) ->
-                      theSLocalIntegralIsTheGeometricSide(t, phi)
+                      isAdmissibleFor(t, phi) -> theSLocalIntegral(t, phi) = theGeometricSide(phi)
                     [by apply_at(phi) slocal-all]
                   @slocal-at-s |
-                    isAdmissibleFor(s, phi) -> theKernelDecomposes(s, phi) ->
-                      theSLocalIntegralIsTheGeometricSide(s, phi)
+                    isAdmissibleFor(s, phi) -> theSLocalIntegral(s, phi) = theGeometricSide(phi)
                     [by apply_at(s) slocal-at-phi]
-                  @slocal-needs-decomp |
-                    theKernelDecomposes(s, phi) ->
-                      theSLocalIntegralIsTheGeometricSide(s, phi)
+                  @s-local-is-geometric |
+                    theSLocalIntegral(s, phi) = theGeometricSide(phi)
                     [by modus_ponens slocal-at-s s-admissible]
-                  @geometric-side |
-                    theSLocalIntegralIsTheGeometricSide(s, phi)
-                    [by modus_ponens slocal-needs-decomp decomposes]
 
-                  // step 5: the spectral side (Def 10.4.3.7 + Thm 10.4.2.8)
+                  // step 5: the spectral side (Def 10.4.3.7 + Thm 10.4.2.8), eq (12.5.1.4)
                   @spectral-all |
                     forall f: TestFunction;
-                      isTestFunction(f) -> theGlobalIntegralIsTheSpectralSide(f)
+                      isTestFunction(f) -> theGlobalIntegral(f) = theSpectralSide(f)
                     [by cite theSpectralSideIsTheKernelIntegral]
                   @spectral-at-phi |
-                    isTestFunction(phi) -> theGlobalIntegralIsTheSpectralSide(phi)
+                    isTestFunction(phi) -> theGlobalIntegral(phi) = theSpectralSide(phi)
                     [by apply_at(phi) spectral-all]
-                  @spectral-side |
-                    theGlobalIntegralIsTheSpectralSide(phi)
+                  @global-is-spectral |
+                    theGlobalIntegral(phi) = theSpectralSide(phi)
                     [by modus_ponens spectral-at-phi is-test-function]
 
-                  // step 6: combine
-                  @combine-all |
-                    forall f: TestFunction; forall t: PlaceSet;
-                      theOffSPiecesVanish(t, f) ->
-                      theSLocalIntegralIsTheGeometricSide(t, f) ->
-                      theGlobalIntegralIsTheSpectralSide(f) -> theTraceFormulaHoldsAt(f)
-                    [by cite theTwoSidesCombine]
-                  @combine-at-phi |
-                    forall t: PlaceSet;
-                      theOffSPiecesVanish(t, phi) ->
-                      theSLocalIntegralIsTheGeometricSide(t, phi) ->
-                      theGlobalIntegralIsTheSpectralSide(phi) -> theTraceFormulaHoldsAt(phi)
-                    [by apply_at(phi) combine-all]
-                  @combine-at-s |
-                    theOffSPiecesVanish(s, phi) ->
-                      theSLocalIntegralIsTheGeometricSide(s, phi) ->
-                      theGlobalIntegralIsTheSpectralSide(phi) -> theTraceFormulaHoldsAt(phi)
-                    [by apply_at(s) combine-at-phi]
-                  @combine-needs-geometric |
-                    theSLocalIntegralIsTheGeometricSide(s, phi) ->
-                      theGlobalIntegralIsTheSpectralSide(phi) -> theTraceFormulaHoldsAt(phi)
-                    [by modus_ponens combine-at-s vanishes]
-                  @combine-needs-spectral |
-                    theGlobalIntegralIsTheSpectralSide(phi) -> theTraceFormulaHoldsAt(phi)
-                    [by modus_ponens combine-needs-geometric geometric-side]
-                  @holds-inner |
-                    theTraceFormulaHoldsAt(phi)
-                    [by modus_ponens combine-needs-spectral spectral-side]
+                  // step 6: COMBINE. Substitute the vanishing and the unit law into the
+                  // decomposition to get global = geometric, then chain with (12.5.1.4).
+                  @unit-all |
+                    forall q: Quantity; add(q, noQuantity) = q
+                    [by cite addingNothingChangesNothing]
+                  @unit-at-geometric |
+                    add(theGeometricSide(phi), noQuantity) = theGeometricSide(phi)
+                    [by apply_at(theGeometricSide(phi)) unit-all]
+                  @decomp-with-geometric |
+                    theGlobalIntegral(phi) = add(theGeometricSide(phi), theOffSPieces(s, phi))
+                    [by rewrite s-local-is-geometric decomposition]
+                  @decomp-with-zero |
+                    theGlobalIntegral(phi) = add(theGeometricSide(phi), noQuantity)
+                    [by rewrite off-s-vanishes decomp-with-geometric]
+                  @global-is-geometric |
+                    theGlobalIntegral(phi) = theGeometricSide(phi)
+                    [by rewrite unit-at-geometric decomp-with-zero]
+                  @geometric-is-global |
+                    theGeometricSide(phi) = theGlobalIntegral(phi)
+                    [by symmetry global-is-geometric]
+                  @sides-agree-inner |
+                    theGeometricSide(phi) = theSpectralSide(phi)
+                    [by rewrite global-is-spectral geometric-is-global]
                 }
+              @sides-agree |
+                theGeometricSide(phi) = theSpectralSide(phi)
+                [by unpacked with-s]
+              // `theTraceFormulaHoldsAt` is DEFINED as this equality, so the consumer-facing
+              // statement follows by unfolding the definition.
+              @defn-all |
+                forall f: TestFunction;
+                  theTraceFormulaHoldsAt(f) iff theGeometricSide(f) = theSpectralSide(f)
+                [using import(vocab) definition(0) vocab.theTraceFormulaHoldsAt]
+              @defn |
+                theTraceFormulaHoldsAt(phi) iff theGeometricSide(phi) = theSpectralSide(phi)
+                [by apply_at(phi) defn-all]
+              @defn-converse |
+                theGeometricSide(phi) = theSpectralSide(phi) -> theTraceFormulaHoldsAt(phi)
+                [by equiv_converse defn]
               @holds |
                 theTraceFormulaHoldsAt(phi)
-                [by unpacked with-s]
+                [by modus_ponens defn-converse sides-agree]
             }
           @discharge-vanishing |
             vanishesOnTheNormOneIdeles(phi) -> theTraceFormulaHoldsAt(phi)

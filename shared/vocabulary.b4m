@@ -47,8 +47,21 @@ pred isAMollifiedPowerApproximant(f: TestFunction)
 // the Trace Formula
 // ---------------------------------------------------------------------------------------
 
-/// the two sides of (12.5.1.1) agree at phi — Theorem 12.5.1.1, p. 519
-pred theTraceFormulaHoldsAt(f: TestFunction)
+/// A quantity in the trace calculation: an integral along the diagonal, or one side of
+/// (12.5.1.1). Opaque, but a TERM rather than a predicate — the manuscript's final step
+/// substitutes equations about the same integral, which needs terms to be checkable.
+sort Quantity
+
+/// the left (geometric) side of (12.5.1.1)
+oper theGeometricSide(f: TestFunction) => Quantity
+/// the right (spectral) side of (12.5.1.1)
+oper theSpectralSide(f: TestFunction) => Quantity
+
+/// the two sides of (12.5.1.1) agree at phi — Theorem 12.5.1.1, p. 519. DEFINED, not
+/// opaque: "the Trace Formula holds" IS the equality of its two sides, and saying so lets a
+/// consumer cite the trace-formula layer's equation directly.
+pred theTraceFormulaHoldsAt(f: TestFunction):
+  theTraceFormulaHoldsAt(f) iff theGeometricSide(f) = theSpectralSide(f).
 
 // ---------------------------------------------------------------------------------------
 // the GRH deduction (§1.4)
