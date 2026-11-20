@@ -1,0 +1,243 @@
+// GRH as the manuscript deduces it — the dependency structure, machine-checked.
+//
+// WHAT THIS IS. "The Music of the Primes" (Masullo, draft released 2026-11-20) proves a
+// Trace Formula and asserts GRH as its consequence. The chapter that would carry out that
+// deduction, Chapter 13, is a two-page stub: Theorem 13.3.1.2's statement is the author's
+// footnote "Insert statement". The deduction exists only as a prose OUTLINE in §1.4.
+//
+// So this file formalizes §1.4's chain. Every step is a `hole`, and the two KINDS of hole
+// encode OUR WORKLIST, not the manuscript's:
+//
+//   hole X                        (bare) the manuscript PROVES this. It is ours to
+//                                 transcribe, so strict check must REJECT it — that keeps
+//                                 it on the worklist until the proof is actually written in
+//                                 2b4m. Walk these backwards into the manuscript and fill
+//                                 them in.
+//
+//   hole X cites "manuscript …"   a TRUE GAP in the released text: nothing there
+//                                 establishes it. We assume it pending work by the author,
+//                                 and the citation records exactly what we are assuming and
+//                                 why. Strict check PASSES these, disclosed.
+//
+// So `2b4m check` failing is the NORMAL state here, and its output is the transcription
+// backlog. `--axioms` separates the two kinds: bare holes are ours, cited holes are the
+// author's. When every bare hole is discharged, what remains is precisely the list to send
+// him.
+//
+// The encoding is deliberately COARSE. Zeros, test functions and L-functions are opaque
+// sorts and predicates; no analysis is modelled. That is the right altitude for the
+// question being asked — "does the cited chain reach GRH, and what is missing?" — and it
+// keeps every hole's statement readable against the manuscript. A real formalization of
+// the ANALYSIS would be a different (vastly larger) undertaking.
+
+sort Zero // a non-trivial zero of a Hecke L-function
+sort TestFunction // an element of D(C_F), the manuscript's test functions
+sort Complex // a point of the complex plane
+
+const theCentralPoint: Complex // s = 1/2
+
+oper realPart(z: Zero) => Complex
+
+// σ(ρ) = 1/2 — the zero lies on the critical line. GRH is: every non-trivial zero does.
+pred onTheCriticalLine(r: Zero)
+// ρ is a non-trivial zero of the Hecke L-function under consideration
+pred isNonTrivialZero(r: Zero)
+
+// the manuscript's standing hypothesis on test functions, φ(C_F^1) = 0 (1.7.2.1). The
+// author is explicit that it "cannot be removed. It stays there until after GRH is
+// deduced from the Trace Formula."
+pred vanishesOnTheNormOneIdeles(f: TestFunction)
+// φ is smooth and compactly supported: φ ∈ D(C_F)
+pred isTestFunction(f: TestFunction)
+// φ is one of the §1.4.2 mollified approximants to φ_z(t) = t^{-z}
+pred isAMollifiedPowerApproximant(f: TestFunction)
+
+// the two sides of the Trace Formula agree at φ
+pred theTraceFormulaHoldsAt(f: TestFunction)
+// the non-Archimedean sum at φ approximates L'_f/L_f (§1.4.4)
+pred theNonArchimedeanSumComputesTheLogDerivative(f: TestFunction)
+// L'_f(s+1/2, χ)/L_f(s+1/2, χ) is holomorphic on C_{>0} minus {1/2} (§1.4.5)
+pred theLogDerivativeIsHolomorphicOffTheCentralPoint()
+// L(s, χ) has no zeros with real part > 1/2
+pred noZerosRightOfTheCriticalLine()
+// L(s, χ) has no zeros with real part < 1/2
+pred noZerosLeftOfTheCriticalLine()
+
+intheory generalizedRiemannHypothesis
+
+// ---------------------------------------------------------------------------------------
+// OURS TO TRANSCRIBE — each is stated AND proved in the released manuscript, so each is a
+// BARE hole: strict check rejects it, and it stays on the worklist until transcribed.
+// ---------------------------------------------------------------------------------------
+
+// Theorem 12.5.1.1, p. 519. The declared main theorem, with a real multi-page proof. Note
+// it holds only for φ with φ(C_F^1) = 0 — the hypothesis that drives everything below.
+hole theTraceFormula:
+  forall f: TestFunction;
+  isTestFunction(f) -> vanishesOnTheNormOneIdeles(f) -> theTraceFormulaHoldsAt(f)
+
+// §1.4.2 constructs the approximants explicitly (mollifier ρ_ε, bump h) and §1.4.3 bounds
+// the Archimedean integrals uniformly, so Montel applies. The CONSTRUCTION is written out;
+// what is NOT written out is that the limit interchange is valid (see the bare holes).
+hole theMollifiedApproximantsExist:
+  exists f: TestFunction;
+  isTestFunction(f) and vanishesOnTheNormOneIdeles(f) and isAMollifiedPowerApproximant(f)
+
+// Theorem B.7.2.1 / B.7.2.4, Euler products on the 1-line. §1.7.2 lists non-vanishing on
+// the 1-line as "used as an input throughout".
+hole theEulerProductsOnTheOneLine:
+  theLogDerivativeIsHolomorphicOffTheCentralPoint() ->
+  noZerosRightOfTheCriticalLine()
+
+// ---------------------------------------------------------------------------------------
+// TRUE GAPS IN THE MANUSCRIPT — assumed pending work by the author. Each carries a `cites`
+// recording what is being assumed and why nothing in the released text supplies it, so
+// strict check passes them while disclosing them. These are the list to send the author.
+// ---------------------------------------------------------------------------------------
+
+// §1.4.3-1.4.4. The author identifies this as the hard part in his own words: the
+// non-Archimedean integrals "are infinitely many, and they are the source of all the
+// difficulties: their sum approximates L'_f(s+1/2, χ)/L_f(s+1/2, χ)". Montel gives a
+// subsequence along which the ARCHIMEDEAN integrals converge uniformly; that the
+// infinite non-Archimedean sum also passes to the limit is asserted, not proved.
+hole theLimitInterchangeIsValid
+  cites "NOT IN THE RELEASED TEXT — assumed pending the author. Ch. 13 (which would prove it) is a 2-page stub; the author himself calls the infinite non-Archimedean sum 'the source of all the difficulties' (§1.4.3). Montel gives uniform convergence of the finitely many ARCHIMEDEAN integrals only":
+  forall f: TestFunction;
+  isAMollifiedPowerApproximant(f) -> theTraceFormulaHoldsAt(f) ->
+  theNonArchimedeanSumComputesTheLogDerivative(f)
+
+// §1.4.5, "Putting everything together". Cites "§5.1" for the assembly, but §5.1 is "The
+// topological vector spaces of adelic theta-functions and Idelic Z-functions" — a stale
+// reference, so the justification is not located in the released text. Two `Finish!`
+// footnotes (the author's own) also attach to §1.4's Trace Formula statement.
+hole theLogDerivativeHasOnlyTheCentralPole
+  cites "NOT IN THE RELEASED TEXT — assumed pending the author. §1.4.5 asserts it and cites '§5.1', but §5.1 is about topological vector spaces (a stale reference); two of the author's own 'Finish!' footnotes attach here":
+  forall f: TestFunction;
+  theNonArchimedeanSumComputesTheLogDerivative(f) ->
+  theLogDerivativeIsHolomorphicOffTheCentralPoint()
+
+// The functional-equation reflection. Stated in one line in §1.4.5 ("so by the functional
+// equation the same holds for L(s, χ) over C_{<1/2}"); the manuscript has the functional
+// equation, but this deduction is not written out.
+hole theFunctionalEquationReflectsTheZeroFreeRegion
+  cites "NOT IN THE RELEASED TEXT — assumed pending the author. One line in §1.4.5 ('so by the functional equation the same holds over C_{<1/2}'); the functional equation IS in the manuscript, this deduction from it is not written out":
+  noZerosRightOfTheCriticalLine() -> noZerosLeftOfTheCriticalLine()
+
+// The final step. No zeros strictly either side of the critical line leaves every
+// non-trivial zero ON it. Trivial as real analysis, but it is the content of Theorem
+// 13.3.1.2, whose statement in the released text is the footnote "Insert statement".
+hole everyZeroOffTheLineIsExcluded
+  cites "NOT IN THE RELEASED TEXT — assumed pending the author. This IS Theorem 13.3.1.2, whose statement in the released draft is the author's footnote 'Insert statement'":
+  noZerosRightOfTheCriticalLine() -> noZerosLeftOfTheCriticalLine() ->
+  forall r: Zero; isNonTrivialZero(r) -> onTheCriticalLine(r)
+
+// ---------------------------------------------------------------------------------------
+// THE DEDUCTION. Every step is kernel-checked; the holes above are its only assumptions.
+// `--axioms` on this theorem prints the exact dependency list.
+// ---------------------------------------------------------------------------------------
+
+theorem generalizedRiemannHypothesis: forall r: Zero;
+  isNonTrivialZero(r) -> onTheCriticalLine(r)
+proof
+  @an-approximant-exists |
+    exists f: TestFunction;
+      isTestFunction(f) and vanishesOnTheNormOneIdeles(f) and isAMollifiedPowerApproximant(f)
+    [by cite theMollifiedApproximantsExist]
+  @from-the-approximant |
+    unpack phi: TestFunction from an-approximant-exists {
+      @phi-properties |
+        isTestFunction(phi) and vanishesOnTheNormOneIdeles(phi) and isAMollifiedPowerApproximant(phi)
+        [by hypothesis from-the-approximant]
+      // `and` is LEFT-associative, so the conjunction is (A and B) and C.
+      @phi-head |
+        isTestFunction(phi) and vanishesOnTheNormOneIdeles(phi)
+        [by and_lhs phi-properties]
+      @phi-is-a-test-function |
+        isTestFunction(phi)
+        [by and_lhs phi-head]
+      @phi-vanishes |
+        vanishesOnTheNormOneIdeles(phi)
+        [by and_rhs phi-head]
+      @phi-is-an-approximant |
+        isAMollifiedPowerApproximant(phi)
+        [by and_rhs phi-properties]
+
+      // Trace Formula at phi (Thm 12.5.1.1), using its standing hypothesis
+      @trace-all |
+        forall f: TestFunction;
+          isTestFunction(f) -> vanishesOnTheNormOneIdeles(f) -> theTraceFormulaHoldsAt(f)
+        [by cite theTraceFormula]
+      @trace-at-phi-needs-vanishing |
+        isTestFunction(phi) -> vanishesOnTheNormOneIdeles(phi) -> theTraceFormulaHoldsAt(phi)
+        [by apply_at(phi) trace-all]
+      @trace-at-phi-needs-only-vanishing |
+        vanishesOnTheNormOneIdeles(phi) -> theTraceFormulaHoldsAt(phi)
+        [by modus_ponens trace-at-phi-needs-vanishing phi-is-a-test-function]
+      @trace-holds |
+        theTraceFormulaHoldsAt(phi)
+        [by modus_ponens trace-at-phi-needs-only-vanishing phi-vanishes]
+
+      // the limit interchange (TRUE GAP) extracts L'/L
+      @interchange-all |
+        forall f: TestFunction;
+          isAMollifiedPowerApproximant(f) -> theTraceFormulaHoldsAt(f) ->
+          theNonArchimedeanSumComputesTheLogDerivative(f)
+        [by cite theLimitInterchangeIsValid]
+      @interchange-at-phi |
+        isAMollifiedPowerApproximant(phi) -> theTraceFormulaHoldsAt(phi) ->
+          theNonArchimedeanSumComputesTheLogDerivative(phi)
+        [by apply_at(phi) interchange-all]
+      @interchange-needs-trace |
+        theTraceFormulaHoldsAt(phi) -> theNonArchimedeanSumComputesTheLogDerivative(phi)
+        [by modus_ponens interchange-at-phi phi-is-an-approximant]
+      @log-derivative-computed |
+        theNonArchimedeanSumComputesTheLogDerivative(phi)
+        [by modus_ponens interchange-needs-trace trace-holds]
+
+      // holomorphy off the central point (TRUE GAP)
+      @holomorphy-all |
+        forall f: TestFunction;
+          theNonArchimedeanSumComputesTheLogDerivative(f) ->
+          theLogDerivativeIsHolomorphicOffTheCentralPoint()
+        [by cite theLogDerivativeHasOnlyTheCentralPole]
+      @holomorphy-at-phi |
+        theNonArchimedeanSumComputesTheLogDerivative(phi) ->
+          theLogDerivativeIsHolomorphicOffTheCentralPoint()
+        [by apply_at(phi) holomorphy-all]
+      @holomorphic |
+        theLogDerivativeIsHolomorphicOffTheCentralPoint()
+        [by modus_ponens holomorphy-at-phi log-derivative-computed]
+
+      // no zeros to the right (grounded: Euler products on the 1-line)
+      @right-implication |
+        theLogDerivativeIsHolomorphicOffTheCentralPoint() -> noZerosRightOfTheCriticalLine()
+        [by cite theEulerProductsOnTheOneLine]
+      @no-zeros-right |
+        noZerosRightOfTheCriticalLine()
+        [by modus_ponens right-implication holomorphic]
+
+      // reflect across the line (TRUE GAP)
+      @reflection |
+        noZerosRightOfTheCriticalLine() -> noZerosLeftOfTheCriticalLine()
+        [by cite theFunctionalEquationReflectsTheZeroFreeRegion]
+      @no-zeros-left |
+        noZerosLeftOfTheCriticalLine()
+        [by modus_ponens reflection no-zeros-right]
+
+      // conclude (TRUE GAP: this IS Theorem 13.3.1.2)
+      @exclusion |
+        noZerosRightOfTheCriticalLine() -> noZerosLeftOfTheCriticalLine() ->
+          forall r: Zero; isNonTrivialZero(r) -> onTheCriticalLine(r)
+        [by cite everyZeroOffTheLineIsExcluded]
+      @exclusion-needs-left |
+        noZerosLeftOfTheCriticalLine() ->
+          forall r: Zero; isNonTrivialZero(r) -> onTheCriticalLine(r)
+        [by modus_ponens exclusion no-zeros-right]
+      @grh-inner |
+        forall r: Zero; isNonTrivialZero(r) -> onTheCriticalLine(r)
+        [by modus_ponens exclusion-needs-left no-zeros-left]
+    }
+  @conclusion |
+    forall r: Zero; isNonTrivialZero(r) -> onTheCriticalLine(r)
+    [by unpacked from-the-approximant]
+qed

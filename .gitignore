@@ -1,0 +1,7 @@
+# editor/OS cruft
+*~
+.DS_Store
+
+# nothing generated is ignored on purpose: the .txt extraction is COMMITTED,
+# because the .md files cite its line numbers and those citations must stay
+# verifiable from a clone alone.
