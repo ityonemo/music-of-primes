@@ -30,7 +30,15 @@ downward and `--axioms` reports it at every stage.
 | | means | strict `check` |
 |---|---|---|
 | bare `hole X` | the manuscript PROVES this — **ours** to transcribe | **fails**, keeping it on the worklist |
-| `hole X cites "…"` | a true gap in the released text — **the author's**, assumed pending his work | passes, disclosed |
+| `hole X cites "manuscript …"` | a true gap in the released text — **the author's**, assumed pending his work | passes, disclosed |
+| `hole X cites "assertion: …"` | the author ASSERTS it rather than proving it — recorded as such | passes, disclosed |
+| `hole X cites "standard: …"` | classical, with a textbook source | passes, disclosed |
+
+An **`assertion:`** citation quotes the author's own words — "we further assume", "where we
+assume", "for example, take…" — so a reader can see exactly what was claimed and judge it.
+It is a statement of STATUS, not a verdict: Vakil's announcement invites readers to "fill any
+small gaps if they occur", so an assertion is a candidate to pick up and close. Several are
+marked CANDIDATE TO CLOSE where the step looks routine.
 
 So a **failing check is the normal state**, and its output *is* the transcription backlog.
 When every bare hole is discharged, what remains is precisely the list to send the author.

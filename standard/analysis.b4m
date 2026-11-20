@@ -220,3 +220,34 @@ proof
     forall l: Locus; isANestedExhaustion(l) -> successiveDifferencesPartition(l)
     [by cite nestedExhaustionsHaveDisjointDifferences]
 qed
+
+// ---------------------------------------------------------------------------------------
+// INITIAL SEGMENTS — why the T_k nest and exhaust, which is definitional.
+// ---------------------------------------------------------------------------------------
+
+/// an indexed family of finite sets
+sort IndexedFamily
+
+/// each member is the initial segment of a fixed enumeration: T_k = the first k elements
+pred isTheInitialSegmentFamily(x: IndexedFamily)
+/// the family is nested and its union is everything
+pred nestsAndExhausts(x: IndexedFamily)
+
+intheory initialSegmentsNestAndExhaust
+
+/// The initial segments of an enumeration nest and exhaust: T_0 subset T_1 subset ... with
+/// union the whole enumerated set. Immediate from the definition of "first k elements", and
+/// it is why the manuscript's primary divisorial stratification needs no separate argument —
+/// T_k is DEFINED as "the finite set of the first k rational primes" (txt 1169), so the
+/// nesting is by construction and exhaustion is the infinitude of the primes.
+hole initialSegmentsNest
+  cites "standard: the initial segments of an enumeration are nested with union the whole set; the primes are infinite (Euclid). The manuscript DEFINES T_k as the first k rational primes at txt 1169, so this is definitional rather than proved there":
+  forall x: IndexedFamily; isTheInitialSegmentFamily(x) -> nestsAndExhausts(x)
+
+theorem initialSegmentsNestAndExhaust:
+  forall x: IndexedFamily; isTheInitialSegmentFamily(x) -> nestsAndExhausts(x)
+proof
+  @conclusion |
+    forall x: IndexedFamily; isTheInitialSegmentFamily(x) -> nestsAndExhausts(x)
+    [by cite initialSegmentsNest]
+qed

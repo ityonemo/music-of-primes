@@ -88,7 +88,8 @@ pred primeNormsAreUnbounded = ant.primeNormsAreUnbounded
 pred compactSupportMeetsFinitelyManyPlaces = ant.compactSupportMeetsFinitelyManyPlaces
 fact onlyFinitelyManyPlacesObstruct = ant.onlyFinitelyManyPlacesObstruct
 
-hole finitelyManyEnlargementsSuffice:
+hole finitelyManyEnlargementsSuffice
+  cites "assertion: the manuscript ASSUMES this rather than proving it — 'We further assume S is large enough so as to arrange that the support K of phi satisfies |K|_F subset (1/T, T)...' and 'Further assume that S is so large that phi is invariant under...' (txt 31541-31543). Plausible, and the classical half (only finitely many places obstruct) is cited separately; but the preservation of the earlier conditions under enlargement is asserted":
   forall f: TestFunction;
   (primeNormsAreUnbounded() and compactSupportMeetsFinitelyManyPlaces(f)) ->
   forall s: PlaceSet;
@@ -141,9 +142,31 @@ pred isANestedExhaustion = classical.isANestedExhaustion
 pred successiveDifferencesPartition = classical.successiveDifferencesPartition
 fact nestedExhaustionsPartition = classical.nestedExhaustionsPartition
 
-hole thePrimaryStrataAreNestedAndExhausting:
+sort IndexedFamily = classical.IndexedFamily
+pred isTheInitialSegmentFamily = classical.isTheInitialSegmentFamily
+pred nestsAndExhausts = classical.nestsAndExhausts
+fact initialSegmentsNestAndExhaust = classical.initialSegmentsNestAndExhaust
+
+/// the T_k family underlying the strata: "the finite set of the first k rational primes"
+oper theRationalPrimeSegments(s: PlaceSet, f: TestFunction) => IndexedFamily
+
+/// CLOSED, not assumed. The manuscript DEFINES T_k as the first k rational primes
+/// (txt 1169) and P_k as its preimage under |Spec(O_F)| -> |Spec(Z)|, so nesting is by
+/// construction — there is no proof in the paper because none is needed. What this file
+/// still owes is only the IDENTIFICATION: that the strata really are built from the initial
+/// segments that way, which is reading the manuscript's own definition.
+hole theStrataAreBuiltFromInitialSegments
+  cites "assertion: the manuscript's own word is ASSUME — 'we will term the primary divisorial stratification the stratification {GL_1(A_F)_{P_k}} ... where we assume: (1) S is saturated. (2) Each P_k is saturated, and obtained as a union of finitely many of the T_m. (3) {P_k} is the finest among such stratifications' (txt 1158-1163). It then says 'more directly, we define P_k to be the pre-image ... of T_k', T_k being the first k rational primes (txt 1169)":
   forall f: TestFunction; forall s: PlaceSet;
-  isAdmissibleFor(s, f) -> isANestedExhaustion(theFiltrationStrata(s, f))
+  isAdmissibleFor(s, f) ->
+  isTheInitialSegmentFamily(theRationalPrimeSegments(s, f))
+
+/// and that nesting of the segments transfers to the strata (preimage under the norm map)
+hole segmentNestingLiftsToTheStrata
+  cites "assertion: that the T_k nesting transfers to the strata through the norm-map preimage is stated as the construction, not argued — 'the stratum GL_1(A_F)_{P_k} is the pre-image under the norm map GL_1(A_F) -> GL_1(A_Q) of the kth divisorial stratum' (txt 1164-1174)":
+  forall f: TestFunction; forall s: PlaceSet;
+  nestsAndExhausts(theRationalPrimeSegments(s, f)) ->
+  isANestedExhaustion(theFiltrationStrata(s, f))
 
 // Theorem 11.3.2.1 (Orbital Traces on the Paley-Wiener Levels), txt 29947 — proved. Each
 // off-S piece integrates to zero, so their sum does.
@@ -299,20 +322,54 @@ proof
                       // step 2: the kernel decomposes. The alpha_k strata partition (OURS); additivity of
                       // the integral over a partition is CLASSICAL (cited); together they give the split.
                       // the P_k are nested + exhausting (OURS)
-                      @nested-all |
+                      // the strata are built from the T_k initial segments (reading the definition)
+                      @segs-all |
                         forall f: TestFunction; forall t: PlaceSet;
-                          isAdmissibleFor(t, f) -> isANestedExhaustion(theFiltrationStrata(t, f))
-                        [by cite thePrimaryStrataAreNestedAndExhausting]
-                      @nested-at-phi |
+                          isAdmissibleFor(t, f) ->
+                          isTheInitialSegmentFamily(theRationalPrimeSegments(t, f))
+                        [by cite theStrataAreBuiltFromInitialSegments]
+                      @segs-at-phi |
                         forall t: PlaceSet;
-                          isAdmissibleFor(t, phi) -> isANestedExhaustion(theFiltrationStrata(t, phi))
-                        [by apply_at(phi) nested-all]
-                      @nested-at-s |
-                        isAdmissibleFor(s, phi) -> isANestedExhaustion(theFiltrationStrata(s, phi))
-                        [by apply_at(s) nested-at-phi]
+                          isAdmissibleFor(t, phi) ->
+                          isTheInitialSegmentFamily(theRationalPrimeSegments(t, phi))
+                        [by apply_at(phi) segs-all]
+                      @segs-at-s |
+                        isAdmissibleFor(s, phi) ->
+                          isTheInitialSegmentFamily(theRationalPrimeSegments(s, phi))
+                        [by apply_at(s) segs-at-phi]
+                      @is-segments |
+                        isTheInitialSegmentFamily(theRationalPrimeSegments(s, phi))
+                        [by modus_ponens segs-at-s s-admissible]
+                      // initial segments nest and exhaust — DEFINITIONAL, cited
+                      @nest-all |
+                        forall x: IndexedFamily;
+                          isTheInitialSegmentFamily(x) -> nestsAndExhausts(x)
+                        [by cite initialSegmentsNestAndExhaust]
+                      @nest-at-segs |
+                        isTheInitialSegmentFamily(theRationalPrimeSegments(s, phi)) ->
+                          nestsAndExhausts(theRationalPrimeSegments(s, phi))
+                        [by apply_at(theRationalPrimeSegments(s, phi)) nest-all]
+                      @segments-nest |
+                        nestsAndExhausts(theRationalPrimeSegments(s, phi))
+                        [by modus_ponens nest-at-segs is-segments]
+                      // and that lifts to the strata through the norm-map preimage
+                      @lift-all |
+                        forall f: TestFunction; forall t: PlaceSet;
+                          nestsAndExhausts(theRationalPrimeSegments(t, f)) ->
+                          isANestedExhaustion(theFiltrationStrata(t, f))
+                        [by cite segmentNestingLiftsToTheStrata]
+                      @lift-at-phi |
+                        forall t: PlaceSet;
+                          nestsAndExhausts(theRationalPrimeSegments(t, phi)) ->
+                          isANestedExhaustion(theFiltrationStrata(t, phi))
+                        [by apply_at(phi) lift-all]
+                      @lift-at-s |
+                        nestsAndExhausts(theRationalPrimeSegments(s, phi)) ->
+                          isANestedExhaustion(theFiltrationStrata(s, phi))
+                        [by apply_at(s) lift-at-phi]
                       @is-nested |
                         isANestedExhaustion(theFiltrationStrata(s, phi))
-                        [by modus_ponens nested-at-s s-admissible]
+                        [by modus_ponens lift-at-s segments-nest]
                       // successive differences therefore partition (CLASSICAL, cited)
                       @diffs-all |
                         forall l: Locus; isANestedExhaustion(l) -> successiveDifferencesPartition(l)

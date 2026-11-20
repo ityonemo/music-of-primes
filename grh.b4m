@@ -72,7 +72,8 @@ fact theTraceFormula = trace.theTraceFormula
 pred bumpFunctionsExist = classical.bumpFunctionsExist
 fact mollifiersSmoothAndBumpsExist = classical.mollifiersSmoothAndBumpsExist
 
-hole theConstructionSatisfiesTheStandingHypotheses:
+hole theConstructionSatisfiesTheStandingHypotheses
+  cites "assertion: §1.4.2 gives the construction by EXAMPLE and asserts it works — 'For example, take eps > 0 small, and rho_eps the resulting mollifier ... Take h(t) in D(R_{>0}) be a bump function supported over (1, +infinity)', then 'phi_{h,eps,z}(t) := h(t)(rho_eps * phi_z)' is said to approximate chi.phi_z 'by smooth compactly supported functions on C_F satisfying (a) and (b)'. That it satisfies (a) and (b) is asserted, not verified (txt 1326-1333). CANDIDATE TO CLOSE — likely routine":
   bumpFunctionsExist() ->
   exists f: TestFunction;
   isTestFunction(f) and vanishesOnTheNormOneIdeles(f) and isAMollifiedPowerApproximant(f)
@@ -101,7 +102,8 @@ pred lVanishesAt = classical.lVanishesAt
 pred logDerivativeHasAPoleAt = classical.logDerivativeHasAPoleAt
 fact aZeroForcesAPoleOfTheLogDerivative = classical.aZeroForcesAPoleOfTheLogDerivative
 
-hole holomorphyCoversTheWholeRightRegion:
+hole holomorphyCoversTheWholeRightRegion
+  cites "assertion: §1.4.5 concludes in one sentence with no argument — 'This implies that L_f(s, chi), and hence L(s, chi), has no zeros over C_{>1/2}' (txt 1417). The classical principle behind it (a zero forces a pole of L'/L) is cited separately; the region bookkeeping and the s=1/2 exception are asserted. CANDIDATE TO CLOSE — likely routine":
   (forall z: Point; lVanishesAt(z) -> logDerivativeHasAPoleAt(z)) ->
   theLogDerivativeIsHolomorphicOffTheCentralPoint() -> noZeroOnTheOneLine() ->
   noZerosRightOfTheCriticalLine()

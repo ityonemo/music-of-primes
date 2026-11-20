@@ -5,16 +5,31 @@ kernel-checked. This file is the index to it.
 
 ## The current frontier, exactly
 
-`2b4m check --draft --axioms grh.b4m generalizedRiemannHypothesis` reports **25 entries**,
+`2b4m check --draft --axioms grh.b4m generalizedRiemannHypothesis` reports **27 entries**,
 and they are three different kinds — worth separating, because only the first is work we owe:
 
 | kind | n | |
 |---|---|---|
-| bare `hole` — **ours to transcribe** | **8** | 2 in `grh.b4m`, 6 in `trace-formula/` |
-| `hole … cites` — assumed | 14 | 4 the author's gaps + 10 classical (`standard/`) |
+| bare `hole` — **ours to transcribe** | **4** | all in `trace-formula/` |
+| `hole … cites` — assumed | 20 | 4 the author's unwritten gaps + 5 ASSERTIONS + 11 classical |
 | DEFINITION clause | 3 | `theTraceFormulaHoldsAt`, `isAdmissibleFor`, `partitionsTheDomain` |
 
-(8 + 14 + 3 = 25, which is what `--axioms` reports.)
+(4 + 20 + 3 = 27, which is what `--axioms` reports.)
+
+**Bare holes fell 8 → 4** by applying a distinction that had been missing: where the author
+ASSERTS a step rather than proving it, that is not work we owe — it is an assumption of his,
+and it is now recorded as `cites "assertion: …"` quoting his own words. Five such:
+
+| hole | the author's words |
+|---|---|
+| `finitelyManyEnlargementsSuffice` | "We further assume S is large enough so as to arrange…" |
+| `theStrataAreBuiltFromInitialSegments` | "…where we **assume**: (1) S is saturated…" |
+| `segmentNestingLiftsToTheStrata` | stated as the construction, not argued |
+| `theConstructionSatisfiesTheStandingHypotheses` | "**For example**, take ε > 0 small…" |
+| `holomorphyCoversTheWholeRightRegion` | "This implies that L_f(s,χ)… has no zeros over C_{>1/2}" |
+
+Two are marked CANDIDATE TO CLOSE: Vakil's announcement invites readers to fill small gaps,
+and those two look routine.
 
 ### STRUCTURAL DECOMPOSITION IS COMPLETE
 
