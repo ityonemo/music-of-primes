@@ -10,11 +10,17 @@ and they are three different kinds — worth separating, because only the first 
 
 | kind | n | |
 |---|---|---|
-| bare `hole` — **ours to transcribe** | **7** | 2 in `grh.b4m`, 5 in `trace-formula/` |
-| `hole … cites` — assumed | 8 | 4 the author's gaps + 4 classical (`standard/`) |
+| bare `hole` — **ours to transcribe** | **8** | 2 in `grh.b4m`, 6 in `trace-formula/` |
+| `hole … cites` — assumed | 9 | 4 the author's gaps + 5 classical (`standard/`) |
 | DEFINITION clause | 2 | `theTraceFormulaHoldsAt`, `isAdmissibleFor` |
 
-(7 + 8 + 2 = 17, which is what `--axioms` reports.)
+(8 + 9 + 2 = 19, which is what `--axioms` reports.)
+
+**The bare count can go UP, and did.** Splitting the kernel decomposition traded one opaque
+hole for two sharper ones plus a classical citation (countable additivity, Halmos §25). That
+is a better artifact — "the alpha_k strata partition the ideles" is a checkable claim about
+the manuscript's filtration, where "the kernel decomposes" was a black box — but it is not a
+reduction, and pretending otherwise would be dishonest bookkeeping.
 
 **The bare count does not fall every round, and that is expected.** Two rounds running, the
 gain was RECLASSIFICATION: an assumption moved from "ours, opaque" to "classical, cited with

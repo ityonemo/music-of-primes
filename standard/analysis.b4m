@@ -92,3 +92,32 @@ proof
     noZeroOnTheOneLine()
     [by cite nonVanishingOnTheOneLineHolds]
 qed
+
+// ---------------------------------------------------------------------------------------
+// MEASURE THEORY — additivity, which the kernel decomposition is an instance of.
+// ---------------------------------------------------------------------------------------
+
+/// the indicator functions {alpha_k} partition the domain: the strata of the divisorial
+/// filtration on GL_1(A_F) cover it, pairwise disjointly
+pred partitionsTheDomain(l: Locus)
+/// integrating over a partition and summing agrees with integrating over the whole
+pred integralIsAdditiveOver(l: Locus)
+
+intheory countableAdditivity
+
+/// Countable additivity of the Haar integral over a measurable partition. This is what
+/// equation (11.3.1.4) USES: that equation is a DEFINITION — it defines k_{p_k} as the
+/// successive difference (alpha_{k+1} - alpha_k) * k_geom — and the Trace Formula's proof
+/// then integrates term by term and sums. The mathematical content of that move is
+/// additivity, not anything specific to this manuscript.
+hole theIntegralIsCountablyAdditive
+  cites "standard: countable additivity of a Haar integral over a measurable partition — Halmos, Measure Theory §25; Hewitt-Ross, Abstract Harmonic Analysis I §15. Used by the manuscript at eq (11.3.1.4) + txt 31550, where the alpha_k indicators chop the ideles along the divisorial filtration":
+  forall l: Locus; partitionsTheDomain(l) -> integralIsAdditiveOver(l)
+
+theorem countableAdditivity: forall l: Locus;
+  partitionsTheDomain(l) -> integralIsAdditiveOver(l)
+proof
+  @conclusion |
+    forall l: Locus; partitionsTheDomain(l) -> integralIsAdditiveOver(l)
+    [by cite theIntegralIsCountablyAdditive]
+qed

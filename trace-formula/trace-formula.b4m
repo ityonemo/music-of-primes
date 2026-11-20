@@ -19,6 +19,7 @@
 
 theory vocab <<< "../shared/vocabulary.b4m"
 theory ant <<< "../standard/algebraic-number-theory.b4m"
+theory classical <<< "../standard/analysis.b4m"
 
 // shared with grh.b4m: the objects and the Trace Formula predicate itself
 sort TestFunction = vocab.TestFunction
@@ -85,12 +86,41 @@ hole aPlaceSetCanBeEnlargedToSuitAnyTestFunction:
   (containsTheRamifiedAndArchimedeanPlaces(t) and hasTrivialSClassGroup(t))
   and isLargeEnoughFor(t, f)
 
-// Equation (11.3.1.4): the smoothened geometric kernel splits along the diagonal into its
-// S-local part plus the off-S pieces.
-hole theGeometricKernelDecomposition:
+// SPLIT. Equation (11.3.1.4) is a DEFINITION — it defines k_{p_k} as the successive
+// difference (alpha_{k+1} - alpha_k) * k_geom — and the Trace Formula's proof then integrates
+// term by term and sums. So the step has two parts, of different kinds:
+//
+//   CLASSICAL, cited — countable additivity of the Haar integral over a partition
+//                      (standard/analysis.b4m). That IS the content of "integrate the pieces
+//                      and sum".
+//   OURS, below      — that the alpha_k indicators of the divisorial filtration really do
+//                      PARTITION the ideles, a fact about the manuscript's filtration rather
+//                      than about integration.
+sort Locus = classical.Locus
+pred partitionsTheDomain = classical.partitionsTheDomain
+pred integralIsAdditiveOver = classical.integralIsAdditiveOver
+fact countableAdditivity = classical.countableAdditivity
+
+/// the locus the alpha_k strata carve out, for a given S and phi
+oper theFiltrationStrata(s: PlaceSet, f: TestFunction) => Locus
+
+/// OURS: the alpha_k indicators of the divisorial filtration PARTITION the ideles, and the
+/// integral therefore splits. Stated as one step rather than two: an intermediate "additivity
+/// gives the kernel-shaped split" hole would be pure glue — an artifact of this encoding's
+/// opacity, not a step in the manuscript — and glue holes make the artifact look deeper
+/// without checking anything more.
+///
+/// The CLASSICAL half is cited in standard/analysis.b4m: `countableAdditivity` is why
+/// partitioning licenses the split at all, and it appears in --axioms as its own entry.
+hole theDivisorialFiltrationSplitsTheIntegral:
   forall f: TestFunction; forall s: PlaceSet;
-  isAdmissibleFor(s, f) ->
+  isAdmissibleFor(s, f) -> integralIsAdditiveOver(theFiltrationStrata(s, f)) ->
   theGlobalIntegral(f) = add(theSLocalIntegral(s, f), theOffSPieces(s, f))
+
+/// and that the strata do partition — needed to invoke additivity
+hole theDivisorialFiltrationPartitionsTheIdeles:
+  forall f: TestFunction; forall s: PlaceSet;
+  isAdmissibleFor(s, f) -> partitionsTheDomain(theFiltrationStrata(s, f))
 
 // Theorem 11.3.2.1 (Orbital Traces on the Paley-Wiener Levels), txt 29947 — proved. Each
 // off-S piece integrates to zero, so their sum does.
@@ -214,24 +244,53 @@ proof
                         isAdmissibleFor(s, phi)
                         [by modus_ponens defn-adm-converse s-parts]
 
-                      // step 2: the kernel decomposes (11.3.1.4)
-                      @decomp-all |
+                      // step 2: the kernel decomposes. The alpha_k strata partition (OURS); additivity of
+                      // the integral over a partition is CLASSICAL (cited); together they give the split.
+                      @partition-all |
                         forall f: TestFunction; forall t: PlaceSet;
-                          isAdmissibleFor(t, f) ->
-                          theGlobalIntegral(f) = add(theSLocalIntegral(t, f), theOffSPieces(t, f))
-                        [by cite theGeometricKernelDecomposition]
-                      @decomp-at-phi |
+                          isAdmissibleFor(t, f) -> partitionsTheDomain(theFiltrationStrata(t, f))
+                        [by cite theDivisorialFiltrationPartitionsTheIdeles]
+                      @partition-at-phi |
                         forall t: PlaceSet;
-                          isAdmissibleFor(t, phi) ->
+                          isAdmissibleFor(t, phi) -> partitionsTheDomain(theFiltrationStrata(t, phi))
+                        [by apply_at(phi) partition-all]
+                      @partition-at-s |
+                        isAdmissibleFor(s, phi) -> partitionsTheDomain(theFiltrationStrata(s, phi))
+                        [by apply_at(s) partition-at-phi]
+                      @partitions |
+                        partitionsTheDomain(theFiltrationStrata(s, phi))
+                        [by modus_ponens partition-at-s s-admissible]
+                      @additive-all |
+                        forall l: Locus; partitionsTheDomain(l) -> integralIsAdditiveOver(l)
+                        [by cite countableAdditivity]
+                      @additive-at-strata |
+                        partitionsTheDomain(theFiltrationStrata(s, phi)) ->
+                          integralIsAdditiveOver(theFiltrationStrata(s, phi))
+                        [by apply_at(theFiltrationStrata(s, phi)) additive-all]
+                      @is-additive |
+                        integralIsAdditiveOver(theFiltrationStrata(s, phi))
+                        [by modus_ponens additive-at-strata partitions]
+                      @split-all |
+                        forall f: TestFunction; forall t: PlaceSet;
+                          isAdmissibleFor(t, f) -> integralIsAdditiveOver(theFiltrationStrata(t, f)) ->
+                          theGlobalIntegral(f) = add(theSLocalIntegral(t, f), theOffSPieces(t, f))
+                        [by cite theDivisorialFiltrationSplitsTheIntegral]
+                      @split-at-phi |
+                        forall t: PlaceSet;
+                          isAdmissibleFor(t, phi) -> integralIsAdditiveOver(theFiltrationStrata(t, phi)) ->
                           theGlobalIntegral(phi) = add(theSLocalIntegral(t, phi), theOffSPieces(t, phi))
-                        [by apply_at(phi) decomp-all]
-                      @decomp-at-s |
-                        isAdmissibleFor(s, phi) ->
+                        [by apply_at(phi) split-all]
+                      @split-at-s |
+                        isAdmissibleFor(s, phi) -> integralIsAdditiveOver(theFiltrationStrata(s, phi)) ->
                           theGlobalIntegral(phi) = add(theSLocalIntegral(s, phi), theOffSPieces(s, phi))
-                        [by apply_at(s) decomp-at-phi]
+                        [by apply_at(s) split-at-phi]
+                      @split-needs-additive |
+                        integralIsAdditiveOver(theFiltrationStrata(s, phi)) ->
+                          theGlobalIntegral(phi) = add(theSLocalIntegral(s, phi), theOffSPieces(s, phi))
+                        [by modus_ponens split-at-s s-admissible]
                       @decomposition |
                         theGlobalIntegral(phi) = add(theSLocalIntegral(s, phi), theOffSPieces(s, phi))
-                        [by modus_ponens decomp-at-s s-admissible]
+                        [by modus_ponens split-needs-additive is-additive]
 
                       // step 3: the off-S pieces vanish (Thm 11.3.2.1)
                       @vanish-all |
