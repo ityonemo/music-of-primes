@@ -14,32 +14,33 @@ music-of-primes/
 ├── WHAT-IT-WOULD-TAKE.md         measured scope: the 429-result closure, 49% citable
 ├── DEPENDENCY-MAP.md             the current frontier: who owes what
 │
-├── grh.md                        TOP: the §1.4 chain, literate. The entry point.
+├── grh.b4m                       TOP: the §1.4 chain. The entry point.
 │
 ├── trace-formula/                Thm 12.5.1.1 and its four direct dependencies
-│   ├── README.md                 what this layer is and what it still owes
-│   ├── geometric-side.md         Thm 12.4.1.1
-│   ├── orbital-traces.md         Thm 11.3.2.1
-│   └── spectral-side.md          Thm 10.4.2.8, Def 10.4.3.7
+│   ├── trace-formula.b4m         Thm 12.5.1.1 itself
+│   ├── geometric-side.b4m        Thm 12.4.1.1
+│   ├── orbital-traces.b4m        Thm 11.3.2.1
+│   └── spectral-side.b4m         Thm 10.4.2.8, Def 10.4.3.7
 │
 ├── explicit-formulas/            Appendix B.4 — B.4.4.7 and below
 ├── one-line/                     Appendix B.7 — Euler products, non-vanishing
 │
-├── standard/                     the `standard:` tier, grouped by subject
-│   ├── haar.md                   Haar measure on a locally compact group
-│   ├── tvs.md                    locally convex spaces, nuclearity (App. C)
-│   ├── schwartz-bruhat.md        App. D
-│   └── complex-analysis.md       Montel, Paley-Wiener, residues
+└── standard/                     the `standard:` tier, grouped by subject
+    ├── haar.b4m                  Haar measure on a locally compact group
+    ├── tvs.b4m                   locally convex spaces, nuclearity (App. C)
+    ├── schwartz-bruhat.b4m       App. D
+    └── complex-analysis.b4m      Montel, Paley-Wiener, residues
 │
 └── the-music-of-the-primes.{pdf,txt}
 ```
 
 ## Five conventions
 
-**1. Literate `.md`, not bare `.b4m`.** The audience is mathematicians auditing a claim, not
-2b4m users. `examples/openai-wiles` is 16 literate files to 3 `.b4m` for exactly this
-reason: prose carries the manuscript quotation and the reasoning, with checked code embedded.
-Keep `grh.b4m` as a `.b4m` only until the first `.md` replaces it.
+**1. Bare `.b4m` is fine** (user, 2026-11-20). `openai-wiles` went literate because its job
+was to walk a reader through a wrong argument beside a right one; here the job is a dependency
+map, and comments in the source carry the manuscript locators perfectly well. Use literate
+`.md` only where prose genuinely earns its place — a layer whose point is explaining WHY the
+manuscript's step works, not just that it is cited.
 
 **2. One directory per ARGUMENT COMPONENT, not per manuscript chapter.** `trace-formula/`
 rather than `ch12/`. Chapters are an artifact of how the author chose to write; the component

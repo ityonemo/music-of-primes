@@ -1,0 +1,69 @@
+// The shared vocabulary of the formalization — the sorts and predicates that more than one
+// layer needs. Every other file imports this with `theory vocab <<< "vocabulary.b4m"`.
+//
+// WHY THIS FILE EXISTS. Each layer of the dependency map (grh.b4m, trace-formula.b4m, …)
+// talks about the same objects: test functions, the Trace Formula holding at one, the zeros
+// of a Hecke L-function. Declared separately per file they would be DIFFERENT sorts that
+// merely look alike, and `grh.b4m` could not cite `theTraceFormula` at all — identity in
+// 2b4m is by ORIGIN, not by spelling. So the shared names live here, declared once.
+//
+// ALTITUDE. Everything is opaque: no analysis is modelled. The sorts carry no structure and
+// the predicates no definitions, because the question this formalization answers is "what
+// does the GRH claim rest on", not "is the analysis correct". See README.md.
+
+// ---------------------------------------------------------------------------------------
+// the objects
+// ---------------------------------------------------------------------------------------
+
+/// an element of D(C_F): the manuscript's test functions on the idele class group
+sort TestFunction
+/// a non-trivial zero of the Hecke L-function under consideration
+sort Zero
+/// a point of the complex plane
+sort Complex
+/// a finite set S of places of F
+sort PlaceSet
+
+/// s = 1/2, the centre of the critical strip
+const theCentralPoint: Complex
+
+// ---------------------------------------------------------------------------------------
+// test functions
+// ---------------------------------------------------------------------------------------
+
+/// phi is smooth and compactly supported: phi in D(C_F)
+pred isTestFunction(f: TestFunction)
+
+/// phi(C_F^1) = 0 — the manuscript's standing hypothesis (1.7.2.1). The author is explicit
+/// that it "cannot be removed. It stays there until after GRH is deduced from the Trace
+/// Formula", and that it is what makes Weil's Positivity Criterion unavailable: positivity
+/// needs phi = psi1 * psi2, and the only such phi satisfying this is identically zero.
+pred vanishesOnTheNormOneIdeles(f: TestFunction)
+
+/// phi is one of the §1.4.2 mollified approximants to phi_z(t) = t^{-z}
+pred isAMollifiedPowerApproximant(f: TestFunction)
+
+// ---------------------------------------------------------------------------------------
+// the Trace Formula
+// ---------------------------------------------------------------------------------------
+
+/// the two sides of (12.5.1.1) agree at phi — Theorem 12.5.1.1, p. 519
+pred theTraceFormulaHoldsAt(f: TestFunction)
+
+// ---------------------------------------------------------------------------------------
+// the GRH deduction (§1.4)
+// ---------------------------------------------------------------------------------------
+
+/// the non-Archimedean sum at phi approximates L'_f/L_f — §1.4.4
+pred theNonArchimedeanSumComputesTheLogDerivative(f: TestFunction)
+/// L'_f(s+1/2, chi)/L_f(s+1/2, chi) is holomorphic on C_{>0} minus {1/2} — §1.4.5
+pred theLogDerivativeIsHolomorphicOffTheCentralPoint()
+/// L(s, chi) has no zeros with real part > 1/2
+pred noZerosRightOfTheCriticalLine()
+/// L(s, chi) has no zeros with real part < 1/2
+pred noZerosLeftOfTheCriticalLine()
+
+/// sigma(rho) = 1/2 — the zero lies on the critical line. GRH is: every non-trivial zero does.
+pred onTheCriticalLine(r: Zero)
+/// rho is a non-trivial zero of the Hecke L-function under consideration
+pred isNonTrivialZero(r: Zero)
