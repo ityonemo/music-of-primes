@@ -3,6 +3,20 @@
 `grh.b4m` formalizes the GRH deduction the manuscript outlines in §1.4, with every step
 kernel-checked. This file is the index to it.
 
+## The current frontier, exactly
+
+`2b4m check --draft --axioms grh.b4m generalizedRiemannHypothesis` reports **13 entries**,
+and they are three different kinds — worth separating, because only the first is work we owe:
+
+| kind | n | |
+|---|---|---|
+| bare `hole` — **ours to transcribe** | **7** | 2 in `grh.b4m`, 5 in `trace-formula/` |
+| `hole … cites` — assumed | 5 | 4 the author's gaps + `addingNothingChangesNothing` (standard: x+0=x) |
+| DEFINITION clause | 1 | `theTraceFormulaHoldsAt`, defined as the equality of the two sides |
+
+A definition is not an assumption — it introduces a symbol rather than constraining a
+primitive, which is why `--axioms` labels it separately. Count it apart when quoting totals.
+
 ## How to read the holes
 
 `hole` here is a **workspace tool**, not a verdict on the manuscript. It marks "work to do,"
