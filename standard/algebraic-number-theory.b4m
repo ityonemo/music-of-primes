@@ -70,3 +70,49 @@ proof
     exists s: PlaceSet; containsTheRamifiedAndArchimedeanPlaces(s) and hasTrivialSClassGroup(s)
     [by unpacked build]
 qed
+
+// ---------------------------------------------------------------------------------------
+// WHY S CAN ALWAYS BE ENLARGED — the two classical facts behind "assume S is so large that…"
+// ---------------------------------------------------------------------------------------
+
+sort TestFunction = vocab.TestFunction
+
+/// the absolute norms N(p_v) of the prime ideals grow without bound, so only finitely many
+/// places have N(p_v) below any given threshold
+pred primeNormsAreUnbounded()
+/// a test function has COMPACT support, so its support meets only finitely many places
+/// non-trivially
+pred compactSupportMeetsFinitelyManyPlaces(f: TestFunction)
+
+intheory onlyFinitelyManyPlacesObstruct
+
+/// The absolute norms of prime ideals are unbounded: for any T there are only finitely many
+/// primes with N(p) <= T. Classical — it is why the manuscript may always "assume S is large
+/// enough so as to arrange that the support K of phi satisfies |K|_F subset (1/T, T) with
+/// T < N(p_v) for every finite place v not in S".
+hole thePrimeNormsAreUnbounded
+  cites "standard: only finitely many prime ideals have absolute norm below a bound (the ideal-counting function is finite) — Neukirch, Algebraic Number Theory I §6 Prop 6.1; Lang, Algebraic Number Theory V §1. Used by the manuscript at txt 31541":
+  primeNormsAreUnbounded()
+
+/// A test function is compactly supported, so its support meets only finitely many places
+/// non-trivially — which is why enlarging S finitely many times suffices to absorb both the
+/// support condition and the invariance condition.
+hole compactSupportIsFinitelySupported
+  cites "standard: a compactly supported function on a restricted product meets only finitely many factors non-trivially — Weil, Basic Number Theory IV §1; Tate's thesis §3.1. Used by the manuscript at txt 31543 for the invariance condition":
+  forall f: TestFunction; compactSupportMeetsFinitelyManyPlaces(f)
+
+theorem onlyFinitelyManyPlacesObstruct:
+  primeNormsAreUnbounded() and
+  (forall f: TestFunction; compactSupportMeetsFinitelyManyPlaces(f))
+proof
+  @norms |
+    primeNormsAreUnbounded()
+    [by cite thePrimeNormsAreUnbounded]
+  @support |
+    forall f: TestFunction; compactSupportMeetsFinitelyManyPlaces(f)
+    [by cite compactSupportIsFinitelySupported]
+  @conclusion |
+    primeNormsAreUnbounded() and
+      (forall f: TestFunction; compactSupportMeetsFinitelyManyPlaces(f))
+    [by both norms support]
+qed

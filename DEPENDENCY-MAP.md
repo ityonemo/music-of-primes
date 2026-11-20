@@ -5,16 +5,16 @@ kernel-checked. This file is the index to it.
 
 ## The current frontier, exactly
 
-`2b4m check --draft --axioms grh.b4m generalizedRiemannHypothesis` reports **21 entries**,
+`2b4m check --draft --axioms grh.b4m generalizedRiemannHypothesis` reports **23 entries**,
 and they are three different kinds — worth separating, because only the first is work we owe:
 
 | kind | n | |
 |---|---|---|
 | bare `hole` — **ours to transcribe** | **8** | 2 in `grh.b4m`, 6 in `trace-formula/` |
-| `hole … cites` — assumed | 11 | 4 the author's gaps + 7 classical (`standard/`) |
+| `hole … cites` — assumed | 13 | 4 the author's gaps + 9 classical (`standard/`) |
 | DEFINITION clause | 2 | `theTraceFormulaHoldsAt`, `isAdmissibleFor` |
 
-(8 + 11 + 2 = 21, which is what `--axioms` reports.)
+(8 + 13 + 2 = 23, which is what `--axioms` reports.)
 
 ### The classical tier so far
 
@@ -29,6 +29,8 @@ and they are three different kinds — worth separating, because only the first 
 | ideal class group finiteness ⇒ Pic(O_{F,S})=1 | Neukirch I §6, §12 |
 | finitely many Archimedean/ramified places | Neukirch I §8, III §2 |
 | a zero of L forces a pole of L'/L | Ahlfors Ch. 4 §3; Conway VIII §1 |
+| only finitely many primes below a norm bound | Neukirch I §6 Prop 6.1; Lang V §1 |
+| compact support meets finitely many places | Weil BNT IV §1; Tate's thesis §3.1 |
 | x + 0 = x | (additive unit law, `Quantity` being opaque here) |
 
 **The bare count can go UP, and did.** Splitting the kernel decomposition traded one opaque

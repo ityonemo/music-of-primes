@@ -73,13 +73,25 @@ intheory theTraceFormula
 // them, so they stay on the worklist.
 // ---------------------------------------------------------------------------------------
 
-// What remains OURS of the proof's opening move. The classical half — a finite set meeting
-// the ramification conditions exists, and enlarging it trivializes the class group — is
-// cited in standard/algebraic-number-theory.b4m. What is NOT classical is that S can be
-// enlarged to suit phi while KEEPING those properties, which is a statement about phi's
-// support and the manuscript's smoothing conventions.
-hole aPlaceSetCanBeEnlargedToSuitAnyTestFunction:
-  forall f: TestFunction; forall s: PlaceSet;
+// SPLIT. "Assume S is so large that…" asks two things of phi: its support satisfies
+// |K|_F subset (1/T, T) with T < N(p_v) outside S, and phi is invariant under the units
+// outside S. Both are possible because of two CLASSICAL facts, now cited in
+// standard/algebraic-number-theory.b4m:
+//
+//   only finitely many primes have norm below a bound   (Neukirch I §6 Prop 6.1)
+//   a compactly supported function meets finitely many places   (Weil BNT IV §1)
+//
+// Together they say: only finitely many places obstruct, so finitely many enlargements
+// suffice. What remains OURS is that enlarging preserves the first two conditions while
+// achieving these — the manuscript's own bookkeeping about its filtration and conventions.
+pred primeNormsAreUnbounded = ant.primeNormsAreUnbounded
+pred compactSupportMeetsFinitelyManyPlaces = ant.compactSupportMeetsFinitelyManyPlaces
+fact onlyFinitelyManyPlacesObstruct = ant.onlyFinitelyManyPlacesObstruct
+
+hole finitelyManyEnlargementsSuffice:
+  forall f: TestFunction;
+  (primeNormsAreUnbounded() and compactSupportMeetsFinitelyManyPlaces(f)) ->
+  forall s: PlaceSet;
   isTestFunction(f) ->
   (containsTheRamifiedAndArchimedeanPlaces(s) and hasTrivialSClassGroup(s)) ->
   exists t: PlaceSet;
@@ -179,14 +191,43 @@ proof
                   @s0-props |
                     containsTheRamifiedAndArchimedeanPlaces(s0) and hasTrivialSClassGroup(s0)
                     [by hypothesis with-classical-s]
-                  @enlarge-all |
-                    forall f: TestFunction; forall t: PlaceSet;
+                  // the two CLASSICAL facts that make enlargement possible at all
+                  @obstruct-both |
+                    primeNormsAreUnbounded() and
+                      (forall f: TestFunction; compactSupportMeetsFinitelyManyPlaces(f))
+                    [using import(ant) onlyFinitelyManyPlacesObstruct]
+                  @norms-unbounded |
+                    primeNormsAreUnbounded()
+                    [by and_lhs obstruct-both]
+                  @support-all |
+                    forall f: TestFunction; compactSupportMeetsFinitelyManyPlaces(f)
+                    [by and_rhs obstruct-both]
+                  @support-at-phi |
+                    compactSupportMeetsFinitelyManyPlaces(phi)
+                    [by apply_at(phi) support-all]
+                  @classical-facts |
+                    primeNormsAreUnbounded() and compactSupportMeetsFinitelyManyPlaces(phi)
+                    [by both norms-unbounded support-at-phi]
+                  // OURS: finitely many enlargements suffice, preserving the first two conditions
+                  @enlarge-pre |
+                    forall f: TestFunction;
+                      (primeNormsAreUnbounded() and compactSupportMeetsFinitelyManyPlaces(f)) ->
+                      forall t: PlaceSet;
                       isTestFunction(f) ->
                       (containsTheRamifiedAndArchimedeanPlaces(t) and hasTrivialSClassGroup(t)) ->
                       exists u: PlaceSet;
                       (containsTheRamifiedAndArchimedeanPlaces(u) and hasTrivialSClassGroup(u))
                       and isLargeEnoughFor(u, f)
-                    [by cite aPlaceSetCanBeEnlargedToSuitAnyTestFunction]
+                    [by cite finitelyManyEnlargementsSuffice]
+                  @enlarge-pre-phi |
+                    (primeNormsAreUnbounded() and compactSupportMeetsFinitelyManyPlaces(phi)) ->
+                      forall t: PlaceSet;
+                      isTestFunction(phi) ->
+                      (containsTheRamifiedAndArchimedeanPlaces(t) and hasTrivialSClassGroup(t)) ->
+                      exists u: PlaceSet;
+                      (containsTheRamifiedAndArchimedeanPlaces(u) and hasTrivialSClassGroup(u))
+                      and isLargeEnoughFor(u, phi)
+                    [by apply_at(phi) enlarge-pre]
                   @enlarge-at-phi |
                     forall t: PlaceSet;
                       isTestFunction(phi) ->
@@ -194,7 +235,7 @@ proof
                       exists u: PlaceSet;
                       (containsTheRamifiedAndArchimedeanPlaces(u) and hasTrivialSClassGroup(u))
                       and isLargeEnoughFor(u, phi)
-                    [by apply_at(phi) enlarge-all]
+                    [by modus_ponens enlarge-pre-phi classical-facts]
                   @enlarge-at-s0 |
                     isTestFunction(phi) ->
                       (containsTheRamifiedAndArchimedeanPlaces(s0) and hasTrivialSClassGroup(s0)) ->
