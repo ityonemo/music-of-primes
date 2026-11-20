@@ -126,6 +126,37 @@ does not supply it.
    `Insert statement`, and §13.1/§13.2 are headings with no body (Ch. 13 is pp. 521–522,
    while every other chapter runs 14–197 pages).
 
+## Where the deepening stops being structural
+
+`theTraceFormula` decomposed cleanly because its proof is BOOKKEEPING: choose S, decompose,
+observe a vanishing, identify two sides, substitute. Each step is a citation or an equation,
+so the kernel can check the assembly and the frontier moves down.
+
+Its dependencies are not like that. **Theorem 11.3.2.1** (Orbital Traces on the Paley-Wiener
+Levels, txt 29947) is the analysis itself: indicator functions of shrinking idele
+neighbourhoods, smooth (ε, Λ)-cutoffs, and convergence in the Hardy-Sobolev space
+`W_I^s(C_F)`. Its proof cites eleven results, of which three are classical —
+
+| cited | what it is |
+|---|---|
+| Thm A.5.4.1 | Lebesgue Differentiation over a Hausdorff locally compact abelian group |
+| Thm A.5.3.7 | Hardy-Littlewood Global Maximal Theorem |
+| Prop B.4.1.2 | Poisson Summation Formula (jump singularities) |
+
+— and the rest are the author's own nuclearity machinery (Thms 7.4.2.1, 10.3.2.1, 11.1.2.1,
+11.2.2.1, 12.2.2.2, Defs 9.3.3.1, 12.1.1.1).
+
+**Decomposing it further would be dishonest at this altitude.** Splitting an analytic
+argument into opaque predicates named after its steps does not check anything — it only moves
+the assumption and makes the artifact look deeper than it is. The three classical inputs are
+captured in `standard/analysis.b4m` with real sources, which is useful; the analytic core
+stays one bare hole until someone has the foundations to state it properly.
+
+That is the honest boundary of this approach, and it is worth knowing where it falls: the
+STRUCTURE of the Trace Formula's derivation is now machine-checked; the ANALYSIS underneath
+it is not, and cannot be without the measure theory and functional analysis
+`WHAT-IT-WOULD-TAKE.md` measures.
+
 ## Two documentation issues to raise with the author
 
 Neither is mathematical; both obstruct a reader following the main argument.
