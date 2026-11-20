@@ -1,0 +1,72 @@
+// The `standard:` tier for ALGEBRAIC NUMBER THEORY — the manuscript's Appendix A,
+// "Preparations from Algebraic Number Theory" (pp. 537-586). Classical material the author
+// collected for the reader's convenience, not his contribution.
+//
+// Each result is cited to a real source, because a `cites` a reader cannot check is just an
+// axiom wearing a comment. A citation is a POSITION, not a permanent verdict: any of these
+// can be formalized later on its own schedule, and nothing downstream changes when it is.
+// All of them stay visible in `--axioms`.
+
+theory vocab <<< "../shared/vocabulary.b4m"
+
+/// S is a finite set of places of F
+sort PlaceSet = vocab.PlaceSet
+
+/// the S-class group is trivial: Pic(O_{F,S}) = 1
+pred hasTrivialSClassGroup(s: PlaceSet)
+/// S contains every Archimedean place, every place ramified over Q, and every place where
+/// the character chi ramifies
+pred containsTheRamifiedAndArchimedeanPlaces(s: PlaceSet)
+
+intheory enlargingSKillsTheClassGroup
+
+/// Enlarging S trivializes the S-class group. Because Pic(O_F) is FINITE (class number h_F),
+/// adjoining one place from each of the finitely many ideal classes kills it — the standard
+/// argument, and the reason the manuscript may always "let S be large enough".
+///
+/// The manuscript uses this throughout (txt 1902, 5359, 7441) and states the S-unit lattice
+/// estimates it needs as Theorem A.4.1.1.
+hole aLargeEnoughSHasTrivialClassGroup
+  cites "standard: finiteness of the ideal class group, hence Pic(O_{F,S}) = 1 once S meets every ideal class — Neukirch, Algebraic Number Theory I §6 and §12; Cassels-Frohlich Ch. II. Manuscript uses it at txt 1902, 5359, 7441; its S-unit estimates are Thm A.4.1.1":
+  forall s: PlaceSet;
+  containsTheRamifiedAndArchimedeanPlaces(s) -> hasTrivialSClassGroup(s)
+
+/// A finite set of places meeting the three ramification/Archimedean conditions exists:
+/// there are finitely many Archimedean places, finitely many ramified over Q, and finitely
+/// many where chi ramifies, so their union is finite.
+hole theRequiredPlacesAreFinitelyMany
+  cites "standard: a number field has finitely many Archimedean places and finitely many ramified primes; a Hecke character ramifies at finitely many — Neukirch I §8, III §2; Tate's thesis §2":
+  exists s: PlaceSet; containsTheRamifiedAndArchimedeanPlaces(s)
+
+theorem enlargingSKillsTheClassGroup:
+  exists s: PlaceSet; containsTheRamifiedAndArchimedeanPlaces(s) and hasTrivialSClassGroup(s)
+proof
+  @some-s |
+    exists s: PlaceSet; containsTheRamifiedAndArchimedeanPlaces(s)
+    [by cite theRequiredPlacesAreFinitelyMany]
+  @build |
+    unpack s: PlaceSet from some-s {
+      @has-places |
+        containsTheRamifiedAndArchimedeanPlaces(s)
+        [by hypothesis build]
+      @trivializes-all |
+        forall t: PlaceSet;
+          containsTheRamifiedAndArchimedeanPlaces(t) -> hasTrivialSClassGroup(t)
+        [by cite aLargeEnoughSHasTrivialClassGroup]
+      @trivializes-at-s |
+        containsTheRamifiedAndArchimedeanPlaces(s) -> hasTrivialSClassGroup(s)
+        [by apply_at(s) trivializes-all]
+      @trivial |
+        hasTrivialSClassGroup(s)
+        [by modus_ponens trivializes-at-s has-places]
+      @both |
+        containsTheRamifiedAndArchimedeanPlaces(s) and hasTrivialSClassGroup(s)
+        [by both has-places trivial]
+      @witness |
+        exists t: PlaceSet; containsTheRamifiedAndArchimedeanPlaces(t) and hasTrivialSClassGroup(t)
+        [by witness(s) both]
+    }
+  @conclusion |
+    exists s: PlaceSet; containsTheRamifiedAndArchimedeanPlaces(s) and hasTrivialSClassGroup(s)
+    [by unpacked build]
+qed

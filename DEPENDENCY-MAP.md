@@ -11,8 +11,10 @@ and they are three different kinds — worth separating, because only the first 
 | kind | n | |
 |---|---|---|
 | bare `hole` — **ours to transcribe** | **7** | 2 in `grh.b4m`, 5 in `trace-formula/` |
-| `hole … cites` — assumed | 5 | 4 the author's gaps + `addingNothingChangesNothing` (standard: x+0=x) |
-| DEFINITION clause | 1 | `theTraceFormulaHoldsAt`, defined as the equality of the two sides |
+| `hole … cites` — assumed | 7 | 4 the author's gaps + 3 classical (`standard/`) |
+| DEFINITION clause | 2 | `theTraceFormulaHoldsAt`, `isAdmissibleFor` |
+
+(7 + 7 + 2 = 16, which is what `--axioms` reports.)
 
 A definition is not an assumption — it introduces a symbol rather than constraining a
 primitive, which is why `--axioms` labels it separately. Count it apart when quoting totals.

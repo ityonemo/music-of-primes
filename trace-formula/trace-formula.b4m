@@ -18,6 +18,7 @@
 // the frontier has moved one layer down. Nothing here is assumed on the author's behalf.
 
 theory vocab <<< "../shared/vocabulary.b4m"
+theory ant <<< "../standard/algebraic-number-theory.b4m"
 
 // shared with grh.b4m: the objects and the Trace Formula predicate itself
 sort TestFunction = vocab.TestFunction
@@ -28,10 +29,22 @@ pred vanishesOnTheNormOneIdeles = vocab.vanishesOnTheNormOneIdeles
 // LOCAL to this layer: the proof's internal stages. Nothing else needs them, so they are
 // declared here rather than in the shared vocabulary.
 //
-// S is admissible for phi in the sense of the proof's first paragraph: it contains the
-// Archimedean places, those ramified over Q and those where chi ramifies, has trivial
-// S-class group, and is large enough for phi's support and invariance.
-pred isAdmissibleFor(s: PlaceSet, f: TestFunction)
+// The proof's first paragraph asks THREE things of S, and they are not of the same kind, so
+// they are not bundled: the first two are classical facts about number fields, the third is
+// a condition on phi that the manuscript arranges by enlarging S.
+pred containsTheRamifiedAndArchimedeanPlaces = ant.containsTheRamifiedAndArchimedeanPlaces
+pred hasTrivialSClassGroup = ant.hasTrivialSClassGroup
+
+/// S is large enough for THIS phi: its support satisfies |K|_F subset (1/T, T) with
+/// T < N(p_v) for every finite v outside S, and phi is invariant under the left-translation
+/// action of the image of prod_{v notin S} O_{F_v}^times.
+pred isLargeEnoughFor(s: PlaceSet, f: TestFunction)
+
+/// all three conditions together — what the rest of the proof uses
+pred isAdmissibleFor(s: PlaceSet, f: TestFunction):
+  isAdmissibleFor(s, f) iff
+  ((containsTheRamifiedAndArchimedeanPlaces(s) and hasTrivialSClassGroup(s))
+  and isLargeEnoughFor(s, f)).
 
 // The proof's quantities, as TERMS rather than opaque booleans. The last step of the
 // manuscript's proof ("Upon combining (12.5.1.4) with the foregoing") is a SUBSTITUTION
@@ -59,11 +72,18 @@ intheory theTraceFormula
 // them, so they stay on the worklist.
 // ---------------------------------------------------------------------------------------
 
-// The proof's opening move: "We let S be a finite set of places containing…". Existence
-// rests on Dirichlet's S-unit theorem and finiteness of the class group, both Appendix A.
-hole anAdmissibleSetOfPlacesExists:
-  forall f: TestFunction;
-  isTestFunction(f) -> exists s: PlaceSet; isAdmissibleFor(s, f)
+// What remains OURS of the proof's opening move. The classical half — a finite set meeting
+// the ramification conditions exists, and enlarging it trivializes the class group — is
+// cited in standard/algebraic-number-theory.b4m. What is NOT classical is that S can be
+// enlarged to suit phi while KEEPING those properties, which is a statement about phi's
+// support and the manuscript's smoothing conventions.
+hole aPlaceSetCanBeEnlargedToSuitAnyTestFunction:
+  forall f: TestFunction; forall s: PlaceSet;
+  isTestFunction(f) ->
+  (containsTheRamifiedAndArchimedeanPlaces(s) and hasTrivialSClassGroup(s)) ->
+  exists t: PlaceSet;
+  (containsTheRamifiedAndArchimedeanPlaces(t) and hasTrivialSClassGroup(t))
+  and isLargeEnoughFor(t, f)
 
 // Equation (11.3.1.4): the smoothened geometric kernel splits along the diagonal into its
 // S-local part plus the off-S pieces.
@@ -116,114 +136,180 @@ proof
                 isTestFunction(phi)
                 [by hypothesis given-test-function]
 
-              // step 1: choose an admissible S
-              @admissible-all |
-                forall f: TestFunction;
-                  isTestFunction(f) -> exists s: PlaceSet; isAdmissibleFor(s, f)
-                [by cite anAdmissibleSetOfPlacesExists]
-              @admissible-at-phi |
-                isTestFunction(phi) -> exists s: PlaceSet; isAdmissibleFor(s, phi)
-                [by apply_at(phi) admissible-all]
-              @some-admissible-s |
-                exists s: PlaceSet; isAdmissibleFor(s, phi)
-                [by modus_ponens admissible-at-phi is-test-function]
-
-              @with-s |
-                unpack s: PlaceSet from some-admissible-s {
-                  @s-admissible |
-                    isAdmissibleFor(s, phi)
-                    [by hypothesis with-s]
-
-                  // step 2: the kernel decomposes (11.3.1.4)
-                  @decomp-all |
+              // step 1: choose an admissible S. The CLASSICAL half is cited from
+              // standard/algebraic-number-theory.b4m — a finite set meeting the
+              // ramification conditions exists, and enlarging it trivializes the class
+              // group. Only the phi-specific enlargement remains ours.
+              @classical-s |
+                exists s: PlaceSet;
+                  containsTheRamifiedAndArchimedeanPlaces(s) and hasTrivialSClassGroup(s)
+                [using import(ant) enlargingSKillsTheClassGroup]
+              @with-classical-s |
+                unpack s0: PlaceSet from classical-s {
+                  @s0-props |
+                    containsTheRamifiedAndArchimedeanPlaces(s0) and hasTrivialSClassGroup(s0)
+                    [by hypothesis with-classical-s]
+                  @enlarge-all |
                     forall f: TestFunction; forall t: PlaceSet;
-                      isAdmissibleFor(t, f) ->
-                      theGlobalIntegral(f) = add(theSLocalIntegral(t, f), theOffSPieces(t, f))
-                    [by cite theGeometricKernelDecomposition]
-                  @decomp-at-phi |
+                      isTestFunction(f) ->
+                      (containsTheRamifiedAndArchimedeanPlaces(t) and hasTrivialSClassGroup(t)) ->
+                      exists u: PlaceSet;
+                      (containsTheRamifiedAndArchimedeanPlaces(u) and hasTrivialSClassGroup(u))
+                      and isLargeEnoughFor(u, f)
+                    [by cite aPlaceSetCanBeEnlargedToSuitAnyTestFunction]
+                  @enlarge-at-phi |
                     forall t: PlaceSet;
-                      isAdmissibleFor(t, phi) ->
-                      theGlobalIntegral(phi) = add(theSLocalIntegral(t, phi), theOffSPieces(t, phi))
-                    [by apply_at(phi) decomp-all]
-                  @decomp-at-s |
-                    isAdmissibleFor(s, phi) ->
-                      theGlobalIntegral(phi) = add(theSLocalIntegral(s, phi), theOffSPieces(s, phi))
-                    [by apply_at(s) decomp-at-phi]
-                  @decomposition |
-                    theGlobalIntegral(phi) = add(theSLocalIntegral(s, phi), theOffSPieces(s, phi))
-                    [by modus_ponens decomp-at-s s-admissible]
+                      isTestFunction(phi) ->
+                      (containsTheRamifiedAndArchimedeanPlaces(t) and hasTrivialSClassGroup(t)) ->
+                      exists u: PlaceSet;
+                      (containsTheRamifiedAndArchimedeanPlaces(u) and hasTrivialSClassGroup(u))
+                      and isLargeEnoughFor(u, phi)
+                    [by apply_at(phi) enlarge-all]
+                  @enlarge-at-s0 |
+                    isTestFunction(phi) ->
+                      (containsTheRamifiedAndArchimedeanPlaces(s0) and hasTrivialSClassGroup(s0)) ->
+                      exists u: PlaceSet;
+                      (containsTheRamifiedAndArchimedeanPlaces(u) and hasTrivialSClassGroup(u))
+                      and isLargeEnoughFor(u, phi)
+                    [by apply_at(s0) enlarge-at-phi]
+                  @enlarge-needs-props |
+                    (containsTheRamifiedAndArchimedeanPlaces(s0) and hasTrivialSClassGroup(s0)) ->
+                      exists u: PlaceSet;
+                      (containsTheRamifiedAndArchimedeanPlaces(u) and hasTrivialSClassGroup(u))
+                      and isLargeEnoughFor(u, phi)
+                    [by modus_ponens enlarge-at-s0 is-test-function]
+                  @some-enlarged |
+                    exists u: PlaceSet;
+                      (containsTheRamifiedAndArchimedeanPlaces(u) and hasTrivialSClassGroup(u))
+                      and isLargeEnoughFor(u, phi)
+                    [by modus_ponens enlarge-needs-props s0-props]
+                  @inner-conclusion |
+                    unpack s: PlaceSet from some-enlarged {
+                      @s-parts |
+                        (containsTheRamifiedAndArchimedeanPlaces(s) and hasTrivialSClassGroup(s))
+                          and isLargeEnoughFor(s, phi)
+                        [by hypothesis inner-conclusion]
+                      @defn-adm-all |
+                        forall t: PlaceSet; forall f: TestFunction;
+                          isAdmissibleFor(t, f) iff
+                          ((containsTheRamifiedAndArchimedeanPlaces(t) and hasTrivialSClassGroup(t))
+                          and isLargeEnoughFor(t, f))
+                        [by definition(0) isAdmissibleFor]
+                      @defn-adm-at-s |
+                        forall f: TestFunction;
+                          isAdmissibleFor(s, f) iff
+                          ((containsTheRamifiedAndArchimedeanPlaces(s) and hasTrivialSClassGroup(s))
+                          and isLargeEnoughFor(s, f))
+                        [by apply_at(s) defn-adm-all]
+                      @defn-adm |
+                        isAdmissibleFor(s, phi) iff
+                          ((containsTheRamifiedAndArchimedeanPlaces(s) and hasTrivialSClassGroup(s))
+                          and isLargeEnoughFor(s, phi))
+                        [by apply_at(phi) defn-adm-at-s]
+                      @defn-adm-converse |
+                        ((containsTheRamifiedAndArchimedeanPlaces(s) and hasTrivialSClassGroup(s))
+                          and isLargeEnoughFor(s, phi)) -> isAdmissibleFor(s, phi)
+                        [by equiv_converse defn-adm]
+                      @s-admissible |
+                        isAdmissibleFor(s, phi)
+                        [by modus_ponens defn-adm-converse s-parts]
 
-                  // step 3: the off-S pieces vanish (Thm 11.3.2.1)
-                  @vanish-all |
-                    forall f: TestFunction; forall t: PlaceSet;
-                      isAdmissibleFor(t, f) -> theOffSPieces(t, f) = noQuantity
-                    [by cite theOrbitalTracesVanishOffS]
-                  @vanish-at-phi |
-                    forall t: PlaceSet;
-                      isAdmissibleFor(t, phi) -> theOffSPieces(t, phi) = noQuantity
-                    [by apply_at(phi) vanish-all]
-                  @vanish-at-s |
-                    isAdmissibleFor(s, phi) -> theOffSPieces(s, phi) = noQuantity
-                    [by apply_at(s) vanish-at-phi]
-                  @off-s-vanishes |
-                    theOffSPieces(s, phi) = noQuantity
-                    [by modus_ponens vanish-at-s s-admissible]
+                      // step 2: the kernel decomposes (11.3.1.4)
+                      @decomp-all |
+                        forall f: TestFunction; forall t: PlaceSet;
+                          isAdmissibleFor(t, f) ->
+                          theGlobalIntegral(f) = add(theSLocalIntegral(t, f), theOffSPieces(t, f))
+                        [by cite theGeometricKernelDecomposition]
+                      @decomp-at-phi |
+                        forall t: PlaceSet;
+                          isAdmissibleFor(t, phi) ->
+                          theGlobalIntegral(phi) = add(theSLocalIntegral(t, phi), theOffSPieces(t, phi))
+                        [by apply_at(phi) decomp-all]
+                      @decomp-at-s |
+                        isAdmissibleFor(s, phi) ->
+                          theGlobalIntegral(phi) = add(theSLocalIntegral(s, phi), theOffSPieces(s, phi))
+                        [by apply_at(s) decomp-at-phi]
+                      @decomposition |
+                        theGlobalIntegral(phi) = add(theSLocalIntegral(s, phi), theOffSPieces(s, phi))
+                        [by modus_ponens decomp-at-s s-admissible]
 
-                  // step 4: the S-local calculation (Thm 12.4.1.1)
-                  @slocal-all |
-                    forall f: TestFunction; forall t: PlaceSet;
-                      isAdmissibleFor(t, f) -> theSLocalIntegral(t, f) = theGeometricSide(f)
-                    [by cite theSLocalTraceCalculation]
-                  @slocal-at-phi |
-                    forall t: PlaceSet;
-                      isAdmissibleFor(t, phi) -> theSLocalIntegral(t, phi) = theGeometricSide(phi)
-                    [by apply_at(phi) slocal-all]
-                  @slocal-at-s |
-                    isAdmissibleFor(s, phi) -> theSLocalIntegral(s, phi) = theGeometricSide(phi)
-                    [by apply_at(s) slocal-at-phi]
-                  @s-local-is-geometric |
-                    theSLocalIntegral(s, phi) = theGeometricSide(phi)
-                    [by modus_ponens slocal-at-s s-admissible]
+                      // step 3: the off-S pieces vanish (Thm 11.3.2.1)
+                      @vanish-all |
+                        forall f: TestFunction; forall t: PlaceSet;
+                          isAdmissibleFor(t, f) -> theOffSPieces(t, f) = noQuantity
+                        [by cite theOrbitalTracesVanishOffS]
+                      @vanish-at-phi |
+                        forall t: PlaceSet;
+                          isAdmissibleFor(t, phi) -> theOffSPieces(t, phi) = noQuantity
+                        [by apply_at(phi) vanish-all]
+                      @vanish-at-s |
+                        isAdmissibleFor(s, phi) -> theOffSPieces(s, phi) = noQuantity
+                        [by apply_at(s) vanish-at-phi]
+                      @off-s-vanishes |
+                        theOffSPieces(s, phi) = noQuantity
+                        [by modus_ponens vanish-at-s s-admissible]
 
-                  // step 5: the spectral side (Def 10.4.3.7 + Thm 10.4.2.8), eq (12.5.1.4)
-                  @spectral-all |
-                    forall f: TestFunction;
-                      isTestFunction(f) -> theGlobalIntegral(f) = theSpectralSide(f)
-                    [by cite theSpectralSideIsTheKernelIntegral]
-                  @spectral-at-phi |
-                    isTestFunction(phi) -> theGlobalIntegral(phi) = theSpectralSide(phi)
-                    [by apply_at(phi) spectral-all]
-                  @global-is-spectral |
-                    theGlobalIntegral(phi) = theSpectralSide(phi)
-                    [by modus_ponens spectral-at-phi is-test-function]
+                      // step 4: the S-local calculation (Thm 12.4.1.1)
+                      @slocal-all |
+                        forall f: TestFunction; forall t: PlaceSet;
+                          isAdmissibleFor(t, f) -> theSLocalIntegral(t, f) = theGeometricSide(f)
+                        [by cite theSLocalTraceCalculation]
+                      @slocal-at-phi |
+                        forall t: PlaceSet;
+                          isAdmissibleFor(t, phi) -> theSLocalIntegral(t, phi) = theGeometricSide(phi)
+                        [by apply_at(phi) slocal-all]
+                      @slocal-at-s |
+                        isAdmissibleFor(s, phi) -> theSLocalIntegral(s, phi) = theGeometricSide(phi)
+                        [by apply_at(s) slocal-at-phi]
+                      @s-local-is-geometric |
+                        theSLocalIntegral(s, phi) = theGeometricSide(phi)
+                        [by modus_ponens slocal-at-s s-admissible]
 
-                  // step 6: COMBINE. Substitute the vanishing and the unit law into the
-                  // decomposition to get global = geometric, then chain with (12.5.1.4).
-                  @unit-all |
-                    forall q: Quantity; add(q, noQuantity) = q
-                    [by cite addingNothingChangesNothing]
-                  @unit-at-geometric |
-                    add(theGeometricSide(phi), noQuantity) = theGeometricSide(phi)
-                    [by apply_at(theGeometricSide(phi)) unit-all]
-                  @decomp-with-geometric |
-                    theGlobalIntegral(phi) = add(theGeometricSide(phi), theOffSPieces(s, phi))
-                    [by rewrite s-local-is-geometric decomposition]
-                  @decomp-with-zero |
-                    theGlobalIntegral(phi) = add(theGeometricSide(phi), noQuantity)
-                    [by rewrite off-s-vanishes decomp-with-geometric]
-                  @global-is-geometric |
-                    theGlobalIntegral(phi) = theGeometricSide(phi)
-                    [by rewrite unit-at-geometric decomp-with-zero]
-                  @geometric-is-global |
-                    theGeometricSide(phi) = theGlobalIntegral(phi)
-                    [by symmetry global-is-geometric]
-                  @sides-agree-inner |
+                      // step 5: the spectral side (Def 10.4.3.7 + Thm 10.4.2.8), eq (12.5.1.4)
+                      @spectral-all |
+                        forall f: TestFunction;
+                          isTestFunction(f) -> theGlobalIntegral(f) = theSpectralSide(f)
+                        [by cite theSpectralSideIsTheKernelIntegral]
+                      @spectral-at-phi |
+                        isTestFunction(phi) -> theGlobalIntegral(phi) = theSpectralSide(phi)
+                        [by apply_at(phi) spectral-all]
+                      @global-is-spectral |
+                        theGlobalIntegral(phi) = theSpectralSide(phi)
+                        [by modus_ponens spectral-at-phi is-test-function]
+
+                      // step 6: COMBINE. Substitute the vanishing and the unit law into the
+                      // decomposition to get global = geometric, then chain with (12.5.1.4).
+                      @unit-all |
+                        forall q: Quantity; add(q, noQuantity) = q
+                        [by cite addingNothingChangesNothing]
+                      @unit-at-geometric |
+                        add(theGeometricSide(phi), noQuantity) = theGeometricSide(phi)
+                        [by apply_at(theGeometricSide(phi)) unit-all]
+                      @decomp-with-geometric |
+                        theGlobalIntegral(phi) = add(theGeometricSide(phi), theOffSPieces(s, phi))
+                        [by rewrite s-local-is-geometric decomposition]
+                      @decomp-with-zero |
+                        theGlobalIntegral(phi) = add(theGeometricSide(phi), noQuantity)
+                        [by rewrite off-s-vanishes decomp-with-geometric]
+                      @global-is-geometric |
+                        theGlobalIntegral(phi) = theGeometricSide(phi)
+                        [by rewrite unit-at-geometric decomp-with-zero]
+                      @geometric-is-global |
+                        theGeometricSide(phi) = theGlobalIntegral(phi)
+                        [by symmetry global-is-geometric]
+                      @sides-agree-inner |
+                        theGeometricSide(phi) = theSpectralSide(phi)
+                        [by rewrite global-is-spectral geometric-is-global]
+                    }
+                  // export past the inner `unpack s` (the witness is gone from the statement)
+                  @sides-agree-at-s0 |
                     theGeometricSide(phi) = theSpectralSide(phi)
-                    [by rewrite global-is-spectral geometric-is-global]
+                    [by unpacked inner-conclusion]
                 }
+              // and past the outer `unpack s0`
               @sides-agree |
                 theGeometricSide(phi) = theSpectralSide(phi)
-                [by unpacked with-s]
+                [by unpacked with-classical-s]
               // `theTraceFormulaHoldsAt` is DEFINED as this equality, so the consumer-facing
               // statement follows by unfolding the definition.
               @defn-all |
