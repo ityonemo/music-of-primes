@@ -13,7 +13,7 @@ the worklist.
 
 | | n | means | who owes it |
 |---|---|---|---|
-| **`cites "disputed: …"`** | **2** | **a published counterexample CLAIMS it is false; not verified here** | **the author, if the claim holds** |
+| **`cites "refuted: …"`** | **2** | **FALSE as written — a counterexample, formalized and checked** | **the author; these are fatal to the argument as presented** |
 | **bare `hole`** | **10** | the manuscript PROVES it; ours to transcribe | **us** |
 | `cites "gap: …"` | 3 | absent from the released draft | the author |
 | `cites "assertion: …"` | 17 | he states it, does not prove it | the author, or a reader |
@@ -22,11 +22,21 @@ the worklist.
 | definition-shaped `axiom` | 2 | ditto, but `--axioms` lists them as assumptions | — |
 | **total `--axioms` entries** | **54** | | 2 + 10 + 3 + 17 + 15 + 5 + 2 |
 
-`disputed:` is deliberately NOT `refuted:`. An earlier version of this file used the stronger
-word, which was wrong: it put a reading of someone else's paper into the axiom record as
-though it were established. We have read Nielsen's argument and find it convincing; we have
-not proved it, and nothing here formalizes it. The distinction is the same one the bare/cited
-split enforces everywhere else — who owes the work, and on whose authority.
+`refuted:` is used only because the objection is now FORMALIZED, in `nielsen.b4m`, and passes
+strict `check` on 10 citations every one of which is a classical `standard:` fact. It went
+through two weaker tiers first, and the history is worth keeping:
+
+- it was briefly `refuted:` on nothing but a reading of Nielsen's paper — **wrong**, and the
+  same error as the retired `manuscript-proved:` tier: putting a credence into the axiom
+  record as though it were established;
+- then `disputed:` while unformalized;
+- now `refuted:` again, on a different basis — the argument is machine-checked, and three
+  classical inputs (Fatou, the divergence of ∫dt/(t−1), the standard meaning of *mollifier*)
+  are granted by explicit decision rather than assumed silently. Each is named in the
+  citation under "WHAT IS GRANTED".
+
+Refusing to grant facts of that kind is not rigour, it is paralysis; granting them without
+saying so is the dishonesty the tier system exists to prevent. The citations say which.
 
 The last row is a labelling artifact worth knowing: `noZerosRightMeansNoZeroIsRight` and
 `noZerosLeftMeansNoZeroIsLeft` (`shared/vocabulary.b4m`) say what their predicates MEAN, so
@@ -35,20 +45,23 @@ a bound variable's sort under a quantifier, and `--axioms` therefore lists them 
 assumptions. Count them with the definitions.
 
     2b4m check examples/music-of-primes                  # the worklist (fails by design)
-    grep -rn 'cites "disputed:' .                        # published counterexamples
+    grep -rn 'cites "refuted:' .                         # steps shown FALSE
+    2b4m check examples/music-of-primes/nielsen.b4m      # the refutation, kernel-checked
     grep -rn 'TRANSCRIBE:' .                             # the bare holes' manuscript refs
     grep -rn 'cites "gap:' .                             # absent from the released draft
 
-## THE HEADLINE: two steps are DISPUTED by a published counterexample
+## THE HEADLINE: two steps are REFUTED — formalized in `nielsen.b4m`
 
 Nielsen, *A Failure of Uniform Boundedness in Masullo's Proposed Proof of the Generalized
 Riemann Hypothesis* (November 2026, `NIEIOM.pdf`) exhibits counterexamples to two assertions
 the manuscript relies on. Both land on steps this formalization had already isolated as
 unargued.
 
-**What follows is a summary of someone else's argument, with the parts we spot-checked marked
-as such.** Neither objection is formalized here, so neither is established by this artifact.
-Read this section as "where to look", not as a verdict.
+**Both objections are now formalized in `nielsen.b4m`**, which passes strict `check` with 3
+theorems resting on 10 citations — all `standard:`. What the kernel verifies is that Nielsen's
+facts COMPOSE into her conclusions; the classical facts themselves (Fatou, the divergence,
+the splitting of 5 in Q(i), the meaning of *mollifier*) are granted by decision and named as
+granted. Given them, the refutations hold.
 
 ### 1. The Montel step diverges — §1.4.3, repeated §1.8.4.3
 
@@ -67,13 +80,22 @@ the manuscript's §1.4.3 display (txt 1265); the measure identity
 `t^{−1/2}/|1−t| dt = t^{1/2}/(t−1) · dt/t` holds for `t > 1`; and `∫ 1/(t−1)` over `[1, 1+δ]`
 diverges.
 
-**Not checked**: that the author's own mollifier is nonnegative (Fatou needs it — his §1.4.2
-`h·(ρ_ε ∗ φ_z)` with `h` valued in `[0,1]` appears to satisfy it, but we did not trace `ρ_ε`);
-that this integral is the one Montel is applied to; that Fatou applies in the manuscript's
-actual measure. Those are the load-bearing steps, and they are Nielsen's, not ours.
+**Since settled**: Masullo's own §1.4.2 text supplies BOTH of Nielsen's hypotheses. He calls
+`ρ_ε` a *mollifier* — a term of art meaning nonnegative, smooth, compactly supported, unit
+mass, which he never redefines (the word appears 3 times in 940 pages) — his `h` is "valued in
+[0, 1]", and `φ_z = t^{−z} > 0` for `t > 1`. Products and convolutions of nonnegative
+functions are nonnegative. And pointwise convergence `φ_n(t) → t^{−z}` is verbatim his
+(txt 1336). So "use a nonnegative mollifier" adds no assumption; it names what his
+construction gives.
+
+**Also checked**: Fatou is applied with `δ` fixed FIRST and the liminf taken over `n`, so the
+shrinking vanishing-neighbourhoods involve no quantifier swap — at each fixed `t > 1` the
+pointwise limit is `t^{−z} > 0`.
+
+**Granted by decision**: Fatou's lemma, and the divergence of `∫dt/(t−1)`.
 
 **This is the step the author himself calls "the source of all the difficulties."** Our hole
-`theLimitInterchangeIsValid` had it as the mathematical heart of the gap; it is now `disputed:`.
+`theLimitInterchangeIsValid` had it as the mathematical heart of the gap; it is now `refuted:`.
 Note the correction to our earlier note, which said Montel covers "the finitely many
 Archimedean integrals" as though that half were sound — it is precisely the Archimedean part
 that diverges.
@@ -92,9 +114,12 @@ norm is the **identity**. Take `g_{v₁} = 5`, `g_{v₂} = 5⁻¹`, all else 1: 
 so the norm is a unit at every place and `g` lies in the preimage — but neither component is a
 local unit, so `g` is not in the first set.
 
-**Spot-checked here**: `5 ≡ 1 mod 4` does split in `Q(i)`, both completions are `Q₅`, so the
-local norms are the identity and the valuations cancel. The step from that to "the
-manuscript's two descriptions differ" is Nielsen's, read and found convincing.
+**Granted by decision**: that `5 ≡ 1 mod 4` splits in `Q(i)` and that local norms on split
+places are the identity (Neukirch I §8, II §6).
+
+**Checked**: the refutation logic — a witness in one set and not the other defeats
+coextensionality, hence defeats the identification (`nielsen.b4m`,
+`theNormPreimageIdentificationIsFalse`).
 
 **Our hole `segmentNestingLiftsToTheStrata` had already flagged this exact sentence** as an
 unargued assertion, quoting it, before the counterexample was published. That is the
@@ -107,15 +132,18 @@ It is a criticism of the proposed proof, not a disproof of GRH — Nielsen says 
 The Trace Formula itself (Thm 12.5.1.1) is untouched by objection 1, and objection 2 concerns
 a stratum identification whose downstream necessity Nielsen does not trace.
 
-What it would settle, IF the objections hold, is that the **concluding argument does not work
-as written** — and a repaired test-function family would need a new argument, including its
-effect on the trace formula's other terms, which cannot be presumed.
+**The concluding argument does not work as written.** A repaired test-function family would
+need a new argument, including its effect on the trace formula's other terms, and that cannot
+be presumed.
 
-Whether they hold is not something this artifact establishes. Formalizing Prop 1 would need
-real analysis (measures, Fatou, a mollifier family) that this encoding does not have; Prop 2
-would need local fields and the idelic norm. Both are well outside the current altitude. What
-the artifact DOES contribute is that it flagged both sentences as unargued independently, and
-the holes are already shaped so that a repair upstream changes nothing downstream.
+What this does NOT settle: GRH itself — Nielsen says so explicitly, and so does this file. The
+Trace Formula (Thm 12.5.1.1) is untouched by objection 1, which attacks the passage FROM the
+formula TO GRH. Objection 2 concerns a stratum identification whose downstream necessity
+Nielsen does not trace, and neither do we.
+
+What the artifact contributed independently: it flagged both refuted sentences as unargued
+assertions, quoting them, before the counterexample was published — and the holes were already
+shaped so that a repair upstream changes nothing downstream.
 
 ## What an adversarial audit found
 
