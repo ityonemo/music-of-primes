@@ -13,21 +13,85 @@ the worklist.
 
 | | n | means | who owes it |
 |---|---|---|---|
+| **`cites "refuted: …"`** | **2** | **a published counterexample shows it is FALSE as written** | **the author — these are fatal** |
 | **bare `hole`** | **10** | the manuscript PROVES it; ours to transcribe | **us** |
-| `cites "gap: …"` | 4 | absent from the released draft | **the author** |
-| `cites "assertion: …"` | 18 | he states it, does not prove it | the author, or a reader |
+| `cites "gap: …"` | 3 | absent from the released draft | the author |
+| `cites "assertion: …"` | 17 | he states it, does not prove it | the author, or a reader |
 | `cites "standard: …"` | 15 | classical, with a textbook source | nobody — cited and closed |
 | DEFINITION clause | 5 | introduces a symbol, not an assumption | — |
-| **total `--axioms` entries** | **54** | | 10 + 4 + 18 + 15 + 5 |
+| definition-shaped `axiom` | 2 | ditto, but `--axioms` lists them as assumptions | — |
+| **total `--axioms` entries** | **54** | | 2 + 10 + 3 + 17 + 15 + 5 + 2 |
+
+The last row is a labelling artifact worth knowing: `noZerosRightMeansNoZeroIsRight` and
+`noZerosLeftMeansNoZeroIsLeft` (`shared/vocabulary.b4m`) say what their predicates MEAN, so
+they are definitions — but they are spelled `axiom` because a definition clause cannot infer
+a bound variable's sort under a quantifier, and `--axioms` therefore lists them beside real
+assumptions. Count them with the definitions.
 
     2b4m check examples/music-of-primes                  # the worklist (fails by design)
+    grep -rn 'cites "refuted:' .                         # the fatal objections
     grep -rn 'TRANSCRIBE:' .                             # the bare holes' manuscript refs
-    grep -rn 'cites "gap:' .                             # the list to send the author
+    grep -rn 'cites "gap:' .                             # absent from the released draft
 
-These are what `generalizedRiemannHypothesis` **transitively rests on**. The `standard/`
-files declare a little more than GRH reaches, because a classical fact belonging to
-still-untranscribed estimate work is kept load-bearing for a local wrapper theorem so it
-stays visible to `--axioms`. Those wrappers are bookkeeping, not content.
+## THE HEADLINE: two steps are now REFUTED, not merely unproved
+
+Nielsen, *A Failure of Uniform Boundedness in Masullo's Proposed Proof of the Generalized
+Riemann Hypothesis* (November 2026, `NIEIOM.pdf`) exhibits counterexamples to two assertions
+the manuscript relies on. **Both were independently verified here before being recorded**, and
+both land on steps this formalization had already isolated as unargued.
+
+### 1. The Montel step diverges — §1.4.3, repeated §1.8.4.3
+
+The deduction needs the Archimedean integrals to be locally uniformly bounded, so Montel's
+theorem can extract a holomorphic limit. For the trivial character over **Q** with a
+*nonnegative* mollifier, the positive-real part of that integral contains
+
+    A_n  =  ∫_1^{1+δ}  φ_n(t) · t^{−1/2} / (t − 1)  dt
+
+and `liminf A_n = +∞` by Fatou, because the limiting integrand `t^{−z−1/2}/(t−1)` has a
+logarithmic singularity at `t = 1`. Each individual approximant vanishes near `t = 1`, so its
+own integral is finite — but the neighbourhood shrinks, and no uniform bound survives.
+
+Verified here: the measure identity `t^{−1/2}/|1−t| dt = t^{1/2}/(t−1) · dt/t` holds for
+`t > 1`, the limiting integrand behaves like `1/(t−1)`, and `∫ 1/(t−1)` over `[1, 1+δ]`
+diverges.
+
+**This is the step the author himself calls "the source of all the difficulties."** Our hole
+`theLimitInterchangeIsValid` had it as the mathematical heart of the gap; it is now `refuted:`.
+Note the correction to our earlier note, which said Montel covers "the finitely many
+Archimedean integrals" as though that half were sound — it is precisely the Archimedean part
+that diverges.
+
+The objection holds **even if the Trace Formula is granted**: it is a false assertion inside
+the passage from the formula to GRH.
+
+### 2. The norm-preimage identification is false — p. 493, §11.3.1.1
+
+The manuscript asserts two descriptions of a stratum are the same set: *local units at every
+place above the first k rational primes*, and *the preimage of the kth rational stratum under
+the idelic norm*. They differ.
+
+In `F = Q(i)`, the prime 5 splits into `v₁, v₂` with both completions `≅ Q₅`, so each local
+norm is the **identity**. Take `g_{v₁} = 5`, `g_{v₂} = 5⁻¹`, all else 1: the valuations cancel,
+so the norm is a unit at every place and `g` lies in the preimage — but neither component is a
+local unit, so `g` is not in the first set.
+
+Verified here: `5 ≡ 1 mod 4` does split in `Q(i)`, and both completions are `Q₅`.
+
+**Our hole `segmentNestingLiftsToTheStrata` had already flagged this exact sentence** as an
+unargued assertion, quoting it, before the counterexample was published. That is the
+hole-first discipline doing its job: the formalization could not prove the step, declined to
+assume it silently, and the thing it could not prove turned out to be false.
+
+### What this does and does not settle
+
+It is a criticism of the proposed proof, not a disproof of GRH — Nielsen says so explicitly.
+The Trace Formula itself (Thm 12.5.1.1) is untouched by objection 1, and objection 2 concerns
+a stratum identification whose downstream necessity Nielsen does not trace.
+
+What it does settle is that the **concluding argument does not work as written**. A repaired
+test-function family would need a new argument, including its effect on the trace formula's
+other terms, and that cannot be presumed.
 
 ## What an adversarial audit found
 

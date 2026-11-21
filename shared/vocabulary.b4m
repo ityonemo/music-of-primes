@@ -98,9 +98,20 @@ pred onTheCriticalLine(r: Zero):
   onTheCriticalLine(r) iff
   ((not rightOfTheCriticalLine(r)) and (not leftOfTheCriticalLine(r))).
 
-// The next two are declared + axiomatized rather than written as definition blocks: a
-// definition clause cannot infer a bound variable's sort under a quantifier (PAINPOINTS 16),
-// and both bodies quantify over Zero. Same meaning, one extra name each.
+// THESE TWO ARE DEFINITIONS, BUT `--axioms` REPORTS THEM AS ASSUMPTIONS. Read them that way.
+//
+// They are declared + axiomatized rather than written as definition blocks only because a
+// definition clause cannot infer a bound variable's sort under a quantifier (2b4m PAINPOINTS
+// entry 16), and both bodies quantify over Zero. Semantically each SAYS WHAT ITS PREDICATE
+// MEANS — it introduces no constraint on anything that existed before — so neither is an
+// assumption about the mathematics.
+//
+// But the spelling `axiom` makes `--axioms` list them beside real assumptions, where a
+// definition block would have been labelled DEFINITION and set apart. Since this artifact's
+// whole deliverable is an honest assumption count, that mislabelling matters: when quoting
+// totals, these two belong with the 5 definitions, not with the 37 cited holes. They were
+// introduced in the same change that gave the critical line content, and an audit of the
+// --axioms output caught them.
 
 /// L(s, chi) has no zeros with real part > 1/2 — a statement ABOUT zeros
 pred noZerosRightOfTheCriticalLine()

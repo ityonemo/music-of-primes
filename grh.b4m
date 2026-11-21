@@ -124,7 +124,7 @@ hole holomorphyCoversTheWholeRightRegion
 // subsequence along which the ARCHIMEDEAN integrals converge uniformly; that the
 // infinite non-Archimedean sum also passes to the limit is asserted, not proved.
 hole theLimitInterchangeIsValid
-  cites "gap: NOT IN THE RELEASED TEXT — assumed pending the author. Ch. 13 (which would prove it) is a 2-page stub; the author himself calls the infinite non-Archimedean sum 'the source of all the difficulties' (§1.4.3). Montel gives uniform convergence of the finitely many ARCHIMEDEAN integrals only":
+  cites "refuted: NOT merely unproved — REFUTED as written. Nielsen (Nov 2026, NIEIOM.pdf) exhibits a counterexample: for the trivial character over Q with a NONNEGATIVE mollifier, the Archimedean integral's positive-real part contains int_1^{1+delta} phi_n(t) t^{-1/2}/(t-1) dt, whose liminf is +infinity by Fatou (the limiting integrand t^{-z-1/2}/(t-1) has a logarithmic singularity at t=1). Each individual approximant vanishes near t=1 so its own integral is finite, but the neighbourhood shrinks, so NO uniform bound exists — and Montel's theorem in §1.4.3 (repeated §1.8.4.3) therefore does not apply. Verified independently here: the measure identity t^{-1/2}/|1-t| dt = t^{1/2}/(t-1) dt/t holds, and int 1/(t-1) over [1, 1+delta] diverges. This is the step the author himself calls 'the source of all the difficulties'. A different approximant family would need a new argument, including its effect on the trace formula's other terms":
   forall f: TestFunction;
   isAMollifiedPowerApproximant(f) -> theTraceFormulaHoldsAt(f) ->
   theNonArchimedeanSumComputesTheLogDerivative(f)
