@@ -58,8 +58,14 @@ says even the restated Trace Formula needs correcting.
 
 ## The machinery IS there
 
-Not a stub: ~420 stated results (118 Theorem, 94 Lemma, 73 Proposition, 34 Corollary,
-59 Definition) and **513 completed proofs** (`□`). The declared main theorem, the **Trace
+Not a stub: **241 titled results** (113 Theorem, 67 Lemma, 45 Proposition, 16 Corollary) plus
+56 titled Definitions, and **513 completed proofs** (`□`).
+
+Counting method, so the figures are reproducible: a titled result is a line beginning
+`Theorem 1.2.3 (Title)` etc. in `the-music-of-the-primes.txt`; proofs are `□` marks.
+Counting every `Theorem 1.2.3` mention instead gives 184, but that includes in-text
+citations, so it overstates declarations — an earlier "~420" figure in this file came from a
+method of that kind and was not reproducible. The declared main theorem, the **Trace
 Formula (Theorem 12.5.1.1, p. 519)**, is fully stated and carries a real multi-page proof.
 
 So the work's achievement is the Trace Formula. GRH is claimed as a consequence, and it is
