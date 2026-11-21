@@ -353,24 +353,91 @@ qed
 // the hinge the whole objection turns on.
 // ---------------------------------------------------------------------------------------
 
-/// Masullo's §1.4.2 approximants form a family of the kind Prop 1 applies to.
+/// (i) THE SHAPE. Masullo's §1.4.2 construction has the form Prop 1 needs: phi_{h,eps,z}(t)
+/// = h(t)(rho_eps * phi_z)(t), with h a bump function supported over (1, +infinity) and
+/// valued in [0,1], tending pointwise monotonically to the indicator, and phi_z(t) = t^{-z}.
+/// All of this is his own text, verbatim.
+hole masullosConstructionHasTheStatedShape
+  cites "standard: §1.4.2 (txt 1326-1337) states the construction verbatim — 'take eps > 0 small, and rho_eps the resulting mollifier as a function of t in R_{>0}. Take h(t) in D(R_{>0}) be a bump function supported over (1, +infinity) only (and valued in [0, 1])', then 'phi_{h,eps,z}(t) := h(t)(rho_eps * phi_z)' which 'tends to phi_z(t) pointwise (for t != 1) as eps -> 0 and h -> 1_{(1,+infinity)} pointwise, as h ... remains valued in [0, 1] and below 1_{(1,+infinity)}, converging pointwise monotonically'. Repeated at txt 2783-2788":
+  theMasulloShapeIsAsStated()
+
+/// (ii) NONNEGATIVITY, which is what Fatou requires.
 ///
-/// THE TWO CLAIMS. (i) The construction's shape: phi_{h,eps,z}(t) = h(t)(rho_eps * phi_z)(t)
-/// with h supported in (1, infinity), valued in [0,1], approaching the indicator, and
-/// phi_n(t) -> t^{-z} pointwise for t > 1 — all of this is verbatim §1.4.2 (txt 1326-1333).
-/// (ii) NONNEGATIVITY of the approximants, which Fatou requires. Nielsen takes this as a
-/// hypothesis ("use a nonnegative mollifier"); Masullo's h is valued in [0,1] so the h
-/// factor is nonnegative, but whether his rho_eps is nonnegative is stated in NEITHER
-/// document.
+/// THIS WAS THE OBJECTION'S ONE SOFT SPOT, AND MASULLO'S OWN WORDS CLOSE IT. Nielsen writes
+/// "Use a nonnegative mollifier", which reads as an added hypothesis — and an earlier version
+/// of this file recorded it as an `assertion:` about his unstated intent for that reason.
+/// Re-reading §1.4.2 settles it the other way:
 ///
-/// (ii) IS THE NARROWEST PLACE THE OBJECTION COULD FAIL. A standard mollifier is a
-/// nonnegative bump, so the reading is strongly favoured and Nielsen is entitled to it as a
-/// stated hypothesis. But a signed mollifier would break Fatou's applicability and the
-/// objection would need rework. This is recorded as an `assertion:` rather than `standard:`
-/// precisely because it is a claim ABOUT THE MANUSCRIPT that the manuscript does not settle.
-hole masullosFamilyIsOfThisKind
-  cites "assertion: §1.4.2 (txt 1326-1333) gives the construction phi_{h,eps,z}(t) = h(t)(rho_eps * phi_z)(t) with h supported over (1, +infinity) and valued in [0,1] — so claim (i), the shape, is the manuscript's own. Claim (ii), that the approximants are NONNEGATIVE (which Fatou needs), is NOT stated there: Masullo does not say whether rho_eps is a nonnegative mollifier, and Nielsen assumes it ('Use a nonnegative mollifier, so that the approximants phi_n are nonnegative'). Standard mollifiers are nonnegative bumps, so this is very likely right, but it is an assumption about someone else's unstated choice and is the one place this objection could fail":
+///   - he calls rho_eps a MOLLIFIER, which is a term of art: nonnegative, smooth, compactly
+///     supported, unit mass. He never redefines it, so the standard meaning governs.
+///   - h is explicitly "valued in [0, 1]", hence nonnegative.
+///   - phi_z(t) = t^{-z} is positive for t > 1, and zero on (0,1).
+///
+/// A convolution of nonnegative functions is nonnegative, and a product of nonnegative
+/// functions is nonnegative. So the approximants are nonnegative BY HIS CONSTRUCTION, and
+/// Nielsen's hypothesis is not an extra assumption — it is a consequence of the text.
+///
+/// BUT BE PRECISE ABOUT THE RESIDUAL. This is forced only CONDITIONAL ON the standard
+/// meaning of a term he uses and never defines. He writes "the resulting mollifier" with no
+/// definition anywhere in 940 pages (grep: the word appears 3 times, never defined). The
+/// term-of-art reading is the only defensible one and nothing in his text contradicts it, so
+/// this is a `standard:` citation about mathematical usage — not an `assertion:` about his
+/// private intent, and not a certainty either. If he meant a signed kernel, the word choice
+/// was misleading and Fatou's applicability would need rework.
+///
+/// THE OTHER HYPOTHESIS NIELSEN NEEDS is pointwise convergence phi_n(t) -> t^{-z} for t > 1,
+/// and that one is verbatim his: "tends to phi_z(t) pointwise (for t != 1)" (txt 1336).
+///
+/// A WORRY CHECKED AND DISMISSED: each phi_n vanishes on a neighbourhood of t = 1 (h is
+/// supported in (1, +infinity) and approaches the indicator from below), so one might fear
+/// Fatou is being applied with the quantifiers swapped. It is not. Nielsen fixes delta FIRST
+/// and applies Fatou over n at that fixed delta; at each fixed t > 1 the pointwise limit is
+/// t^{-z} > 0, so the shrinking neighbourhoods do not depress the liminf. No swap occurs.
+hole aMollifierConstructionIsNonnegative
+  cites "standard: a MOLLIFIER is by definition nonnegative, smooth, compactly supported with unit mass — Hormander, The Analysis of Linear Partial Differential Operators I §1.3; Evans, PDE Appendix C.5; Folland, Real Analysis §8.2. Masullo calls rho_eps a mollifier (txt 1329) and never redefines the term. His h is 'valued in [0, 1]' (txt 1330) and phi_z(t) = t^{-z} > 0 for t > 1. A convolution of nonnegative functions is nonnegative and a product of nonnegative functions is nonnegative, so phi_{h,eps,z} >= 0 follows from HIS construction, not from an added hypothesis":
+  theMasulloShapeIsAsStated() -> theApproximantsAreNonnegative()
+
+/// the construction has the §1.4.2 shape
+pred theMasulloShapeIsAsStated()
+/// and its approximants are nonnegative, so Fatou applies
+pred theApproximantsAreNonnegative()
+
+intheory masullosFamilyIsOfThisKind
+
+/// Masullo's family is one Prop 1 applies to: the shape is his, and nonnegativity follows
+/// from the standard meaning of "mollifier" plus the sign of his own factors.
+theorem masullosFamilyIsOfThisKind:
   exists p: TestFunctionFamily; isTheMasulloApproximantFamily(p)
+proof
+  @the-shape-is-as-stated |
+    theMasulloShapeIsAsStated()
+    [by cite masullosConstructionHasTheStatedShape]
+  @nonnegativity-follows |
+    theMasulloShapeIsAsStated() -> theApproximantsAreNonnegative()
+    [by cite aMollifierConstructionIsNonnegative]
+  @the-approximants-are-nonnegative |
+    theApproximantsAreNonnegative()
+    [by modus_ponens nonnegativity-follows the-shape-is-as-stated]
+  @shape-and-sign-give-the-family |
+    theMasulloShapeIsAsStated() -> theApproximantsAreNonnegative() ->
+      (exists p: TestFunctionFamily; isTheMasulloApproximantFamily(p))
+    [by cite theShapeAndSignDetermineTheFamily]
+  @needs-the-sign |
+    theApproximantsAreNonnegative() ->
+      (exists p: TestFunctionFamily; isTheMasulloApproximantFamily(p))
+    [by modus_ponens shape-and-sign-give-the-family the-shape-is-as-stated]
+  @conclusion |
+    exists p: TestFunctionFamily; isTheMasulloApproximantFamily(p)
+    [by modus_ponens needs-the-sign the-approximants-are-nonnegative]
+qed
+
+/// and that those two properties are exactly what `isTheMasulloApproximantFamily` asks for.
+/// This is the one modelling bridge: it says the opaque predicate means what its doc comment
+/// says it means.
+hole theShapeAndSignDetermineTheFamily
+  cites "standard: this is the definition of `isTheMasulloApproximantFamily` unfolded — a family of the §1.4.2 shape whose approximants are nonnegative IS a family of the kind Prop 1 applies to, since those are the only two properties the proposition uses (the shape gives the integrand, the sign gives Fatou). Stated rather than written as a definition block because the predicate is declared over an opaque sort with no constructor":
+  theMasulloShapeIsAsStated() -> theApproximantsAreNonnegative() ->
+  (exists p: TestFunctionFamily; isTheMasulloApproximantFamily(p))
 
 hole montelNeedsAUniformBound
   cites "standard: Montel's theorem — a family of holomorphic functions locally uniformly bounded on a domain is relatively compact, so has a locally uniformly convergent subsequence. The boundedness hypothesis is not removable: without it no finite holomorphic limit is obtained. Conway, Functions of One Complex Variable Thm VII.2.9; Rudin, Real and Complex Analysis Thm 14.6. The manuscript applies it at §1.4.3 and §1.8.4.3":
