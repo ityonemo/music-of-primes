@@ -13,7 +13,7 @@ the worklist.
 
 | | n | means | who owes it |
 |---|---|---|---|
-| **`cites "refuted: …"`** | **2** | **a published counterexample shows it is FALSE as written** | **the author — these are fatal** |
+| **`cites "disputed: …"`** | **2** | **a published counterexample CLAIMS it is false; not verified here** | **the author, if the claim holds** |
 | **bare `hole`** | **10** | the manuscript PROVES it; ours to transcribe | **us** |
 | `cites "gap: …"` | 3 | absent from the released draft | the author |
 | `cites "assertion: …"` | 17 | he states it, does not prove it | the author, or a reader |
@@ -22,6 +22,12 @@ the worklist.
 | definition-shaped `axiom` | 2 | ditto, but `--axioms` lists them as assumptions | — |
 | **total `--axioms` entries** | **54** | | 2 + 10 + 3 + 17 + 15 + 5 + 2 |
 
+`disputed:` is deliberately NOT `refuted:`. An earlier version of this file used the stronger
+word, which was wrong: it put a reading of someone else's paper into the axiom record as
+though it were established. We have read Nielsen's argument and find it convincing; we have
+not proved it, and nothing here formalizes it. The distinction is the same one the bare/cited
+split enforces everywhere else — who owes the work, and on whose authority.
+
 The last row is a labelling artifact worth knowing: `noZerosRightMeansNoZeroIsRight` and
 `noZerosLeftMeansNoZeroIsLeft` (`shared/vocabulary.b4m`) say what their predicates MEAN, so
 they are definitions — but they are spelled `axiom` because a definition clause cannot infer
@@ -29,16 +35,20 @@ a bound variable's sort under a quantifier, and `--axioms` therefore lists them 
 assumptions. Count them with the definitions.
 
     2b4m check examples/music-of-primes                  # the worklist (fails by design)
-    grep -rn 'cites "refuted:' .                         # the fatal objections
+    grep -rn 'cites "disputed:' .                        # published counterexamples
     grep -rn 'TRANSCRIBE:' .                             # the bare holes' manuscript refs
     grep -rn 'cites "gap:' .                             # absent from the released draft
 
-## THE HEADLINE: two steps are now REFUTED, not merely unproved
+## THE HEADLINE: two steps are DISPUTED by a published counterexample
 
 Nielsen, *A Failure of Uniform Boundedness in Masullo's Proposed Proof of the Generalized
 Riemann Hypothesis* (November 2026, `NIEIOM.pdf`) exhibits counterexamples to two assertions
-the manuscript relies on. **Both were independently verified here before being recorded**, and
-both land on steps this formalization had already isolated as unargued.
+the manuscript relies on. Both land on steps this formalization had already isolated as
+unargued.
+
+**What follows is a summary of someone else's argument, with the parts we spot-checked marked
+as such.** Neither objection is formalized here, so neither is established by this artifact.
+Read this section as "where to look", not as a verdict.
 
 ### 1. The Montel step diverges — §1.4.3, repeated §1.8.4.3
 
@@ -52,12 +62,18 @@ and `liminf A_n = +∞` by Fatou, because the limiting integrand `t^{−z−1/2}
 logarithmic singularity at `t = 1`. Each individual approximant vanishes near `t = 1`, so its
 own integral is finite — but the neighbourhood shrinks, and no uniform bound survives.
 
-Verified here: the measure identity `t^{−1/2}/|1−t| dt = t^{1/2}/(t−1) · dt/t` holds for
-`t > 1`, the limiting integrand behaves like `1/(t−1)`, and `∫ 1/(t−1)` over `[1, 1+δ]`
+**Spot-checked here** (isolated facts, not the argument): the weight `1/|1−g_v|` really is in
+the manuscript's §1.4.3 display (txt 1265); the measure identity
+`t^{−1/2}/|1−t| dt = t^{1/2}/(t−1) · dt/t` holds for `t > 1`; and `∫ 1/(t−1)` over `[1, 1+δ]`
 diverges.
 
+**Not checked**: that the author's own mollifier is nonnegative (Fatou needs it — his §1.4.2
+`h·(ρ_ε ∗ φ_z)` with `h` valued in `[0,1]` appears to satisfy it, but we did not trace `ρ_ε`);
+that this integral is the one Montel is applied to; that Fatou applies in the manuscript's
+actual measure. Those are the load-bearing steps, and they are Nielsen's, not ours.
+
 **This is the step the author himself calls "the source of all the difficulties."** Our hole
-`theLimitInterchangeIsValid` had it as the mathematical heart of the gap; it is now `refuted:`.
+`theLimitInterchangeIsValid` had it as the mathematical heart of the gap; it is now `disputed:`.
 Note the correction to our earlier note, which said Montel covers "the finitely many
 Archimedean integrals" as though that half were sound — it is precisely the Archimedean part
 that diverges.
@@ -76,7 +92,9 @@ norm is the **identity**. Take `g_{v₁} = 5`, `g_{v₂} = 5⁻¹`, all else 1: 
 so the norm is a unit at every place and `g` lies in the preimage — but neither component is a
 local unit, so `g` is not in the first set.
 
-Verified here: `5 ≡ 1 mod 4` does split in `Q(i)`, and both completions are `Q₅`.
+**Spot-checked here**: `5 ≡ 1 mod 4` does split in `Q(i)`, both completions are `Q₅`, so the
+local norms are the identity and the valuations cancel. The step from that to "the
+manuscript's two descriptions differ" is Nielsen's, read and found convincing.
 
 **Our hole `segmentNestingLiftsToTheStrata` had already flagged this exact sentence** as an
 unargued assertion, quoting it, before the counterexample was published. That is the
@@ -89,9 +107,15 @@ It is a criticism of the proposed proof, not a disproof of GRH — Nielsen says 
 The Trace Formula itself (Thm 12.5.1.1) is untouched by objection 1, and objection 2 concerns
 a stratum identification whose downstream necessity Nielsen does not trace.
 
-What it does settle is that the **concluding argument does not work as written**. A repaired
-test-function family would need a new argument, including its effect on the trace formula's
-other terms, and that cannot be presumed.
+What it would settle, IF the objections hold, is that the **concluding argument does not work
+as written** — and a repaired test-function family would need a new argument, including its
+effect on the trace formula's other terms, which cannot be presumed.
+
+Whether they hold is not something this artifact establishes. Formalizing Prop 1 would need
+real analysis (measures, Fatou, a mollifier family) that this encoding does not have; Prop 2
+would need local fields and the idelic norm. Both are well outside the current altitude. What
+the artifact DOES contribute is that it flagged both sentences as unargued independently, and
+the holes are already shaped so that a repair upstream changes nothing downstream.
 
 ## What an adversarial audit found
 
