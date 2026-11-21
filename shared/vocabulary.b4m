@@ -71,12 +71,45 @@ pred theTraceFormulaHoldsAt(f: TestFunction):
 pred theNonArchimedeanSumComputesTheLogDerivative(f: TestFunction)
 /// L'_f(s+1/2, chi)/L_f(s+1/2, chi) is holomorphic on C_{>0} minus {1/2} — §1.4.5
 pred theLogDerivativeIsHolomorphicOffTheCentralPoint()
-/// L(s, chi) has no zeros with real part > 1/2
-pred noZerosRightOfTheCriticalLine()
-/// L(s, chi) has no zeros with real part < 1/2
-pred noZerosLeftOfTheCriticalLine()
-
-/// sigma(rho) = 1/2 — the zero lies on the critical line. GRH is: every non-trivial zero does.
-pred onTheCriticalLine(r: Zero)
 /// rho is a non-trivial zero of the Hecke L-function under consideration
 pred isNonTrivialZero(r: Zero)
+
+// THE CRITICAL LINE, WITH CONTENT. An earlier version declared `onTheCriticalLine` as an
+// OPAQUE predicate and `noZerosRight/Left` as opaque NULLARY ones. That made GRH's
+// statement vacuous: an adversarial probe derived the OPPOSITE conclusion ("no non-trivial
+// zero is on the line") from the same antecedents in the same shape, because nothing
+// related the three predicates. The final hole carried the entire connection, so the
+// theorem said "opaque-P(r) implies opaque-Q(r)" rather than anything about zeros.
+//
+// The fix is to say what the critical line IS, in the only terms this altitude has: a zero
+// is on it exactly when it is neither right of it nor left of it. That is a trichotomy on
+// the real part, and it is the content §1.4.5 actually uses — the manuscript excludes the
+// two open half-planes and concludes the line. With this definition, the last step of the
+// GRH deduction becomes a KERNEL-CHECKED derivation instead of an assumption.
+
+/// the zero lies strictly right of the critical line: Re(rho) > 1/2
+pred rightOfTheCriticalLine(r: Zero)
+/// the zero lies strictly left of the critical line: Re(rho) < 1/2
+pred leftOfTheCriticalLine(r: Zero)
+
+/// sigma(rho) = 1/2 — DEFINED as "neither side", which is what excluding both half-planes
+/// gives. GRH is: every non-trivial zero satisfies this.
+pred onTheCriticalLine(r: Zero):
+  onTheCriticalLine(r) iff
+  ((not rightOfTheCriticalLine(r)) and (not leftOfTheCriticalLine(r))).
+
+// The next two are declared + axiomatized rather than written as definition blocks: a
+// definition clause cannot infer a bound variable's sort under a quantifier (PAINPOINTS 16),
+// and both bodies quantify over Zero. Same meaning, one extra name each.
+
+/// L(s, chi) has no zeros with real part > 1/2 — a statement ABOUT zeros
+pred noZerosRightOfTheCriticalLine()
+axiom noZerosRightMeansNoZeroIsRight:
+  noZerosRightOfTheCriticalLine() iff
+  (forall r: Zero; isNonTrivialZero(r) -> (not rightOfTheCriticalLine(r)))
+
+/// L(s, chi) has no zeros with real part < 1/2 — a statement ABOUT zeros
+pred noZerosLeftOfTheCriticalLine()
+axiom noZerosLeftMeansNoZeroIsLeft:
+  noZerosLeftOfTheCriticalLine() iff
+  (forall r: Zero; isNonTrivialZero(r) -> (not leftOfTheCriticalLine(r)))

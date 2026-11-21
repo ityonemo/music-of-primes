@@ -207,10 +207,17 @@ hole admissibilityGives11321Hypotheses
 /// prod_{v not in S} O_Fv^x, so sum_{k in Z} phi(pi_v^k) contributes nothing at such a place.
 /// This is the half of txt 31556 that is NOT 11.3.2.1 — the vanishing of its right side.
 hole theOffSEulerContributionVanishes
-  cites "assertion: txt 31556 applies 11.3.2.1 and concludes 'each int k_p(x,x) dmu(x) = 0 for all prime numbers p that are not the prime residue characteristic of any finite place contained in S' in one move. 11.3.2.1 supplies the EQUALITY of the integral with the local Euler contribution; that the contribution itself vanishes off S follows from phi's invariance under prod_{v not in S} O_Fv^x, which the author does not write out":
+  cites "assertion: txt 31556 applies 11.3.2.1 and concludes 'each int k_p(x,x) dmu(x) = 0 for all prime numbers p that are not the prime residue characteristic of any finite place contained in S' in one move. 11.3.2.1 supplies the EQUALITY of the integral with the local Euler contribution; that the contribution itself vanishes OFF S follows from phi's invariance under prod_{v not in S} O_Fv^x, which the author does not write out":
   forall f: TestFunction; forall s: PlaceSet; forall k: orbital.StratumIndex;
-  isAdmissibleFor(s, f) ->
+  isAdmissibleFor(s, f) -> orbital.isOffTheSetOfPlaces(k, s) ->
   orbital.theLocalEulerContribution(k, f) = noQuantity
+
+/// and that the pieces SUMMED over are exactly the off-S strata — this is what
+/// `theOffSPieces` denotes, so the sum ranges only where the vanishing applies.
+hole theOffSPiecesRangeOverTheOffSStrata
+  cites "assertion: txt 31551's split writes the off-S part as 'sum_{p nmid S} int k_p dmu', so by construction its index ranges over the strata whose prime lies outside S. That `theOffSPieces` denotes exactly that sum is this encoding's reading of the equation, not a step the author argues":
+  forall f: TestFunction; forall s: PlaceSet; forall k: orbital.StratumIndex;
+  orbital.isOffTheSetOfPlaces(k, s)
 
 /// and that every off-S orbital integral vanishing makes their SUM vanish.
 hole aSumOfVanishingPiecesVanishes
@@ -259,10 +266,13 @@ proof
                       orbital.theLocalEulerContribution(k, f)
                     [using specialize theOrbitalTraceIsTheEulerContribution(f, s, k)
                       s-is-admissible-for-orbital-traces phi-is-supported-above-one]
+                  @stratum-k-is-off-s |
+                    orbital.isOffTheSetOfPlaces(k, s)
+                    [using specialize theOffSPiecesRangeOverTheOffSStrata(f, s, k)]
                   @the-off-s-contribution-vanishes-at-k |
                     orbital.theLocalEulerContribution(k, f) = noQuantity
                     [using specialize theOffSEulerContributionVanishes(f, s, k)
-                      s-is-admissible]
+                      s-is-admissible stratum-k-is-off-s]
                   @the-orbital-integral-vanishes-at-k |
                     orbital.theOrbitalIntegral(k, f) = noQuantity
                     [by rewrite the-off-s-contribution-vanishes-at-k

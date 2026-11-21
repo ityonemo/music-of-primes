@@ -87,25 +87,29 @@ hole theConstructionSatisfiesTheStandingHypotheses
 // (The manuscript's Thms B.7.2.1 / B.7.2.4 are quantitative Euler-product estimates, not a
 // quotable classical statement, so they are NOT what gets cited — the classical fact they
 // refine is.)
-pred noZeroOnTheOneLine = classical.noZeroOnTheOneLine
-fact nonVanishingOnTheOneLine = classical.nonVanishingOnTheOneLine
 
 // SPLIT. §1.4.5 states this in one sentence with no argument: "This implies that L_f(s, chi)
 // ... has no zeros over C_{>1/2}". The PRINCIPLE behind it is classical — a zero of L forces
 // a pole of L'/L — and is cited in standard/analysis.b4m (Ahlfors Ch. 4 §3).
 //
 // What remains OURS is the manuscript's own application of it: that holomorphy of L'_f/L_f
-// on C_{>0} minus {1/2}, together with non-vanishing on the 1-line, covers the whole region
-// Re(s) > 1/2. The quantifier bookkeeping over the region, and the s=1/2 exception, are his.
+// on C_{>0} minus {1/2} gives no zeros over C_{>1/2}.
+//
+// NOTE ON AN EARLIER ERROR HERE. This hole previously carried a `noZeroOnTheOneLine()`
+// third antecedent, discharged from a classical non-vanishing citation. That was an
+// INVENTED HYPOTHESIS: the author's covering argument at txt 1413-1417 is "Since a > 0 is
+// arbitrary" plus analytic continuation (C_{>1} versus C_{>a}), and 1-line non-vanishing
+// appears nowhere in §1.4.5. Supplying it made the hole look like routine bookkeeping over a
+// granted classical fact, when the author's actual argument is a different one. Removed.
 sort Point = classical.Point
 pred lVanishesAt = classical.lVanishesAt
 pred logDerivativeHasAPoleAt = classical.logDerivativeHasAPoleAt
 fact aZeroForcesAPoleOfTheLogDerivative = classical.aZeroForcesAPoleOfTheLogDerivative
 
 hole holomorphyCoversTheWholeRightRegion
-  cites "assertion: §1.4.5 concludes in one sentence with no argument — 'This implies that L_f(s, chi), and hence L(s, chi), has no zeros over C_{>1/2}' (txt 1417). The classical principle behind it (a zero forces a pole of L'/L) is cited separately; the region bookkeeping and the s=1/2 exception are asserted. CANDIDATE TO CLOSE — likely routine":
+  cites "assertion: §1.4.5 concludes in one sentence with no argument — 'This implies that L_f(s, chi), and hence L(s, chi), has no zeros over C_{>1/2}' (txt 1417). The classical principle behind it (a zero forces a pole of L'/L) is cited separately. The author's own covering argument is 'Since a > 0 is arbitrary' plus analytic continuation (txt 1413-1416); the region bookkeeping and the s=1/2 exception are asserted, not argued":
   (forall z: Point; lVanishesAt(z) -> logDerivativeHasAPoleAt(z)) ->
-  theLogDerivativeIsHolomorphicOffTheCentralPoint() -> noZeroOnTheOneLine() ->
+  theLogDerivativeIsHolomorphicOffTheCentralPoint() ->
   noZerosRightOfTheCriticalLine()
 
 // ---------------------------------------------------------------------------------------
@@ -142,13 +146,98 @@ hole theFunctionalEquationReflectsTheZeroFreeRegion
   cites "gap: NOT IN THE RELEASED TEXT — assumed pending the author. One line in §1.4.5 ('so by the functional equation the same holds over C_{<1/2}'); the functional equation IS in the manuscript, this deduction from it is not written out":
   noZerosRightOfTheCriticalLine() -> noZerosLeftOfTheCriticalLine()
 
-// The final step. No zeros strictly either side of the critical line leaves every
-// non-trivial zero ON it. Trivial as real analysis, but it is the content of Theorem
-// 13.3.1.2, whose statement in the released text is the footnote "Insert statement".
-hole everyZeroOffTheLineIsExcluded
-  cites "gap: NOT IN THE RELEASED TEXT — assumed pending the author. This IS Theorem 13.3.1.2, whose statement in the released draft is the author's footnote 'Insert statement'":
+// The final step. Excluding both open half-planes leaves every non-trivial zero ON the
+// line. This was a HOLE until an adversarial audit found it was a SWALLOW: its consequent
+// was the theorem's goal character-for-character, over predicates nothing constrained, so
+// the whole deduction was a propositional relay and the OPPOSITE conclusion was equally
+// derivable. Defining the critical line (shared/vocabulary.b4m) turned it into this
+// theorem, which is now genuinely kernel-checked from the two region facts.
+//
+// It corresponds to Theorem 13.3.1.2, whose statement in the released draft is the author's
+// footnote "Insert statement" — so the step he never wrote is the one step here that is now
+// not assumed.
+pred rightOfTheCriticalLine = vocab.rightOfTheCriticalLine
+pred leftOfTheCriticalLine = vocab.leftOfTheCriticalLine
+fact noZerosRightMeansNoZeroIsRight = vocab.noZerosRightMeansNoZeroIsRight
+fact noZerosLeftMeansNoZeroIsLeft = vocab.noZerosLeftMeansNoZeroIsLeft
+
+intheory everyZeroOffTheLineIsExcluded
+
+/// Strategy: unfold both region predicates to their per-zero form, fix a non-trivial zero,
+/// get "not right" and "not left" at it, and conclude `onTheCriticalLine` by its definition.
+theorem everyZeroOffTheLineIsExcluded:
   noZerosRightOfTheCriticalLine() -> noZerosLeftOfTheCriticalLine() ->
   forall r: Zero; isNonTrivialZero(r) -> onTheCriticalLine(r)
+proof
+  @given-no-zeros-right |
+    assume noZerosRightOfTheCriticalLine() {
+      @given-no-zeros-left |
+        assume noZerosLeftOfTheCriticalLine() {
+          @no-zeros-right |
+            noZerosRightOfTheCriticalLine()
+            [by hypothesis given-no-zeros-right]
+          @no-zeros-left |
+            noZerosLeftOfTheCriticalLine()
+            [by hypothesis given-no-zeros-left]
+          @right-unfolds |
+            noZerosRightOfTheCriticalLine() iff
+              (forall r: Zero; isNonTrivialZero(r) -> (not rightOfTheCriticalLine(r)))
+            [by cite noZerosRightMeansNoZeroIsRight]
+          @left-unfolds |
+            noZerosLeftOfTheCriticalLine() iff
+              (forall r: Zero; isNonTrivialZero(r) -> (not leftOfTheCriticalLine(r)))
+            [by cite noZerosLeftMeansNoZeroIsLeft]
+          @no-zero-is-right |
+            forall r: Zero; isNonTrivialZero(r) -> (not rightOfTheCriticalLine(r))
+            [using tautology right-unfolds no-zeros-right]
+          @no-zero-is-left |
+            forall r: Zero; isNonTrivialZero(r) -> (not leftOfTheCriticalLine(r))
+            [using tautology left-unfolds no-zeros-left]
+          @on-the-line-definition |
+            forall q: Zero;
+              onTheCriticalLine(q) iff
+              ((not rightOfTheCriticalLine(q)) and (not leftOfTheCriticalLine(q)))
+            [using import(vocab) definition(0) vocab.onTheCriticalLine]
+          @generalize-r |
+            fix r: Zero {
+              @given-r-is-nontrivial |
+                assume isNonTrivialZero(r) {
+                  @r-is-nontrivial |
+                    isNonTrivialZero(r)
+                    [by hypothesis given-r-is-nontrivial]
+                  @r-is-not-right |
+                    not rightOfTheCriticalLine(r)
+                    [using specialize no-zero-is-right(r) r-is-nontrivial]
+                  @r-is-not-left |
+                    not leftOfTheCriticalLine(r)
+                    [using specialize no-zero-is-left(r) r-is-nontrivial]
+                  @on-the-line-unfolds |
+                    onTheCriticalLine(r) iff
+                      ((not rightOfTheCriticalLine(r)) and
+                      (not leftOfTheCriticalLine(r)))
+                    [by apply_at(r) on-the-line-definition]
+                  @conclusion-r-is-on-the-line |
+                    onTheCriticalLine(r)
+                    [using tautology on-the-line-unfolds r-is-not-right r-is-not-left]
+                }
+              @nontrivial-implies-on-the-line |
+                isNonTrivialZero(r) -> onTheCriticalLine(r)
+                [by discharge given-r-is-nontrivial]
+            }
+          @conclusion-every-zero-is-on-the-line |
+            forall r: Zero; isNonTrivialZero(r) -> onTheCriticalLine(r)
+            [by generalize generalize-r]
+        }
+      @left-implies-all-on-the-line |
+        noZerosLeftOfTheCriticalLine() ->
+          forall r: Zero; isNonTrivialZero(r) -> onTheCriticalLine(r)
+        [by discharge given-no-zeros-left]
+    }
+  @conclusion |
+    noZerosRightOfTheCriticalLine() -> noZerosLeftOfTheCriticalLine() ->
+      forall r: Zero; isNonTrivialZero(r) -> onTheCriticalLine(r)
+    [by discharge given-no-zeros-right]
+qed
 
 // ---------------------------------------------------------------------------------------
 // THE DEDUCTION. Every step is kernel-checked; the holes above are its only assumptions.
@@ -235,28 +324,23 @@ proof
         theLogDerivativeIsHolomorphicOffTheCentralPoint()
         [by modus_ponens holomorphy-at-phi log-derivative-computed]
 
-      // no zeros to the right (grounded: Euler products on the 1-line)
-      @one-line |
-        noZeroOnTheOneLine()
-        [by cite nonVanishingOnTheOneLine]
+      // no zeros to the right: holomorphy off the central point, plus the classical
+      // zero-forces-a-pole principle. NOT 1-line non-vanishing — see the note above.
       @zero-forces-pole |
         forall z: Point; lVanishesAt(z) -> logDerivativeHasAPoleAt(z)
         [by cite aZeroForcesAPoleOfTheLogDerivative]
       @right-from-poles |
         (forall z: Point; lVanishesAt(z) -> logDerivativeHasAPoleAt(z)) ->
-          theLogDerivativeIsHolomorphicOffTheCentralPoint() -> noZeroOnTheOneLine() ->
+          theLogDerivativeIsHolomorphicOffTheCentralPoint() ->
           noZerosRightOfTheCriticalLine()
         [by cite holomorphyCoversTheWholeRightRegion]
       @right-implication |
-        theLogDerivativeIsHolomorphicOffTheCentralPoint() -> noZeroOnTheOneLine() ->
+        theLogDerivativeIsHolomorphicOffTheCentralPoint() ->
           noZerosRightOfTheCriticalLine()
         [by modus_ponens right-from-poles zero-forces-pole]
-      @right-needs-one-line |
-        noZeroOnTheOneLine() -> noZerosRightOfTheCriticalLine()
-        [by modus_ponens right-implication holomorphic]
       @no-zeros-right |
         noZerosRightOfTheCriticalLine()
-        [by modus_ponens right-needs-one-line one-line]
+        [by modus_ponens right-implication holomorphic]
 
       // reflect across the line (TRUE GAP)
       @reflection |

@@ -14,21 +14,11 @@
 // ALTITUDE: opaque, like the rest of this formalization. These are the INTERFACES the
 // manuscript uses, not the theorems themselves.
 
-theory vocab <<< "../shared/vocabulary.b4m"
-
-sort TestFunction = vocab.TestFunction
 /// a measurable set / group element locus — opaque
 sort Locus
-/// a function on the idele class group, in the manuscript's Hardy-Sobolev scale
-sort HardySobolevFunction
-
 /// the Lebesgue-differentiation property holds at this locus: averages over shrinking
 /// neighbourhoods converge to the value almost everywhere
 pred differentiatesAlmostEverywhere(l: Locus)
-/// the Hardy-Littlewood maximal operator is bounded on this function
-pred hasBoundedMaximalFunction(h: HardySobolevFunction)
-/// the Poisson summation formula applies, in the jump-singularity form the manuscript needs
-pred poissonSummationApplies(f: TestFunction)
 
 intheory lebesgueDifferentiation
 
@@ -41,18 +31,6 @@ intheory lebesgueDifferentiation
 hole lebesgueDifferentiationTheorem
   cites "standard: Lebesgue differentiation over a Hausdorff locally compact abelian group — Federer, Geometric Measure Theory §2.9; Hewitt-Ross, Abstract Harmonic Analysis I §44. Manuscript Thm A.5.4.1":
   forall l: Locus; differentiatesAlmostEverywhere(l)
-
-/// The Hardy-Littlewood maximal theorem, global form.
-/// Manuscript Theorem A.5.3.7.
-hole hardyLittlewoodMaximalTheorem
-  cites "standard: Hardy-Littlewood maximal inequality — Stein-Weiss, Introduction to Fourier Analysis on Euclidean Spaces Ch. II; the locally compact group form in Hewitt-Ross I. Manuscript Thm A.5.3.7":
-  forall h: HardySobolevFunction; hasBoundedMaximalFunction(h)
-
-/// The Poisson summation formula in the jump-singularity form.
-/// Manuscript Proposition B.4.1.2.
-hole poissonSummationFormula
-  cites "standard: Poisson summation, with the jump-singularity refinement — Tate's thesis (Cassels-Frohlich Ch. XV); Weil, Basic Number Theory §VII. Manuscript Prop B.4.1.2":
-  forall f: TestFunction; isTestFunction(f) -> poissonSummationApplies(f)
 
 // A trivially-true consequence, so this file has a THEOREM and its holes are not dead
 // weight — an uncited hole nothing depends on is invisible to `--axioms`, which would

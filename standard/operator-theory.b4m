@@ -35,11 +35,11 @@ sort Operator
 /// a kernel function on C_F x C_F inducing an operator by integration
 sort Kernel
 
-/// a smooth (eps, Lambda)-cutoff — the manuscript's rho, multiplied into the first variable
-sort Cutoff
-
-/// the indicator function of a divisorial stratum, multiplied into the second variable
-sort StratumIndicator
+// NOTE: `sort Cutoff` and `sort StratumIndicator` were declared here and never used. The
+// manuscript's rho and alpha_k are real objects, but nothing in this encoding references
+// them, so declaring them was DECORATION — vocabulary that made the file look as though it
+// modelled the cutoff machinery while no formula mentioned it. Removed; add them back when
+// a statement actually needs them.
 
 // ---------------------------------------------------------------------------------------
 // the properties it uses
@@ -80,26 +80,35 @@ oper operatorOf(k: Kernel, w: HardySobolevSpace) => Operator
 /// the value of the manuscript's orbital integral — the left side of (11.3.2.1)
 oper theOrbitalIntegral(k: Kernel, f: TestFunction) => Quantity
 
-intheory nuclearLimitsHaveTheLimitingTrace
+intheory nuclearLimitsAreNuclear
 
 // ---------------------------------------------------------------------------------------
 // CLASSICAL — cited, with sources.
 // ---------------------------------------------------------------------------------------
 
-/// A nuclear operator that is the trace-norm limit of finite-rank operators has as its
-/// trace the limit of their traces. This is the standard continuity of the trace functional
-/// on the trace class, and it is the step 11.3.2.1 relies on to evaluate its limit.
-hole theTraceIsContinuousOnTheTraceClass
-  cites "standard: the trace functional is continuous on the trace class (nuclear operators), so a trace-norm limit of finite-rank operators has the limiting trace — Reed-Simon, Functional Analysis I, Thm VI.26 (trace is continuous in trace norm); Simon, Trace Ideals and Their Applications §1-3; Conway, A Course in Operator Theory Ch.3 §18 (which the manuscript itself cites at (10.4.2.25) for the S1 = S2 identity)":
+/// The trace class is CLOSED in its own norm: a trace-norm limit of finite-rank operators
+/// is itself nuclear. This is what the chain needs in order to name `trace` at all (the
+/// `requires isNuclearOn` guard), and it is all this formula says.
+///
+/// NOTE ON AN EARLIER OVERCLAIM. This hole was named `theTraceIsContinuousOnTheTraceClass`
+/// and cited Reed-Simon Thm VI.26 (continuity of the trace FUNCTIONAL). An adversarial audit
+/// pointed out the formula does not mention `trace` at all, so the citation described a
+/// theorem the statement does not make. Renamed and re-cited to what it actually asserts.
+/// Continuity of the trace functional is a DIFFERENT fact, and the chain does not use it:
+/// 11.3.2.1's evaluation of the limit value is `theLimitValueIsTheZeroSide`, a separate
+/// bare hole citing the author's Thm 7.4.2.1.
+hole theTraceClassIsNormClosed
+  cites "standard: the trace class S_1 is a Banach space in the trace norm, hence closed under trace-norm limits; the finite-rank operators are dense in it — Reed-Simon, Functional Analysis I, Thm VI.26 and the surrounding discussion of S_1; Simon, Trace Ideals and Their Applications §1-2; Conway, A Course in Operator Theory Ch.3 §18 (which the manuscript itself cites at (10.4.2.25) for the S1 = S2 identity)":
   forall o: Operator; forall w: HardySobolevSpace;
   isTheNuclearLimitOfFiniteRanks(o, w) -> isNuclearOn(o, w)
 
-theorem nuclearLimitsHaveTheLimitingTrace:
+/// A finite-rank limit is nuclear, so `trace` may be named at it.
+theorem nuclearLimitsAreNuclear:
   forall o: Operator; forall w: HardySobolevSpace;
   isTheNuclearLimitOfFiniteRanks(o, w) -> isNuclearOn(o, w)
 proof
   @conclusion |
     forall o: Operator; forall w: HardySobolevSpace;
       isTheNuclearLimitOfFiniteRanks(o, w) -> isNuclearOn(o, w)
-    [by cite theTraceIsContinuousOnTheTraceClass]
+    [by cite theTraceClassIsNormClosed]
 qed

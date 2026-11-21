@@ -42,7 +42,7 @@ pred truncationsConvergeIn = operator_theory.truncationsConvergeIn
 pred inducesAContinuousOperator = operator_theory.inducesAContinuousOperator
 oper operatorOf = operator_theory.operatorOf
 oper trace = operator_theory.trace
-fact nuclearLimitsHaveTheLimitingTrace = operator_theory.nuclearLimitsHaveTheLimitingTrace
+fact nuclearLimitsAreNuclear = operator_theory.nuclearLimitsAreNuclear
 
 // ---------------------------------------------------------------------------------------
 // the objects of 11.3.2.1's statement
@@ -78,6 +78,11 @@ pred isAdmissibleForOrbitalTraces(s: PlaceSet, f: TestFunction)
 
 /// phi is supported over C_F^{>1} — the standing support hypothesis of 11.3.2.1
 pred isSupportedAboveOne(f: TestFunction)
+
+/// stratum k's prime is NOT the residue characteristic of any finite place in S. This is
+/// the manuscript's "p nmid S" condition (txt 31556), and without it the vanishing claim is
+/// FALSE: the in-S strata are exactly the ones whose contribution does not vanish.
+pred isOffTheSetOfPlaces(k: StratumIndex, s: PlaceSet)
 
 /// the xi's contributing at stratum k map to a uniformizer in some place of P_{k+1} - P_k;
 /// the manuscript calls this set Xi_k
@@ -189,6 +194,7 @@ hole theLimitValueIsTheZeroSide:
 hole poissonSummationGivesTheEulerContribution
   cites "standard: the Poisson summation formula in the jump-singularity form — Tate's thesis §4; Weil, Basic Number Theory §VII; Iwaniec-Kowalski, Analytic Number Theory §4.3. The manuscript collects it as Prop B.4.1.2 in an appendix titled 'Preparations'":
   forall f: TestFunction; forall k: StratumIndex;
+  contributesAtStratum(k, f) ->
   theZeroSideValue(f) = theLocalEulerContribution(k, f)
 
 // ---------------------------------------------------------------------------------------
@@ -250,7 +256,7 @@ proof
                         isNuclearOn(
                           operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
                           thePaleyWienerLevel)
-                        [using specialize nuclearLimitsHaveTheLimitingTrace(
+                        [using specialize nuclearLimitsAreNuclear(
                           operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
                           thePaleyWienerLevel) the-operator-is-a-finite-rank-limit]
                       // step 7: the limit value, then Poisson summation
@@ -261,7 +267,8 @@ proof
                           the-operator-is-nuclear]
                       @the-zero-side-is-the-euler-contribution |
                         theZeroSideValue(f) = theLocalEulerContribution(k, f)
-                        [using specialize poissonSummationGivesTheEulerContribution(f, k)]
+                        [using specialize poissonSummationGivesTheEulerContribution(f, k)
+                          the-kernel-contributes-only-at-the-stratum]
                       @the-integral-is-the-trace |
                         theOrbitalIntegral(k, f) =
                           trace(operatorOf(theIndentedStratumKernel(k, f),
