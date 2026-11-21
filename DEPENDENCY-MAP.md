@@ -5,7 +5,7 @@ kernel-checked. This file is the index to it.
 
 ## The current frontier, exactly
 
-`2b4m check --axioms --draft grh.b4m generalizedRiemannHypothesis` reports **52 entries**.
+`2b4m check --axioms --draft grh.b4m generalizedRiemannHypothesis` reports **54 entries**.
 Strict `check` FAILS on the 10 bare holes — that is the intended state, and their list is
 the worklist.
 
@@ -14,36 +14,97 @@ the worklist.
 | | n | means | who owes it |
 |---|---|---|---|
 | **bare `hole`** | **10** | the manuscript PROVES it; ours to transcribe | **us** |
-| `cites "gap: …"` | 5 | absent from the released draft | **the author** |
-| `cites "assertion: …"` | 17 | he states it, does not prove it | the author, or a reader |
-| `cites "standard: …"` | 16 | classical, with a textbook source | nobody — cited and closed |
-| DEFINITION clause | 4 | introduces a symbol, not an assumption | — |
-| **total `--axioms` entries** | **52** | | 10 + 5 + 17 + 16 + 4 |
-
-The prefixes answer different questions about the author's text — *absent* / *claimed* /
-*classical* — and a BARE hole answers a question about us: it is work we have not done.
+| `cites "gap: …"` | 4 | absent from the released draft | **the author** |
+| `cites "assertion: …"` | 18 | he states it, does not prove it | the author, or a reader |
+| `cites "standard: …"` | 15 | classical, with a textbook source | nobody — cited and closed |
+| DEFINITION clause | 5 | introduces a symbol, not an assumption | — |
+| **total `--axioms` entries** | **54** | | 10 + 4 + 18 + 15 + 5 |
 
     2b4m check examples/music-of-primes                  # the worklist (fails by design)
     grep -rn 'TRANSCRIBE:' .                             # the bare holes' manuscript refs
     grep -rn 'cites "gap:' .                             # the list to send the author
-    grep -rn 'cites "assertion:' .                       # candidates a reader could close
 
 These are what `generalizedRiemannHypothesis` **transitively rests on**. The `standard/`
-files declare more than GRH reaches, because each classical fact is kept load-bearing for a
-local theorem in its own file — an uncited hole is invisible to `--axioms`, so leaving one
-dangling would hide it.
+files declare a little more than GRH reaches, because a classical fact belonging to
+still-untranscribed estimate work is kept load-bearing for a local wrapper theorem so it
+stays visible to `--axioms`. Those wrappers are bookkeeping, not content.
 
-### Why `manuscript-proved:` is not a citation tier
+## What an adversarial audit found
 
-An earlier round gave these 10 holes a `cites "manuscript-proved: …"` string, on the reasoning
-that the released text really does prove them. That was a mistake, and a instructive one: it
-let OUR OWN BACKLOG pass strict `check`. The bare/cited split exists precisely to separate
-"someone else owes this" from "we have not done this yet", and a result the manuscript proves
-falls on our side. The manuscript reference survives as a `// TRANSCRIBE:` comment above each
-bare hole, so nothing was lost but the false green checkmark.
+Three independent reviewers were run against the artifact — one checking every `assertion:`
+citation against the manuscript, one hunting holes that check nothing, one auditing the GRH
+deduction's logic. **Four real defects, every one introduced by the formalization rather than
+present in the manuscript.** They are recorded here because the failure modes recur, and
+because an artifact that claims to audit someone else's work has to survive being audited.
 
-Converting them back exposed **two orphaned proofs** that had been invisible — see
-*Two things the decomposition surfaced*, below.
+### 1. The GRH statement was VACUOUS (most serious)
+
+`onTheCriticalLine` and `isNonTrivialZero` were opaque predicates appearing nowhere but the
+final hole and the goal, and the two region predicates were opaque and NULLARY. So the
+theorem said "opaque-P(r) implies opaque-Q(r)", not anything about zeros.
+
+The probe that settled it: **the OPPOSITE conclusion — no non-trivial zero is on the line —
+checked `OK` from the same antecedents in the same shape.** A statement whose negation is
+equally derivable has no content.
+
+Fixed by giving the critical line content: a zero is ON it exactly when it is neither right
+nor left of it, and the region predicates now quantify over zeros. The negation is now
+refuted with a countermodel.
+
+**This closed a gap by PROOF.** `everyZeroOffTheLineIsExcluded` was a *swallow* — its
+consequent was the theorem's goal character-for-character — and is now a kernel-checked
+theorem. It corresponds to Thm 13.3.1.2, whose statement in the released draft is the
+author's footnote `Insert statement`, so the one step he never wrote is the one step here
+that is no longer assumed. Gaps 5 → 4.
+
+### 2. A hole was FALSE as written
+
+`theOffSEulerContributionVanishes` quantified over **all** strata with no off-S condition —
+no predicate distinguished off-S from in-S, so the manuscript's "for primes p not in S"
+could not even be expressed.
+
+The probe: **the axiom set proved the zero side vanishes for every admissible test
+function**, which is false — it is a sum over the zeros of a local Euler factor product. In
+the intended reading this made the Trace Formula's geometric side unconditionally zero, when
+the in-S pieces are exactly the nonzero terms. Fixed by adding `isOffTheSetOfPlaces(k, s)`
+and guarding both that hole and the Poisson one.
+
+### 3. An INVENTED HYPOTHESIS
+
+`holomorphyCoversTheWholeRightRegion` carried `noZeroOnTheOneLine()` as an antecedent,
+discharged from a classical citation. The author's covering argument at txt 1413–1417 is
+*"Since a > 0 is arbitrary"* plus analytic continuation; 1-line non-vanishing appears nowhere
+in §1.4.5. Supplying it made the hole look like routine bookkeeping over a granted classical
+fact. Removed — which correctly stranded the citation that had been propping it up.
+
+### 4. A citation that did not state its source
+
+`theTraceIsContinuousOnTheTraceClass` cited Reed-Simon Thm VI.26 (continuity of the trace
+*functional*) for a formula that never mentions `trace`. Renamed `theTraceClassIsNormClosed`
+and re-cited to what it asserts.
+
+### Also: nine dead declarations, and three overstated claims
+
+Removed `sort Cutoff`, `sort StratumIndicator`, the Hardy-Littlewood and Poisson holes and
+their orphaned predicates — vocabulary that made files look as though they modelled machinery
+no formula referenced. 303 → 294 declarations, same 20 theorems.
+
+And three places the PROSE claimed more than the formulae deliver, now corrected in place:
+the "one assumption becomes seven" framing (it is transitivity — see below), the
+"kernel-checked deduction" header, and the re-export theorems described as load-bearing.
+
+### The structural caveat that remains, stated plainly
+
+In `orbital-traces.b4m` and `s-local-trace.b4m` the decomposed chains are **logically
+transitivity**. Their intermediate predicates are opaque and each occurs exactly twice — one
+hole's conclusion, the next hole's antecedent — and a probe confirms a single hole reaches
+the same conclusion with the same strength. Six holes are not six facts the kernel related;
+they are one assumption spelled across six names.
+
+What the decomposition still buys is **triage**: each hole pins one sentence of the author's
+proof to one named result, so `--axioms` reports auditable transcription tasks with checkable
+citations where before it reported one black box. That is worth having. It is not depth, and
+this artifact should not be read as having verified the analysis.
 
 ## How to read the holes
 
@@ -61,8 +122,8 @@ a real external source vouches for it. Never relabel a bare hole to make the che
 
 ## What is kernel-checked
 
-Four of the manuscript's results were single opaque holes until their proofs were read and
-recorded as the chains they are. **The ASSEMBLY of each is verified by the kernel** — the
+Five of the manuscript's results were single opaque holes until their proofs were read and
+recorded as the chains they are — the fifth being the one the author left as a footnote. **The ASSEMBLY of each is verified by the kernel** — the
 steps compose, the hypotheses thread, the equations substitute. What each assembly rests on
 is a mix of cited classical facts and BARE holes naming the author's own proved theorems,
 which are our transcription backlog.
@@ -77,6 +138,7 @@ point of reading `--axioms` rather than the green checkmark.
 | Thm 11.3.2.1 (Orbital Traces) | `standard/orbital-traces.b4m` | vanishing → indicator → convergence → nuclearity → finite-rank limit → zero side → Poisson |
 | Thm 12.4.1.1 (S-local Trace) | `standard/s-local-trace.b4m` | descend → nuclearity → reduce to E → lift phi → compute → collect per-place |
 | Def 10.4.3.7 (kernel algebra) | `standard/spectral-kernel.b4m` | definition block; the rearrangement is PROVED, not assumed |
+| Thm 13.3.1.2 (zeros on the line) | `grh.b4m` | **the step the author never wrote**: excluding both half-planes forces the line, from the definition of the critical line |
 
 ### Two orphaned proofs the bare-hole conversion exposed
 
@@ -124,7 +186,7 @@ machine-checked end to end. The ANALYSIS underneath it is cited, and closing it 
 measure theory and functional analysis [`WHAT-IT-WOULD-TAKE.md`](WHAT-IT-WOULD-TAKE.md)
 measures.
 
-### The `assertion:` tier — where the author asserts rather than proves
+### The `assertion:` tier (18) — where the author asserts rather than proves
 
 Each quotes his own words, so a reader can check the attribution. Vakil's announcement
 invites readers to fill small gaps, so these are candidates to close rather than permanent
@@ -196,7 +258,8 @@ graph TD
     POLE["<i>theLogDerivativeHasOnlyTheCentralPole</i><br/>GAP: §1.4.5, stale §5.1 ref"]
     RIGHT["<i>holomorphyCoversTheWholeRightRegion</i><br/>ASSERTION: region bookkeeping"]
     REFL["<i>theFunctionalEquationReflects…</i><br/>GAP: §1.4.5, one line"]
-    EXCL["<i>everyZeroOffTheLineIsExcluded</i><br/>GAP: IS Thm 13.3.1.2"]
+    EXCL["everyZeroOffTheLineIsExcluded<br/>(kernel-checked — was a swallow)"]
+    LINEDEF["theCriticalLineDefinition<br/>neither-right-nor-left"]
   end
 
   subgraph tf["trace-formula/ — Thm 12.5.1.1, PROVED"]
@@ -249,6 +312,7 @@ graph TD
   POLE --> GRH
   RIGHT --> GRH
   REFL --> GRH
+  LINEDEF --> EXCL
   EXCL --> GRH
 
   OCONV --> ORBTHM
@@ -302,11 +366,15 @@ Also proved in the text and available when the chain needs it: **Theorem B.4.4.7
 Explicit Formulas, Appendix B.4, proof written out) — what §13.1 was to recall. Not currently
 cited, so it is recorded here rather than declared.
 
-## The author's gaps (5) — `cites "gap: …"`, assumed pending his work
+## The author's gaps (4) — `cites "gap: …"`, assumed pending his work
 
 Each is a `cites` string recording what is assumed and why the released text does not supply
-it. **This is the list to send the author.** Four are in `grh.b4m`, in the Chapter 13
-deduction; the fifth is inside Theorem 12.4.1.1's proof, flagged by the author himself.
+it. **This is the list to send the author.** Three are in `grh.b4m`, in the Chapter 13
+deduction; the fourth is inside Theorem 12.4.1.1's proof, flagged by the author himself.
+
+A fifth was closed by PROOF rather than by the author: `everyZeroOffTheLineIsExcluded`
+(Thm 13.3.1.2) became derivable once the critical line was given a definition — see the
+audit section above.
 
 1. **`theLimitInterchangeIsValid`** — §1.4.3–1.4.4. Montel's theorem gives uniform
    convergence for the **finitely many Archimedean** integrals. The non-Archimedean sum is
@@ -323,12 +391,7 @@ deduction; the fifth is inside Theorem 12.4.1.1's proof, flagged by the author h
    functional equation the same holds for L(s, χ) over C_{<1/2}."* The functional equation is
    in the manuscript; this deduction from it is not written out. Likely genuinely routine.
 
-4. **`everyZeroOffTheLineIsExcluded`** — **this is Theorem 13.3.1.2**, the result that would
-   assert GRH. Its statement in the released draft is the author's footnote
-   `Insert statement`, and §13.1/§13.2 are headings with no body (Ch. 13 is pp. 521–522,
-   while every other chapter runs 14–197 pages).
-
-5. **`theExtendedCutoffFamilyExists`** — inside **Theorem 12.4.1.1's own proof**, and flagged
+4. **`theExtendedCutoffFamilyExists`** — inside **Theorem 12.4.1.1's own proof**, and flagged
    by the author, not by us. His footnote 2 to that proof: *"Extend Definition 9.3.3.1 so as
    to allow cutoffs whose support is over (0, λ] and not only over [1/λ, λ]. Return here and
    change the choice of smooth (λ, ε)-cutoff into a smoothening of 1_[1/λ'', λ] with λ'' not
