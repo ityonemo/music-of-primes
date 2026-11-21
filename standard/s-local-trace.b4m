@@ -15,6 +15,21 @@
 //   6. change variables w = xu and evaluate                    [the computation proper]
 //   7. collect the result as a sum of per-place local integrals plus phi(1)log(lambda*lambda')
 //
+// THE SAME CAVEAT AS orbital-traces.b4m APPLIES. Four of the stages below thread opaque
+// predicates (descendsAndIsHomogeneous, reducesToTheSubspace, anInvariantLiftExists), each
+// occurring only as one hole's conclusion and the next's antecedent, so the chain is
+// TRANSITIVITY rather than derivation: one assumption spelled across four names. What it
+// buys is that each name pins one sentence of the author's proof to one cited result, which
+// is useful for triage and is not depth. `reducesToTheSubspace` is the weakest link — it is
+// derived from nuclearity and used only to derive the lift, so cutting it loses nothing
+// checkable; it is kept because it names Lemma C.3.2.2's distinct role in the author's text.
+//
+// `theExtendedCutoffsAreAvailable` is INERT as a hypothesis: `theExtendedCutoffFamilyExists`
+// asserts it unconditionally, so threading it constrains nothing. It is kept deliberately,
+// as the only way at this altitude to make the author's footnote-2 incompleteness VISIBLE in
+// `--axioms` rather than only in a comment. A reader should treat it as a flag, not a proof
+// obligation that has been met.
+//
 // AN INCOMPLETENESS INSIDE THIS PROOF. The author attaches two of his own working footnotes
 // to it: footnote 1 "Include section", and footnote 2 "Extend Definition 9.3.3.1 so as to
 // allow cutoffs whose support is over (0, lambda] ... Return here and change the choice of

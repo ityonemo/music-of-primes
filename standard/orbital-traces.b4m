@@ -19,9 +19,28 @@
 // in the released text, so they are neither gaps nor classical; a future round can transcribe
 // any one of them, and the interface here will not change.
 //
-// WHAT THIS BUYS. One opaque assumption becomes seven located ones, of which two are
-// classical (citable and closed) and four are the author's own proved theorems. What remains
-// genuinely un-transcribed is the analytic estimate work inside each.
+// WHAT THIS BUYS, AND WHAT IT DOES NOT. Be precise about this, because an adversarial audit
+// found the earlier claim here overstated and it was right.
+//
+// LOGICALLY, the chain below is TRANSITIVITY. Five of its intermediate predicates
+// (contributesAtStratum, indicatorPreservesTheValue, truncationsConvergeIn,
+// inducesAContinuousOperator, isTheNuclearLimitOfFiniteRanks) are opaque and each occurs in
+// exactly two places: one hole's conclusion and the next hole's antecedent. A probe confirms
+// a SINGLE hole reaches this file's conclusion with the same strength. So the six holes are
+// not six independent facts the kernel has related — they are one assumption, spelled across
+// six names, plus transitivity of `->`.
+//
+// WHAT IT STILL BUYS is bookkeeping, not logic: each hole pins ONE sentence of the author's
+// proof to ONE named result (Thm 11.1.2.1, Prop 12.2.2.2, Thms 10.3.2.1 / 11.2.2.1,
+// Thm 7.4.2.1, Prop B.4.1.2), so `--axioms` reports six auditable transcription tasks with
+// citations a reader can check, where before it reported one opaque black box. That is worth
+// having for TRIAGE — it is how you find out that two of the six are classical and four are
+// the author's own proved theorems — but it is NOT depth, and this file should not be read as
+// having verified the analysis.
+//
+// The honest summary: the SEQUENCE of the author's argument is recorded and checked; the
+// CONTENT of each step is assumed. Closing that gap means defining the predicates, which
+// needs the measure theory and functional analysis WHAT-IT-WOULD-TAKE.md measures.
 //
 // ALTITUDE: opaque. No measure theory, no topology. These are the INTERFACES.
 

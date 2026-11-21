@@ -32,9 +32,13 @@ hole lebesgueDifferentiationTheorem
   cites "standard: Lebesgue differentiation over a Hausdorff locally compact abelian group — Federer, Geometric Measure Theory §2.9; Hewitt-Ross, Abstract Harmonic Analysis I §44. Manuscript Thm A.5.4.1":
   forall l: Locus; differentiatesAlmostEverywhere(l)
 
-// A trivially-true consequence, so this file has a THEOREM and its holes are not dead
-// weight — an uncited hole nothing depends on is invisible to `--axioms`, which would
-// defeat the purpose of recording them.
+// NOT REACHABLE FROM GRH, and deliberately kept. This classical input belongs to the
+// estimate work INSIDE Theorem 11.3.2.1 (its proof cites Thm A.5.4.1), which is a bare hole
+// — so nothing in this corpus consumes it yet, and it becomes live only when 11.3.2.1 is
+// transcribed. The one-line theorem below exists ONLY so the hole is not invisible to
+// `--axioms`; it asserts nothing beyond the hole and should not be counted as content. An
+// audit correctly flagged this pattern as inflating the theorem count, so: of this file's
+// theorems, these re-export wrappers are bookkeeping, not mathematics.
 theorem lebesgueDifferentiation: forall l: Locus; differentiatesAlmostEverywhere(l)
 proof
   @conclusion |
@@ -51,6 +55,12 @@ pred noZeroOnTheOneLine()
 
 intheory nonVanishingOnTheOneLine
 
+/// NOT REACHABLE FROM GRH either, since removing an invented hypothesis from
+/// `holomorphyCoversTheWholeRightRegion` correctly stranded it (the author's §1.4.5 argument
+/// is "since a > 0 is arbitrary" plus analytic continuation, NOT 1-line non-vanishing). Kept
+/// because the author does list it as a standing input elsewhere; it is simply not what that
+/// step uses.
+///
 /// Non-vanishing of the Hecke L-function on the 1-line. The author calls this an INPUT in
 /// his own words (txt 819: "the non-vanishing of L(s, chi) on the 1-line is used as an
 /// input"), and §1.7.2 lists "properties of the Hecke L-function on the 1-line (including

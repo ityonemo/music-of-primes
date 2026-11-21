@@ -240,8 +240,24 @@ proof
 qed
 
 // ---------------------------------------------------------------------------------------
-// THE DEDUCTION. Every step is kernel-checked; the holes above are its only assumptions.
+// THE DEDUCTION. Every step is kernel-checked and the holes above are its only assumptions.
 // `--axioms` on this theorem prints the exact dependency list.
+//
+// WHAT THIS DOES AND DOES NOT ESTABLISH. Read this before reading the theorem's name as a
+// claim. What is verified is that §1.4's prose outline, read as a chain of implications,
+// COMPOSES: the steps fit, no step is circular, every gap is a named assumption, and the
+// final step (every zero off neither side is on the line) is now genuinely derived from the
+// definition of the critical line rather than assumed.
+//
+// What is NOT verified is any analytic content. Most predicates here are opaque: nothing
+// relates `theLogDerivativeIsHolomorphicOffTheCentralPoint()` to a function, a region, or a
+// point, and the two `Point`-sorted predicates behind the zero-free region live in a
+// DIFFERENT sort from `Zero`, so the cited Ahlfors fact cannot interact with the goal. It is
+// honest provenance for where that classical input belongs, not a use of it.
+//
+// So this file answers "is the outline's SHAPE valid, and what does it rest on" — not "is
+// GRH proved". The answer to the first is yes; the answer to the second is no, and the four
+// `gap:` holes plus ten bare holes are the reason.
 // ---------------------------------------------------------------------------------------
 
 theorem generalizedRiemannHypothesis: forall r: Zero;
