@@ -1,0 +1,108 @@
+// THE NIELSEN OBJECTION, formalized top-down.
+//
+// Jenny Lorraine Nielsen, "A Failure of Uniform Boundedness in Masullo's Proposed Proof of
+// the Generalized Riemann Hypothesis" (November 2026, NIEIOM.pdf) claims two of the
+// manuscript's assertions are FALSE, not merely unproved. This file asks whether that claim
+// holds up, the same way grh.b4m asks whether Masullo's chain reaches GRH: state the
+// endpoint, make every missing piece a hole, and walk backwards.
+//
+// WHY THIS IS WORTH DOING. Those two steps are currently cited `disputed:` in grh.b4m and
+// trace-formula/trace-formula.b4m — "a published counterexample claims this is false, and the
+// claim is not verified here." Verifying it would settle them in one direction or the other.
+// Reading the paper and finding it convincing is not the same as checking it, and this
+// formalization exists precisely because that difference matters.
+//
+// THE TWO PROPOSITIONS, and what each needs:
+//
+//   Prop 1 (Montel fails, §1.4.3): the Archimedean integrals have no uniform bound, because
+//     A_n = int_1^{1+delta} phi_n(t) t^{-1/2}/(t-1) dt  has liminf +infinity.
+//     Three parts: a measure/weight ALGEBRA identity; FATOU plus a positive minimum giving
+//     divergence; and the inference from divergence to "no uniform bound", which is pure
+//     order logic.
+//
+//   Prop 2 (the norm preimage, p. 493): two descriptions of a stratum differ, witnessed in
+//     F = Q(i) at the split prime 5. Needs local fields and the idelic norm to state, and
+//     the witness is a CONSTRUCTION — so the shape is `exists`, discharged by a witness.
+//
+// ALTITUDE. Deliberately coarse, like the rest of this project. What is checked is the
+// ARGUMENT'S LOGIC: that the stated facts compose into the stated conclusions. The analysis
+// (Fatou, the divergence of int 1/(t-1), the splitting of 5 in Q(i)) is cited as well-known
+// mathematics with real sources. A reader who grants those gets Nielsen's conclusions, and
+// this file says exactly which they must grant.
+
+theory objection <<< "nielsen-objection/uniform-boundedness.b4m"
+theory preimage <<< "nielsen-objection/norm-preimage.b4m"
+
+sort TestFunctionFamily = objection.TestFunctionFamily
+pred theArchimedeanIntegralsHaveNoUniformBound =
+  objection.theArchimedeanIntegralsHaveNoUniformBound
+pred montelApplies = objection.montelApplies
+pred isTheMasulloApproximantFamily = objection.isTheMasulloApproximantFamily
+fact montelNeedsAUniformBound = objection.montelNeedsAUniformBound
+fact theMasulloFamilyHasNoUniformBound = objection.theMasulloFamilyHasNoUniformBound
+
+pred theTwoStratumDescriptionsAgree = preimage.theTwoStratumDescriptionsAgree
+fact theStratumDescriptionsDisagree = preimage.theStratumDescriptionsDisagree
+
+intheory montelDoesNotApplyToTheMasulloFamily
+intheory theNormPreimageIdentificationIsFalse
+
+// ---------------------------------------------------------------------------------------
+// PROPOSITION 1'S CONCLUSION. "The application of Montel's theorem in Section 1.4.3, and
+// its repetition in Section 1.8.4.3, is invalid as written."
+//
+// Nielsen's Corollary 1. The inference is: Montel REQUIRES a uniform bound; the Masullo
+// family HAS no uniform bound; therefore Montel does not apply. Modus tollens, and the two
+// premises are where the content lives — both in nielsen-objection/uniform-boundedness.b4m.
+// ---------------------------------------------------------------------------------------
+
+/// Strategy: Montel requires a uniform bound, which this family lacks; conclude by
+/// contraposition.
+theorem montelDoesNotApplyToTheMasulloFamily:
+  forall p: TestFunctionFamily;
+  isTheMasulloApproximantFamily(p) -> (not montelApplies(p))
+proof
+  @generalize-p |
+    fix p: TestFunctionFamily {
+      @given-is-the-masullo-family |
+        assume isTheMasulloApproximantFamily(p) {
+          @is-the-masullo-family |
+            isTheMasulloApproximantFamily(p)
+            [by hypothesis given-is-the-masullo-family]
+          @no-uniform-bound |
+            theArchimedeanIntegralsHaveNoUniformBound(p)
+            [using specialize theMasulloFamilyHasNoUniformBound(p)
+              is-the-masullo-family]
+          @montel-needs-a-bound |
+            montelApplies(p) -> (not theArchimedeanIntegralsHaveNoUniformBound(p))
+            [using specialize montelNeedsAUniformBound(p)]
+          @conclusion-montel-fails |
+            not montelApplies(p)
+            [using tautology montel-needs-a-bound no-uniform-bound]
+        }
+      @masullo-family-defeats-montel |
+        isTheMasulloApproximantFamily(p) -> (not montelApplies(p))
+        [by discharge given-is-the-masullo-family]
+    }
+  @conclusion |
+    forall p: TestFunctionFamily;
+      isTheMasulloApproximantFamily(p) -> (not montelApplies(p))
+    [by generalize generalize-p]
+qed
+
+// ---------------------------------------------------------------------------------------
+// PROPOSITION 2'S CONCLUSION. "This counterexample disproves the stated identification."
+//
+// One line, because the content is the WITNESS and it lives in
+// nielsen-objection/norm-preimage.b4m: an idele of Q(i) with unit norm everywhere but
+// non-unit components above the split prime 5.
+// ---------------------------------------------------------------------------------------
+
+/// Strategy: the witness construction refutes the identification directly.
+theorem theNormPreimageIdentificationIsFalse:
+  not theTwoStratumDescriptionsAgree()
+proof
+  @conclusion |
+    not theTwoStratumDescriptionsAgree()
+    [by cite theStratumDescriptionsDisagree]
+qed

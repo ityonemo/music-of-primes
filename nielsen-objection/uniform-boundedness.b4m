@@ -1,0 +1,347 @@
+// NIELSEN PROPOSITION 1 — the Archimedean integrals have no uniform bound.
+//
+// The paper's §2. Three parts, and they are of genuinely different kinds, which is why they
+// are separated here rather than bundled:
+//
+//   (a) ALGEBRA. The measure and weight combine: t^{-1/2}/|1-t| dt = t^{1/2}/(t-1) dt/t for
+//       t > 1. Nielsen states this as "Indeed, ...". Pure computation.
+//
+//   (b) ANALYSIS. Fatou's lemma on nonnegative integrands, plus the fact that t^{-z-1/2} has
+//       a positive minimum c on [1, 1+delta], gives liminf A_n >= c * int_1^{1+delta}
+//       dt/(t-1) = +infinity. This is where the real content is, and it is CITED: this
+//       formalization has no measures, no integrals, no limits.
+//
+//   (c) LOGIC. From "the sequence exceeds every real" conclude "no real bounds the sequence
+//       at every index". This is Nielsen's "In particular", and it is the one part that is
+//       PROVED here, from the definitions of the two notions plus strict-order asymmetry.
+//
+// WHAT THE SPLIT BUYS. A reader can see exactly which of Nielsen's three moves is checked
+// and which are granted. (c) is the step most likely to hide a quantifier error — "tends to
+// infinity" and "has no uniform bound" are not interchangeable in general, and the paper
+// moves between them in one phrase — so it is the one worth machine-checking. (a) and (b)
+// are standard and quotable.
+
+// ---------------------------------------------------------------------------------------
+// the objects
+// ---------------------------------------------------------------------------------------
+
+/// a family {phi_n} of test-function approximants, indexed by n
+sort TestFunctionFamily
+
+/// an index n of the approximating sequence
+sort Index
+
+/// a real quantity — the value of an integral, or a candidate bound. Opaque: this file does
+/// not model the reals, it models the ORDER relation the argument uses.
+sort Magnitude
+
+/// the Archimedean integral A_n at index n, for the family: the quantity Nielsen shows
+/// diverges. Up to a fixed positive factor this is
+/// int_1^{1+delta} phi_n(t) t^{-1/2}/(t-1) dt.
+oper theArchimedeanIntegral(p: TestFunctionFamily, n: Index) => Magnitude
+
+/// strict order on magnitudes
+pred below(x: Magnitude, y: Magnitude)
+
+// ---------------------------------------------------------------------------------------
+// the properties
+// ---------------------------------------------------------------------------------------
+
+/// the family is Masullo's: phi_n = h * (rho_eps * phi_z) with a NONNEGATIVE mollifier,
+/// h supported in (1, infinity) and valued in [0,1], approaching the indicator, and
+/// phi_n(t) -> t^{-z} pointwise for t > 1, at some admissible real z > max{1, sup I}.
+pred isTheMasulloApproximantFamily(p: TestFunctionFamily)
+
+/// every A_n lies below this candidate bound. Long-form (declaration + axiom) because a
+/// definition clause cannot infer `n`'s sort under the quantifier — 2b4m PAINPOINTS 16, same
+/// cause as the two axioms in shared/vocabulary.b4m. This SAYS WHAT boundedBy MEANS.
+pred boundedBy(p: TestFunctionFamily, b: Magnitude)
+axiom boundedByMeansEveryValueIsBelow:
+  forall p: TestFunctionFamily; forall b: Magnitude;
+  boundedBy(p, b) iff (forall n: Index; below(theArchimedeanIntegral(p, n), b))
+
+/// SOME candidate bounds every A_n — "the asserted uniform upper bound" exists
+pred hasAUniformBound(p: TestFunctionFamily)
+
+/// EVERY candidate is exceeded at some index — the operative content of liminf A_n = +infinity
+pred exceedsEveryBound(p: TestFunctionFamily)
+
+/// the family defeats the uniform-boundedness assertion
+pred theArchimedeanIntegralsHaveNoUniformBound(p: TestFunctionFamily):
+  theArchimedeanIntegralsHaveNoUniformBound(p) iff (not hasAUniformBound(p)).
+
+/// Montel's theorem applies to the family, in the form §1.4.3 uses: a subsequence converges
+/// to a finite holomorphic limit
+pred montelApplies(p: TestFunctionFamily)
+
+intheory theMasulloFamilyHasNoUniformBound
+intheory divergenceDefeatsAUniformBound
+
+// ---------------------------------------------------------------------------------------
+// (a) ALGEBRA — the measure/weight identity. Nielsen's "Indeed, ...".
+// ---------------------------------------------------------------------------------------
+
+/// The Archimedean measure and the trace-formula weight combine to the stated integrand.
+/// `t^{-1/2}/|1-t| dt = t^{1/2}/(t-1) * dt/t` for `t > 1`.
+hole theMeasureAndWeightCombine
+  cites "standard: elementary algebra of the integrand — for t > 1, |1 - t| = t - 1, so t^{-1/2}/(t-1) = (t^{1/2}/(t-1)) * (1/t). Checked symbolically here (sympy: simplify(a - b) == 0). The weight 1/|1 - g_v| really is the one in the manuscript's §1.4.3 display at txt 1265, and reappears in Thm 12.4.1.1 at txt 31136":
+  forall p: TestFunctionFamily; isTheMasulloApproximantFamily(p) ->
+  theIntegrandIsTheStatedOne(p)
+
+/// the integrand of A_n is the one Nielsen displays
+pred theIntegrandIsTheStatedOne(p: TestFunctionFamily)
+
+// ---------------------------------------------------------------------------------------
+// (b) ANALYSIS — Fatou, and the logarithmic singularity. CITED, not proved.
+//
+// This is the load-bearing analytic step, and the honest position is that this
+// formalization cannot check it: there are no measures, no integrals and no limits at this
+// altitude. What a reader must grant is stated as precisely as possible, with sources.
+// ---------------------------------------------------------------------------------------
+
+/// Fatou's lemma applies, because a nonnegative mollifier makes every phi_n nonnegative.
+///
+/// NOTE THE HINGE. Fatou needs nonnegative integrands. Nielsen states "use a nonnegative
+/// mollifier" as a HYPOTHESIS, and Masullo's §1.4.2 construction h*(rho_eps * phi_z) with h
+/// valued in [0,1] appears to satisfy it — but whether Masullo's own rho_eps is nonnegative
+/// is NOT traced in either document, and if he intended a signed mollifier this step needs
+/// rework. This is the narrowest place the objection could fail.
+hole fatouAppliesToTheNonnegativeApproximants
+  cites "standard: Fatou's lemma — liminf int f_n >= int liminf f_n for nonnegative measurable f_n. Rudin, Real and Complex Analysis Thm 1.28; Folland, Real Analysis Thm 2.15. CONDITIONAL on the approximants being nonnegative, which Nielsen takes as a hypothesis ('use a nonnegative mollifier') and which this formalization does not trace to Masullo's own rho_eps":
+  forall p: TestFunctionFamily;
+  isTheMasulloApproximantFamily(p) -> theIntegrandIsTheStatedOne(p) ->
+  theLiminfIsAtLeastTheLimitIntegral(p)
+
+/// liminf A_n is bounded below by the integral of the pointwise liminf
+pred theLiminfIsAtLeastTheLimitIntegral(p: TestFunctionFamily)
+
+/// The limiting integral diverges: t^{-z-1/2} has a positive minimum c on [1, 1+delta], and
+/// c * int_1^{1+delta} dt/(t-1) = +infinity — a logarithmic singularity at t = 1.
+///
+/// This is the mathematical core of the objection, and it is elementary: the integrand is
+/// asymptotically c/(t-1) and that integral diverges. Checked symbolically here, but as an
+/// isolated fact about 1/(t-1), not as a statement about the manuscript's measure.
+hole theLimitingIntegralDiverges
+  cites "standard: int_1^{1+delta} dt/(t-1) = +infinity (a logarithmic singularity), and a continuous positive function on a compact interval attains a positive minimum — any real-analysis text, e.g. Rudin, Principles of Mathematical Analysis Thm 4.16 (minimum) and §6 (improper integrals). Checked symbolically here: the limiting integrand t^{-z-1/2}/(t-1) satisfies lim_{t->1} (t-1)*f(t) = 1, and integrate(1/(t-1), (t, 1, 1+delta)) = oo":
+  forall p: TestFunctionFamily;
+  theLiminfIsAtLeastTheLimitIntegral(p) -> exceedsEveryBound(p)
+
+// ---------------------------------------------------------------------------------------
+// the definitional facts the logic step needs. Declared + axiomatized because a definition
+// clause cannot infer a bound variable's sort under a quantifier (2b4m PAINPOINTS 16) —
+// these SAY WHAT THE PREDICATES MEAN and assume nothing about the mathematics.
+// ---------------------------------------------------------------------------------------
+
+/// a uniform bound is some candidate bounding every index
+axiom aUniformBoundIsSomeBound:
+  forall p: TestFunctionFamily;
+  hasAUniformBound(p) iff (exists b: Magnitude; boundedBy(p, b))
+
+/// exceeding every bound: each candidate is beaten at some index
+axiom exceedingMeansEachCandidateIsBeaten:
+  forall p: TestFunctionFamily;
+  exceedsEveryBound(p) iff
+  (forall b: Magnitude; exists n: Index; below(b, theArchimedeanIntegral(p, n)))
+
+/// strict order is asymmetric — nothing is below itself
+hole belowIsIrreflexive
+  cites "standard: a strict order is irreflexive — immediate from asymmetry, which `below` has as the strict order on the reals. Any analysis or order-theory text":
+  forall x: Magnitude; not below(x, x)
+
+/// and transitive
+hole belowIsTransitive
+  cites "standard: the strict order on the reals is transitive — any analysis text":
+  forall x: Magnitude; forall y: Magnitude; forall z: Magnitude;
+  below(x, y) -> below(y, z) -> below(x, z)
+
+// ---------------------------------------------------------------------------------------
+// (c) THE LOGIC — Nielsen's "In particular". PROVED.
+//
+// "The sequence A_n tends to +infinity. In particular, the asserted uniform upper bound does
+// not exist." Those are different statements and the paper joins them in two words, so this
+// is the step worth checking: if every candidate is beaten somewhere, no candidate bounds
+// everywhere. The proof assumes a uniform bound, unpacks it to a witness b, beats b at some
+// index n, and derives below(b, b) — contradicting irreflexivity.
+// ---------------------------------------------------------------------------------------
+
+/// Strategy: assume a bound, unpack its witness, beat it, contradict irreflexivity.
+theorem divergenceDefeatsAUniformBound:
+  forall p: TestFunctionFamily;
+  exceedsEveryBound(p) -> (not hasAUniformBound(p))
+proof
+  @generalize-p |
+    fix p: TestFunctionFamily {
+      @given-exceeds |
+        assume exceedsEveryBound(p) {
+          @exceeds |
+            exceedsEveryBound(p)
+            [by hypothesis given-exceeds]
+          @exceeding-unfolds |
+            forall q: TestFunctionFamily;
+              exceedsEveryBound(q) iff
+              (forall b: Magnitude; exists n: Index;
+              below(b, theArchimedeanIntegral(q, n)))
+            [by cite exceedingMeansEachCandidateIsBeaten]
+          @exceeding-at-p |
+            exceedsEveryBound(p) iff
+              (forall b: Magnitude; exists n: Index;
+              below(b, theArchimedeanIntegral(p, n)))
+            [by apply_at(p) exceeding-unfolds]
+          @each-candidate-is-beaten |
+            forall b: Magnitude; exists n: Index;
+              below(b, theArchimedeanIntegral(p, n))
+            [using tautology exceeding-at-p exceeds]
+          @given-a-uniform-bound |
+            assume hasAUniformBound(p) {
+              @has-a-bound |
+                hasAUniformBound(p)
+                [by hypothesis given-a-uniform-bound]
+              @uniform-unfolds |
+                forall q: TestFunctionFamily;
+                  hasAUniformBound(q) iff (exists b: Magnitude; boundedBy(q, b))
+                [by cite aUniformBoundIsSomeBound]
+              @uniform-at-p |
+                hasAUniformBound(p) iff (exists b: Magnitude; boundedBy(p, b))
+                [by apply_at(p) uniform-unfolds]
+              @a-bound-exists |
+                exists b: Magnitude; boundedBy(p, b)
+                [using tautology uniform-at-p has-a-bound]
+              @bounded-definition |
+                forall q: TestFunctionFamily; forall c: Magnitude;
+                  boundedBy(q, c) iff
+                  (forall n: Index; below(theArchimedeanIntegral(q, n), c))
+                [by cite boundedByMeansEveryValueIsBelow]
+              @irreflexive |
+                forall x: Magnitude; not below(x, x)
+                [by cite belowIsIrreflexive]
+              @transitive |
+                forall x: Magnitude; forall y: Magnitude; forall z: Magnitude;
+                  below(x, y) -> below(y, z) -> below(x, z)
+                [by cite belowIsTransitive]
+              @no-bound-from-the-witness |
+                unpack b: Magnitude from a-bound-exists {
+                  @bounded-by-b |
+                    boundedBy(p, b)
+                    [by hypothesis no-bound-from-the-witness]
+                  @bounded-at-p-b |
+                    boundedBy(p, b) iff
+                      (forall n: Index; below(theArchimedeanIntegral(p, n), b))
+                    [by apply_at(p, b) bounded-definition]
+                  @every-value-is-below-b |
+                    forall n: Index; below(theArchimedeanIntegral(p, n), b)
+                    [using tautology bounded-at-p-b bounded-by-b]
+                  @b-is-beaten |
+                    exists n: Index; below(b, theArchimedeanIntegral(p, n))
+                    [by apply_at(b) each-candidate-is-beaten]
+                  @no-bound-from-the-index |
+                    unpack n: Index from b-is-beaten {
+                      @b-below-the-value |
+                        below(b, theArchimedeanIntegral(p, n))
+                        [by hypothesis no-bound-from-the-index]
+                      @the-value-below-b |
+                        below(theArchimedeanIntegral(p, n), b)
+                        [by apply_at(n) every-value-is-below-b]
+                      @b-below-itself |
+                        below(b, b)
+                        [using specialize transitive(b, theArchimedeanIntegral(p, n), b)
+                          b-below-the-value the-value-below-b]
+                      @b-not-below-itself |
+                        not below(b, b)
+                        [by apply_at(b) irreflexive]
+                      @conclusion-no-uniform-bound |
+                        not hasAUniformBound(p)
+                        [by ex_falso b-below-itself b-not-below-itself]
+                    }
+                  @conclusion-no-bound-at-b |
+                    not hasAUniformBound(p)
+                    [by unpacked no-bound-from-the-index]
+                }
+              @no-uniform-bound-after-all |
+                not hasAUniformBound(p)
+                [by unpacked no-bound-from-the-witness]
+            }
+          @uniform-bound-is-self-refuting |
+            hasAUniformBound(p) -> (not hasAUniformBound(p))
+            [by discharge given-a-uniform-bound]
+          @conclusion-inner |
+            not hasAUniformBound(p)
+            [using tautology uniform-bound-is-self-refuting]
+        }
+      @exceeds-implies-no-bound |
+        exceedsEveryBound(p) -> (not hasAUniformBound(p))
+        [by discharge given-exceeds]
+    }
+  @conclusion |
+    forall p: TestFunctionFamily;
+      exceedsEveryBound(p) -> (not hasAUniformBound(p))
+    [by generalize generalize-p]
+qed
+
+// ---------------------------------------------------------------------------------------
+// PROPOSITION 1, assembled: algebra, then Fatou, then divergence, then the logic.
+// ---------------------------------------------------------------------------------------
+
+/// Nielsen Proposition 1. Strategy: chain (a) the integrand identity, (b) Fatou and the
+/// divergence of the limiting integral, then (c) the proved logical step.
+theorem theMasulloFamilyHasNoUniformBound:
+  forall p: TestFunctionFamily;
+  isTheMasulloApproximantFamily(p) ->
+  theArchimedeanIntegralsHaveNoUniformBound(p)
+proof
+  @generalize-p |
+    fix p: TestFunctionFamily {
+      @given-is-the-family |
+        assume isTheMasulloApproximantFamily(p) {
+          @is-the-family |
+            isTheMasulloApproximantFamily(p)
+            [by hypothesis given-is-the-family]
+          @the-integrand-is-the-stated-one |
+            theIntegrandIsTheStatedOne(p)
+            [using specialize theMeasureAndWeightCombine(p) is-the-family]
+          @fatou-gives-the-lower-bound |
+            theLiminfIsAtLeastTheLimitIntegral(p)
+            [using specialize fatouAppliesToTheNonnegativeApproximants(p)
+              is-the-family the-integrand-is-the-stated-one]
+          @the-sequence-exceeds-every-bound |
+            exceedsEveryBound(p)
+            [using specialize theLimitingIntegralDiverges(p)
+              fatou-gives-the-lower-bound]
+          @no-uniform-bound |
+            not hasAUniformBound(p)
+            [using specialize divergenceDefeatsAUniformBound(p)
+              the-sequence-exceeds-every-bound]
+          @no-uniform-bound-definition |
+            forall q: TestFunctionFamily;
+              theArchimedeanIntegralsHaveNoUniformBound(q) iff
+              (not hasAUniformBound(q))
+            [by definition(0) theArchimedeanIntegralsHaveNoUniformBound]
+          @no-uniform-bound-at-p |
+            theArchimedeanIntegralsHaveNoUniformBound(p) iff
+              (not hasAUniformBound(p))
+            [by apply_at(p) no-uniform-bound-definition]
+          @conclusion-no-uniform-bound |
+            theArchimedeanIntegralsHaveNoUniformBound(p)
+            [using tautology no-uniform-bound-at-p no-uniform-bound]
+        }
+      @family-has-no-bound |
+        isTheMasulloApproximantFamily(p) ->
+          theArchimedeanIntegralsHaveNoUniformBound(p)
+        [by discharge given-is-the-family]
+    }
+  @conclusion |
+    forall p: TestFunctionFamily;
+      isTheMasulloApproximantFamily(p) ->
+      theArchimedeanIntegralsHaveNoUniformBound(p)
+    [by generalize generalize-p]
+qed
+
+// ---------------------------------------------------------------------------------------
+// WHAT MONTEL REQUIRES. Nielsen's Corollary 1 rests on this, and it is the manuscript's own
+// usage: §1.4.3 invokes Montel to extract a convergent subsequence with a finite
+// holomorphic limit, which needs local uniform boundedness.
+// ---------------------------------------------------------------------------------------
+
+hole montelNeedsAUniformBound
+  cites "standard: Montel's theorem — a family of holomorphic functions locally uniformly bounded on a domain is relatively compact, so has a locally uniformly convergent subsequence. The boundedness hypothesis is not removable: without it no finite holomorphic limit is obtained. Conway, Functions of One Complex Variable Thm VII.2.9; Rudin, Real and Complex Analysis Thm 14.6. The manuscript applies it at §1.4.3 and §1.8.4.3":
+  forall p: TestFunctionFamily;
+  montelApplies(p) -> (not theArchimedeanIntegralsHaveNoUniformBound(p))

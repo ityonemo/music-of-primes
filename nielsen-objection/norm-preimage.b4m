@@ -1,0 +1,119 @@
+// NIELSEN PROPOSITION 2 — the norm-preimage identification is false.
+//
+// The manuscript (p. 493, §11.3.1.1, txt 1164-1174) asserts that two descriptions of the
+// stratum GL_1(A_F)_{P_k} are the same set:
+//
+//   (A) g_v is a local unit at EVERY place v above the first k rational primes
+//   (B) g lies in the PREIMAGE, under the idelic norm, of the kth rational stratum
+//
+// Nielsen exhibits an idele in (B) but not (A), so the sets differ.
+//
+// THE WITNESS. F = Q(i), and the prime 5 splits: 5 = (2+i)(2-i), so 5 ≡ 1 mod 4 and there
+// are two places v1, v2 above it with both completions isomorphic to Q_5. Each local norm
+// N_{F_v/Q_5} is therefore the IDENTITY. Take
+//
+//   g_{v1} = 5,   g_{v2} = 5^{-1},   all other components 1.
+//
+// The norm's component at 5 is 5 * 5^{-1} = 1, and every other component is 1, so the norm
+// is a unit everywhere and g is in (B). But neither g_{v1} nor g_{v2} is a local unit, so g
+// is not in (A). The error is cancellation of local valuations under the norm.
+//
+// WHAT IS CHECKED AND WHAT IS NOT. The refutation's LOGIC is proved here: a witness in one
+// set and not the other refutes the identification. Everything about Q(i), splitting, and
+// local norms is cited as well-known algebraic number theory — this formalization has no
+// number fields, no completions, and no idele groups, and inventing opaque predicates named
+// after them would check nothing.
+//
+// This objection is the one our own `segmentNestingLiftsToTheStrata` had already flagged as
+// an unargued assertion, quoting the same sentence, before the counterexample was published.
+
+// ---------------------------------------------------------------------------------------
+// the objects
+// ---------------------------------------------------------------------------------------
+
+/// an idele of the number field under consideration
+sort Idele
+
+/// the idele has local units at every place above the first k rational primes — (A)
+pred hasLocalUnitsAboveTheSelectedPrimes(g: Idele)
+
+/// the idele's norm lies in the corresponding rational unit stratum — (B)
+pred theNormLiesInTheRationalStratum(g: Idele)
+
+/// the manuscript's assertion: the two descriptions pick out the same ideles
+pred theTwoStratumDescriptionsAgree()
+
+intheory theStratumDescriptionsDisagree
+
+// ---------------------------------------------------------------------------------------
+// the definitional fact, and the witness.
+// ---------------------------------------------------------------------------------------
+
+/// what the manuscript's identification MEANS: the two predicates are coextensive.
+/// Long-form because the body quantifies (2b4m PAINPOINTS 16).
+axiom agreementMeansCoextensive:
+  theTwoStratumDescriptionsAgree() iff
+  (forall g: Idele;
+  theNormLiesInTheRationalStratum(g) iff hasLocalUnitsAboveTheSelectedPrimes(g))
+
+/// NIELSEN'S WITNESS, cited. The construction in Q(i) at the split prime 5.
+hole theSplitPrimeWitnessExists
+  cites "standard: in F = Q(i) the rational prime 5 splits (5 = 1 mod 4, equivalently 5 = (2+i)(2-i)), giving two places v1, v2 with F_{v1} = F_{v2} = Q_5, so each local norm N_{F_v/Q_5} is the identity map. Hence the idele with g_{v1} = 5, g_{v2} = 5^{-1} and all other components 1 has idelic norm with unit components everywhere (the valuations cancel: 5 * 5^{-1} = 1) while neither named component is a local unit. Splitting criterion: Neukirch, Algebraic Number Theory I §8 Prop 8.5 (or any text, for Q(i) via quadratic reciprocity); local norms on split places: Neukirch II §6, Weil, Basic Number Theory III. Spot-checked here that 5 = 1 mod 4 and that both completions are Q_5":
+  exists g: Idele;
+  theNormLiesInTheRationalStratum(g) and
+  (not hasLocalUnitsAboveTheSelectedPrimes(g))
+
+// ---------------------------------------------------------------------------------------
+// THE REFUTATION — proved. A witness in (B) but not (A) defeats coextensionality, hence
+// defeats the identification.
+// ---------------------------------------------------------------------------------------
+
+/// Nielsen Proposition 2. Strategy: unpack the witness, derive the biconditional the
+/// identification would force at it, and contradict the witness's two halves.
+theorem theStratumDescriptionsDisagree:
+  not theTwoStratumDescriptionsAgree()
+proof
+  @witness-exists |
+    exists g: Idele;
+      theNormLiesInTheRationalStratum(g) and
+      (not hasLocalUnitsAboveTheSelectedPrimes(g))
+    [by cite theSplitPrimeWitnessExists]
+  @agreement-unfolds |
+    theTwoStratumDescriptionsAgree() iff
+      (forall g: Idele;
+      theNormLiesInTheRationalStratum(g) iff hasLocalUnitsAboveTheSelectedPrimes(g))
+    [by cite agreementMeansCoextensive]
+  @given-they-agree |
+    assume theTwoStratumDescriptionsAgree() {
+      @they-agree |
+        theTwoStratumDescriptionsAgree()
+        [by hypothesis given-they-agree]
+      @coextensive |
+        forall g: Idele;
+          theNormLiesInTheRationalStratum(g) iff hasLocalUnitsAboveTheSelectedPrimes(g)
+        [using tautology agreement-unfolds they-agree]
+      @contradiction-at-the-witness |
+        unpack g: Idele from witness-exists {
+          @witness-properties |
+            theNormLiesInTheRationalStratum(g) and
+              (not hasLocalUnitsAboveTheSelectedPrimes(g))
+            [by hypothesis contradiction-at-the-witness]
+          @coextensive-at-the-witness |
+            theNormLiesInTheRationalStratum(g) iff
+              hasLocalUnitsAboveTheSelectedPrimes(g)
+            [by apply_at(g) coextensive]
+          @conclusion-they-disagree |
+            not theTwoStratumDescriptionsAgree()
+            [using tautology coextensive-at-the-witness witness-properties]
+        }
+      @disagree-from-the-witness |
+        not theTwoStratumDescriptionsAgree()
+        [by unpacked contradiction-at-the-witness]
+    }
+  @agreement-is-self-refuting |
+    theTwoStratumDescriptionsAgree() -> (not theTwoStratumDescriptionsAgree())
+    [by discharge given-they-agree]
+  @conclusion |
+    not theTwoStratumDescriptionsAgree()
+    [using tautology agreement-is-self-refuting]
+qed
