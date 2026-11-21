@@ -1,0 +1,295 @@
+// Theorem 11.3.2.1 (Orbital Traces on the Paley-Wiener Levels), DECOMPOSED.
+//
+// WHY THIS FILE EXISTS. 11.3.2.1 was one bare hole in `trace-formula.b4m`, justified as
+// "it IS the analysis". Proving it does need foundations this formalization lacks. But its
+// proof (txt 29947-30035) is a CHAIN of six moves, each citing a specific named result, and
+// recording that chain is not the same as proving the analysis:
+//
+//   1. the indented kernel VANISHES unless xi maps to a uniformizer in some v in P_{k+1}-P_k
+//   2. so the relevant xi's support sits inside GL_1(A_{F,S'}) x prod_{v not in S'} O_v^x
+//   3. multiplying by the stratum indicator alpha_k PRESERVES the left side's value
+//   4. the truncations CONVERGE in W_I^s(C_F)                     [Thm 11.1.2.1 — author's]
+//   5. the converged value IS the trace of a nuclear operator     [Prop 12.2.2.2 — author's]
+//   6. that operator is a nuclear LIMIT OF FINITE RANKS           [Thm 10.3.2.1 — author's]
+//      so its trace is the limit of theirs                        [classical, operator-theory]
+//   7. the limit value is the right side of (7.4.2.1)             [Thm 7.4.2.1 — author's]
+//      and the Theorem follows by Poisson summation               [Prop B.4.1.2 — classical]
+//
+// The author's own results (steps 4-7) are cited as `manuscript-proved:` — they are PROVED
+// in the released text, so they are neither gaps nor classical; a future round can transcribe
+// any one of them, and the interface here will not change.
+//
+// WHAT THIS BUYS. One opaque assumption becomes seven located ones, of which two are
+// classical (citable and closed) and four are the author's own proved theorems. What remains
+// genuinely un-transcribed is the analytic estimate work inside each.
+//
+// ALTITUDE: opaque. No measure theory, no topology. These are the INTERFACES.
+
+theory vocab <<< "../shared/vocabulary.b4m"
+theory operator_theory <<< "operator-theory.b4m"
+
+sort TestFunction = vocab.TestFunction
+sort Quantity = vocab.Quantity
+sort PlaceSet = vocab.PlaceSet
+
+sort Kernel = operator_theory.Kernel
+sort Operator = operator_theory.Operator
+sort HardySobolevSpace = operator_theory.HardySobolevSpace
+
+pred isNuclearOn = operator_theory.isNuclearOn
+pred isTheNuclearLimitOfFiniteRanks = operator_theory.isTheNuclearLimitOfFiniteRanks
+pred truncationsConvergeIn = operator_theory.truncationsConvergeIn
+pred inducesAContinuousOperator = operator_theory.inducesAContinuousOperator
+oper operatorOf = operator_theory.operatorOf
+oper trace = operator_theory.trace
+fact nuclearLimitsHaveTheLimitingTrace = operator_theory.nuclearLimitsHaveTheLimitingTrace
+
+// ---------------------------------------------------------------------------------------
+// the objects of 11.3.2.1's statement
+// ---------------------------------------------------------------------------------------
+
+/// a stratum index k >= 0 of the divisorial filtration
+sort StratumIndex
+
+/// the indented kernel (alpha_{k+1} - alpha_k) k_geom^Delta at stratum k, for a test
+/// function. The Delta-subscript is the indentation along u_0 of (11.3.2.2).
+oper theIndentedStratumKernel(k: StratumIndex, f: TestFunction) => Kernel
+
+/// the orbital integral: the left side of (11.3.2.1), summed over xi in F^x and integrated
+/// over g in E_F^1 against dmu_1(g) dt/t
+oper theOrbitalIntegral(k: StratumIndex, f: TestFunction) => Quantity
+
+/// the right side of (11.3.2.1): (log q_v / mu_v(O_Fv)) x sum_{k in Z} phi(pi_v^k)
+oper theLocalEulerContribution(k: StratumIndex, f: TestFunction) => Quantity
+
+/// the right side of (7.4.2.1): sum over the zeros eps_p of the local-Euler-factor product
+oper theZeroSideValue(f: TestFunction) => Quantity
+
+/// the Paley-Wiener level W_I^s(C_F) at the manuscript's parameters (a = 1/2, s > 1, I)
+const thePaleyWienerLevel: HardySobolevSpace
+
+// ---------------------------------------------------------------------------------------
+// the hypotheses 11.3.2.1 carries
+// ---------------------------------------------------------------------------------------
+
+/// S contains the Archimedean places, the places where F/Q ramifies, the places where chi
+/// ramifies, and phi is invariant under prod_{v not in S} O_Fv^x; and Pic(O_{F,S}) = 1
+pred isAdmissibleForOrbitalTraces(s: PlaceSet, f: TestFunction)
+
+/// phi is supported over C_F^{>1} — the standing support hypothesis of 11.3.2.1
+pred isSupportedAboveOne(f: TestFunction)
+
+/// the xi's contributing at stratum k map to a uniformizer in some place of P_{k+1} - P_k;
+/// the manuscript calls this set Xi_k
+pred contributesAtStratum(k: StratumIndex, f: TestFunction)
+
+/// multiplying by the stratum indicator alpha_k leaves the orbital integral's value
+/// unchanged (for k >= k_0, k_0 large enough that alpha_k's support contains the carving)
+pred indicatorPreservesTheValue(k: StratumIndex, f: TestFunction)
+
+intheory theOrbitalTraceIsTheEulerContribution
+
+// ---------------------------------------------------------------------------------------
+// STEP 1-3: the support argument. The manuscript's first three moves are bookkeeping about
+// WHERE the kernel is nonzero, and it states them as observations.
+// ---------------------------------------------------------------------------------------
+
+/// The indented kernel vanishes unless xi maps to a uniformizer in some v in P_{k+1} - P_k.
+/// "We observe that k_geom^Delta(tau(t), xi g tau(t)) vanishes unless xi in F^x maps to a
+/// uniformizer in F_v^x for some v in P_{k+1} - P_k" (txt 29971).
+hole theIndentedKernelVanishesOffTheStratum
+  cites "assertion: the author opens the proof with 'We observe that ...' (txt 29971) — the vanishing of the indented kernel off the stratum's uniformizers is stated as an observation about his own indentation u_0, not argued":
+  forall k: StratumIndex; forall f: TestFunction; forall s: PlaceSet;
+  isAdmissibleForOrbitalTraces(s, f) -> isSupportedAboveOne(f) ->
+  contributesAtStratum(k, f)
+
+/// Multiplying by the stratum indicator alpha_k preserves the orbital integral's value,
+/// for k >= k_0 with k_0 large enough. "Multiplication of ... by the indicator function
+/// alpha_k ... for a suitable large enough integer k_0 >= 0 such that the support of alpha_k
+/// contains GL_1(A_{F,S'}) x prod O_Fv^x, preserves the value of the left side" (txt 29983).
+hole theStratumIndicatorPreservesTheValue
+  cites "assertion: txt 29983 states the preservation as part of the construction ('for a suitable large enough integer k_0'), without an estimate — the choice of k_0 is asserted to exist":
+  forall k: StratumIndex; forall f: TestFunction;
+  contributesAtStratum(k, f) -> indicatorPreservesTheValue(k, f)
+
+// ---------------------------------------------------------------------------------------
+// STEP 4-6: the analysis. Each cites one of the author's own PROVED theorems.
+// ---------------------------------------------------------------------------------------
+
+/// The truncation process converges in W_I^s(C_F). "Then the process of multiplication by
+/// alpha_k in the second named variable converges within W_I^s(C_F) by Theorem 11.1.2.1"
+/// (txt 29991).
+hole theTruncationsConverge
+  cites "manuscript-proved: Theorem 11.1.2.1 (Existence of S-local carvings on the 0-line), txt 28976 — stated and proved in the released text. Transcribing it is future work; the interface here does not depend on how it is proved":
+  forall k: StratumIndex; forall f: TestFunction;
+  indicatorPreservesTheValue(k, f) ->
+  truncationsConvergeIn(theIndentedStratumKernel(k, f), thePaleyWienerLevel)
+
+/// The converged value IS a nuclear operator's trace. "by Proposition 12.2.2.2 the value
+/// (11.3.2.3) equals the value of the trace of the nuclear operator on W_I^s(C_F) which is
+/// the unique continuous extension that the kernel ... induces" (txt 29991-30008).
+hole theConvergedValueIsANuclearTrace
+  cites "manuscript-proved: Proposition 12.2.2.2 (regular points on the diagonal and indentations), Ch. 12 §12.2.2 — stated and proved in the released text. It is what identifies the convergent integral with an operator trace":
+  forall k: StratumIndex; forall f: TestFunction;
+  truncationsConvergeIn(theIndentedStratumKernel(k, f), thePaleyWienerLevel) ->
+  inducesAContinuousOperator(theIndentedStratumKernel(k, f), thePaleyWienerLevel)
+
+/// That operator is a nuclear limit of finite-rank operators. "the same method used in the
+/// estimates from Theorem 10.3.2.1 shows that such operator is the limit of the finite rank
+/// kernels from (11.2.2.12) from the proof of Theorem 11.2.2.1" (txt 30031).
+hole theOperatorIsANuclearLimitOfFiniteRanks
+  cites "manuscript-proved: Theorems 10.3.2.1 (Spectral Nuclearity - II, txt 27293) and 11.2.2.1 (Orbital Nuclearity on the 0-line, txt 29599) — both stated and proved in the released text. The author says 'the same method used in the estimates from Theorem 10.3.2.1 shows ...', so this step reuses a proved estimate rather than introducing a new one":
+  forall k: StratumIndex; forall f: TestFunction;
+  inducesAContinuousOperator(theIndentedStratumKernel(k, f), thePaleyWienerLevel) ->
+  isTheNuclearLimitOfFiniteRanks(
+  operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+  thePaleyWienerLevel)
+
+/// The orbital integral EQUALS that operator's trace. This is the other half of what
+/// Prop 12.2.2.2 supplies: not merely that the kernel induces a continuous operator, but
+/// that the convergent integral (11.3.2.3) IS its trace. Stated as an equation, because the
+/// final assembly substitutes through it.
+hole theOrbitalIntegralIsTheTrace
+  cites "manuscript-proved: Proposition 12.2.2.2, Ch. 12 §12.2.2 — 'the value (11.3.2.3) equals the value of the trace of the nuclear operator on W_I^s(C_F) which is the unique continuous extension that the kernel induces' (txt 29991-30008). Stated and proved in the released text":
+  forall k: StratumIndex; forall f: TestFunction;
+  isNuclearOn(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+  thePaleyWienerLevel) ->
+  theOrbitalIntegral(k, f) =
+  trace(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+  thePaleyWienerLevel)
+
+// ---------------------------------------------------------------------------------------
+// STEP 7: the limit value, and Poisson summation.
+// ---------------------------------------------------------------------------------------
+
+/// The limit value is the right side of (7.4.2.1). "which, as lambda' is large enough and
+/// for Lambda -> +infty in the regime eps*Lambda = o(1), attains the limit value (11.3.2.5)
+/// which is the right side of (7.4.2.1) from Theorem 7.4.2.1" (txt 30025-30033).
+hole theLimitValueIsTheZeroSide
+  cites "manuscript-proved: Theorem 7.4.2.1 (Strong Topologies and Nuclearity - II), txt 22021 — stated and proved in the released text, and it is where the trace is computed as a sum over the zeros of the local Euler factor product":
+  forall k: StratumIndex; forall f: TestFunction;
+  isNuclearOn(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+  thePaleyWienerLevel) ->
+  trace(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+  thePaleyWienerLevel) = theZeroSideValue(f)
+
+/// Poisson summation converts the zero side into the local Euler contribution. "The Theorem
+/// follows from the Poisson Summation Formula (see Proposition B.4.1.2)" (txt 30035).
+hole poissonSummationGivesTheEulerContribution
+  cites "standard: the Poisson summation formula in the jump-singularity form — Tate's thesis §4; Weil, Basic Number Theory §VII; Iwaniec-Kowalski, Analytic Number Theory §4.3. The manuscript collects it as Prop B.4.1.2 in an appendix titled 'Preparations'":
+  forall f: TestFunction; forall k: StratumIndex;
+  theZeroSideValue(f) = theLocalEulerContribution(k, f)
+
+// ---------------------------------------------------------------------------------------
+// THE THEOREM. Chains the seven steps. This is 11.3.2.1's own skeleton, kernel-checked:
+// the ASSEMBLY is verified even though each analytic input is cited.
+// ---------------------------------------------------------------------------------------
+
+/// Theorem 11.3.2.1 (Orbital Traces on the Paley-Wiener Levels), txt 29947.
+/// Strategy: walk the manuscript's chain — vanishing, indicator preservation, convergence,
+/// nuclearity, finite-rank limit, the zero-side value, then Poisson summation.
+theorem theOrbitalTraceIsTheEulerContribution:
+  forall f: TestFunction; forall s: PlaceSet; forall k: StratumIndex;
+  isAdmissibleForOrbitalTraces(s, f) -> isSupportedAboveOne(f) ->
+  theOrbitalIntegral(k, f) = theLocalEulerContribution(k, f)
+proof
+  @generalize-f |
+    fix f: TestFunction {
+      @generalize-s |
+        fix s: PlaceSet {
+          @generalize-k |
+            fix k: StratumIndex {
+              @given-s-is-admissible |
+                assume isAdmissibleForOrbitalTraces(s, f) {
+                  @given-phi-is-supported-above-one |
+                    assume isSupportedAboveOne(f) {
+                      @s-is-admissible |
+                        isAdmissibleForOrbitalTraces(s, f)
+                        [by hypothesis given-s-is-admissible]
+                      @phi-is-supported-above-one |
+                        isSupportedAboveOne(f)
+                        [by hypothesis given-phi-is-supported-above-one]
+                      // steps 1-3: the support bookkeeping
+                      @the-kernel-contributes-only-at-the-stratum |
+                        contributesAtStratum(k, f)
+                        [using specialize theIndentedKernelVanishesOffTheStratum(k, f, s)
+                          s-is-admissible phi-is-supported-above-one]
+                      @the-indicator-preserves-the-value |
+                        indicatorPreservesTheValue(k, f)
+                        [using specialize theStratumIndicatorPreservesTheValue(k, f)
+                          the-kernel-contributes-only-at-the-stratum]
+                      // steps 4-6: the analysis, each citing one of the author's theorems
+                      @the-truncations-converge |
+                        truncationsConvergeIn(theIndentedStratumKernel(k, f),
+                          thePaleyWienerLevel)
+                        [using specialize theTruncationsConverge(k, f)
+                          the-indicator-preserves-the-value]
+                      @the-kernel-induces-an-operator |
+                        inducesAContinuousOperator(theIndentedStratumKernel(k, f),
+                          thePaleyWienerLevel)
+                        [using specialize theConvergedValueIsANuclearTrace(k, f)
+                          the-truncations-converge]
+                      @the-operator-is-a-finite-rank-limit |
+                        isTheNuclearLimitOfFiniteRanks(
+                          operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+                          thePaleyWienerLevel)
+                        [using specialize theOperatorIsANuclearLimitOfFiniteRanks(k, f)
+                          the-kernel-induces-an-operator]
+                      @the-operator-is-nuclear |
+                        isNuclearOn(
+                          operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+                          thePaleyWienerLevel)
+                        [using specialize nuclearLimitsHaveTheLimitingTrace(
+                          operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+                          thePaleyWienerLevel) the-operator-is-a-finite-rank-limit]
+                      // step 7: the limit value, then Poisson summation
+                      @the-trace-is-the-zero-side |
+                        trace(operatorOf(theIndentedStratumKernel(k, f),
+                          thePaleyWienerLevel), thePaleyWienerLevel) = theZeroSideValue(f)
+                        [using specialize theLimitValueIsTheZeroSide(k, f)
+                          the-operator-is-nuclear]
+                      @the-zero-side-is-the-euler-contribution |
+                        theZeroSideValue(f) = theLocalEulerContribution(k, f)
+                        [using specialize poissonSummationGivesTheEulerContribution(f, k)]
+                      @the-integral-is-the-trace |
+                        theOrbitalIntegral(k, f) =
+                          trace(operatorOf(theIndentedStratumKernel(k, f),
+                          thePaleyWienerLevel), thePaleyWienerLevel)
+                        [using specialize theOrbitalIntegralIsTheTrace(k, f)
+                          the-operator-is-nuclear]
+                      @the-integral-is-the-zero-side |
+                        theOrbitalIntegral(k, f) = theZeroSideValue(f)
+                        [by rewrite the-trace-is-the-zero-side the-integral-is-the-trace]
+                      @conclusion-the-orbital-trace |
+                        theOrbitalIntegral(k, f) = theLocalEulerContribution(k, f)
+                        [by rewrite the-zero-side-is-the-euler-contribution
+                          the-integral-is-the-zero-side]
+                    }
+                  @supported-implies-the-trace-value |
+                    isSupportedAboveOne(f) ->
+                      theOrbitalIntegral(k, f) = theLocalEulerContribution(k, f)
+                    [by discharge given-phi-is-supported-above-one]
+                }
+              @admissible-implies-the-trace-value |
+                isAdmissibleForOrbitalTraces(s, f) -> isSupportedAboveOne(f) ->
+                  theOrbitalIntegral(k, f) = theLocalEulerContribution(k, f)
+                [by discharge given-s-is-admissible]
+            }
+          @discharge-k |
+            forall k: StratumIndex;
+              isAdmissibleForOrbitalTraces(s, f) -> isSupportedAboveOne(f) ->
+              theOrbitalIntegral(k, f) = theLocalEulerContribution(k, f)
+            [by generalize generalize-k]
+        }
+      @discharge-s |
+        forall s: PlaceSet; forall k: StratumIndex;
+          isAdmissibleForOrbitalTraces(s, f) -> isSupportedAboveOne(f) ->
+          theOrbitalIntegral(k, f) = theLocalEulerContribution(k, f)
+        [by generalize generalize-s]
+    }
+  @conclusion |
+    forall f: TestFunction; forall s: PlaceSet; forall k: StratumIndex;
+      isAdmissibleForOrbitalTraces(s, f) -> isSupportedAboveOne(f) ->
+      theOrbitalIntegral(k, f) = theLocalEulerContribution(k, f)
+    [by generalize generalize-f]
+qed

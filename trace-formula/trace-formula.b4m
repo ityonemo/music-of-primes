@@ -20,6 +20,9 @@
 theory vocab <<< "../shared/vocabulary.b4m"
 theory ant <<< "../standard/algebraic-number-theory.b4m"
 theory classical <<< "../standard/analysis.b4m"
+theory orbital <<< "../standard/orbital-traces.b4m"
+theory slocal <<< "../standard/s-local-trace.b4m"
+theory spectral <<< "../standard/spectral-kernel.b4m"
 
 // shared with grh.b4m: the objects and the Trace Formula predicate itself
 sort TestFunction = vocab.TestFunction
@@ -183,25 +186,220 @@ hole segmentNestingLiftsToTheStrata
   nestsAndExhausts(theRationalPrimeSegments(s, f)) ->
   isANestedExhaustion(theFiltrationStrata(s, f))
 
-// Theorem 11.3.2.1 (Orbital Traces on the Paley-Wiener Levels), txt 29947 — proved. Each
-// off-S piece integrates to zero, so their sum does.
-hole theOrbitalTracesVanishOffS:
+// Theorem 11.3.2.1 (Orbital Traces on the Paley-Wiener Levels), txt 29947. DECOMPOSED in
+// `standard/orbital-traces.b4m` into the manuscript's own seven-step chain, so what was one
+// opaque hole is now a kernel-checked assembly over located, cited inputs.
+//
+// The manuscript's use here is per-prime: "by Theorem 11.3.2.1, each int_{C_F} k_p(x,x)
+// dmu(x) = 0 for all prime numbers p that are not the prime residue characteristic of any
+// finite place contained in S" (txt 31556). Two steps remain between that and the SUM over
+// p nmid S vanishing, both recorded below.
+
+/// 11.3.2.1 gives each off-S stratum's orbital trace as its local Euler contribution; for a
+/// prime outside S that contribution is zero, because phi is invariant under
+/// prod_{v not in S} O_Fv^x and so the sum over k of phi(pi_v^k) telescopes to nothing.
+hole theOffSEulerContributionVanishes
+  cites "assertion: txt 31556 applies 11.3.2.1 and concludes 'each int k_p(x,x) dmu(x) = 0 for all prime numbers p that are not the prime residue characteristic of any finite place contained in S' in one move. That the local Euler contribution vanishes precisely off S follows from phi's invariance under prod_{v not in S} O_Fv^x — an admissibility hypothesis — but the author does not write the step out":
+  forall f: TestFunction; forall s: PlaceSet; forall k: orbital.StratumIndex;
+  isAdmissibleFor(s, f) ->
+  orbital.theLocalEulerContribution(k, f) = noQuantity
+
+/// and that each piece vanishing makes their SUM vanish. The off-S pieces are indexed by the
+/// primes p nmid S; a sum of zeros is zero, which needs the sum's additivity over its index.
+hole aSumOfVanishingPiecesVanishes
+  cites "standard: a convergent sum all of whose terms are zero is zero — immediate from the definition of a sum as a limit of partial sums (Rudin, Principles of Mathematical Analysis Thm 3.1, 3.55 for the regrouped form). `Quantity` is opaque here, so the one fact the step needs is stated":
+  forall f: TestFunction; forall s: PlaceSet;
+  (forall k: orbital.StratumIndex; orbital.theLocalEulerContribution(k, f) = noQuantity) ->
+  theOffSPieces(s, f) = noQuantity
+
+intheory theOrbitalTracesVanishOffS
+
+/// The off-S pieces contribute nothing. Strategy: 11.3.2.1 (decomposed) gives each stratum's
+/// orbital trace as its Euler contribution; off S that contribution vanishes; a sum of zeros
+/// is zero.
+theorem theOrbitalTracesVanishOffS:
   forall f: TestFunction; forall s: PlaceSet;
   isAdmissibleFor(s, f) -> theOffSPieces(s, f) = noQuantity
+proof
+  @generalize-f |
+    fix f: TestFunction {
+      @generalize-s |
+        fix s: PlaceSet {
+          @given-s-is-admissible |
+            assume isAdmissibleFor(s, f) {
+              @s-is-admissible |
+                isAdmissibleFor(s, f)
+                [by hypothesis given-s-is-admissible]
+              @generalize-k |
+                fix k: orbital.StratumIndex {
+                  @the-off-s-contribution-vanishes-at-k |
+                    orbital.theLocalEulerContribution(k, f) = noQuantity
+                    [using specialize theOffSEulerContributionVanishes(f, s, k)
+                      s-is-admissible]
+                }
+              @every-off-s-contribution-vanishes |
+                forall k: orbital.StratumIndex;
+                  orbital.theLocalEulerContribution(k, f) = noQuantity
+                [by generalize generalize-k]
+              @conclusion-the-off-s-pieces-vanish |
+                theOffSPieces(s, f) = noQuantity
+                [using specialize aSumOfVanishingPiecesVanishes(f, s)
+                  every-off-s-contribution-vanishes]
+            }
+          @admissible-implies-the-pieces-vanish |
+            isAdmissibleFor(s, f) -> theOffSPieces(s, f) = noQuantity
+            [by discharge given-s-is-admissible]
+        }
+      @discharge-s |
+        forall s: PlaceSet;
+          isAdmissibleFor(s, f) -> theOffSPieces(s, f) = noQuantity
+        [by generalize generalize-s]
+    }
+  @conclusion |
+    forall f: TestFunction; forall s: PlaceSet;
+      isAdmissibleFor(s, f) -> theOffSPieces(s, f) = noQuantity
+    [by generalize generalize-f]
+qed
 
-// Theorem 12.4.1.1 (S-local Trace calculation), txt 31123 — proved. The S-local integral
-// IS the geometric side (after the two Mellin terms are subtracted, which is folded into
-// `theGeometricSide` here rather than modelled).
-hole theSLocalTraceCalculation:
+// Theorem 12.4.1.1 (S-local Trace calculation), txt 31123. DECOMPOSED in
+// `standard/s-local-trace.b4m` into the manuscript's own seven-stage computation — which
+// surfaced an incompleteness the author himself flags: his footnote 2 to that proof says the
+// cutoff definition it uses must be EXTENDED and a convergence study is outstanding.
+//
+// Two steps remain between 12.4.1.1's conclusion and the form used here: that this file's
+// admissibility implies the S-local file's, and that the local integral sum IS what
+// `theGeometricSide` denotes.
+
+/// this file's admissibility hypothesis supplies 12.4.1.1's
+hole admissibilityIsSLocalAdmissibility
+  cites "assertion: `isAdmissibleFor` here bundles the Archimedean/ramified/class-group conditions that 12.4.1.1 lists separately (txt 31123-31127). The two are the same hypothesis stated at different granularity; the manuscript uses one S throughout §12.5.1 without restating the conditions":
+  forall f: TestFunction; forall s: PlaceSet;
+  isAdmissibleFor(s, f) -> slocal.isSLocallyAdmissible(s, f)
+
+/// and that the per-place local integral sum is the geometric side of (12.5.1.1)
+hole theLocalIntegralSumIsTheGeometricSide
+  cites "assertion: txt 31559 says 'By Theorem 12.4.1.1, we further have that int k_S(x,x) dmu(x) equals the left side of (12.5.1.1) upon ...' — the two Mellin terms are subtracted in that step, which this encoding folds into `theGeometricSide` rather than modelling. That the folded form is exactly 12.4.1.1's right side is the author's identification, not argued":
+  forall f: TestFunction; forall s: PlaceSet;
+  slocal.theSLocalKernelIntegral(s, f) = slocal.theLocalIntegralSum(s, f) ->
+  theSLocalIntegral(s, f) = theGeometricSide(f)
+
+fact theSLocalTraceIsTheLocalIntegralSum = slocal.theSLocalTraceIsTheLocalIntegralSum
+
+intheory theSLocalTraceCalculation
+
+/// The S-local integral is the geometric side. Strategy: transfer admissibility, apply the
+/// decomposed 12.4.1.1, then identify its right side with `theGeometricSide`.
+theorem theSLocalTraceCalculation:
   forall f: TestFunction; forall s: PlaceSet;
   isAdmissibleFor(s, f) -> theSLocalIntegral(s, f) = theGeometricSide(f)
+proof
+  @generalize-f |
+    fix f: TestFunction {
+      @generalize-s |
+        fix s: PlaceSet {
+          @given-s-is-admissible |
+            assume isAdmissibleFor(s, f) {
+              @s-is-admissible |
+                isAdmissibleFor(s, f)
+                [by hypothesis given-s-is-admissible]
+              @s-is-s-locally-admissible |
+                slocal.isSLocallyAdmissible(s, f)
+                [using specialize admissibilityIsSLocalAdmissibility(f, s) s-is-admissible]
+              @the-s-local-trace-is-the-local-integral-sum |
+                slocal.theSLocalKernelIntegral(s, f) = slocal.theLocalIntegralSum(s, f)
+                [using specialize theSLocalTraceIsTheLocalIntegralSum(s, f)
+                  s-is-s-locally-admissible]
+              @conclusion-the-s-local-integral |
+                theSLocalIntegral(s, f) = theGeometricSide(f)
+                [using specialize theLocalIntegralSumIsTheGeometricSide(f, s)
+                  the-s-local-trace-is-the-local-integral-sum]
+            }
+          @admissible-implies-the-geometric-side |
+            isAdmissibleFor(s, f) -> theSLocalIntegral(s, f) = theGeometricSide(f)
+            [by discharge given-s-is-admissible]
+        }
+      @discharge-s |
+        forall s: PlaceSet;
+          isAdmissibleFor(s, f) -> theSLocalIntegral(s, f) = theGeometricSide(f)
+        [by generalize generalize-s]
+    }
+  @conclusion |
+    forall f: TestFunction; forall s: PlaceSet;
+      isAdmissibleFor(s, f) -> theSLocalIntegral(s, f) = theGeometricSide(f)
+    [by generalize generalize-f]
+qed
 
-// Definition 10.4.3.7 (Global Spectral and Geometric Kernels), txt 28655, with Theorem
-// 10.4.2.8 (Spectral side: convolution after projection), txt 27947 — both proved. This is
-// equation (12.5.1.4): the global integral IS the spectral side.
-hole theSpectralSideIsTheKernelIntegral:
+// Definition 10.4.3.7 + Theorem 10.4.2.8, txt 28655 / 27947. DECOMPOSED in
+// `standard/spectral-kernel.b4m`, which splits them the way the manuscript's own sentence
+// does: (12.5.1.4) holds "by DESIGN of the global geometric kernel (see Definition 10.4.3.7)
+// and by Theorem 10.4.2.8" (txt 31569).
+//
+// The DESIGN half — that k_spec = phi - k_geom — is now KERNEL-CHECKED there from the
+// definition block plus one cited group law, rather than assumed. Only the analytic half
+// (10.4.2.8's trace comparison) stays cited.
+//
+// What remains here is the identification of this file's global integral with that file's
+// kernel algebra, which the manuscript performs in one line.
+
+/// the diagonal point (x, x) at which the global kernel integral is evaluated
+const theGlobalKernelPoint: spectral.KernelPoint
+
+/// the global integral is the spectral kernel's trace, which (12.5.1.4) evaluates. The
+/// kernel REARRANGEMENT this rests on is proved in `standard/spectral-kernel.b4m`.
+hole theGlobalIntegralIsTheSpectralKernelValue
+  cites "assertion: txt 31569 asserts (12.5.1.4) in one line, citing Def 10.4.3.7 for the kernel's design and Thm 10.4.2.8 for the trace. The design half is now kernel-checked (spectral-kernel.b4m's theSpectralKernelIsTheConvolutionMinusTheGeometric); this hole is the remaining identification of the global diagonal integral with that kernel algebra at a point, which the author does not write out":
+  forall f: TestFunction; forall p: spectral.KernelPoint;
+  isTestFunction(f) ->
+  spectral.theSpectralKernelValue(p, f) =
+  spectral.sub(spectral.theConvolutionValue(p, f),
+  spectral.theGeometricKernelValue(p, f)) ->
+  theGlobalIntegral(f) = theSpectralSide(f)
+
+fact theSpectralKernelIsTheConvolutionMinusTheGeometric =
+  spectral.theSpectralKernelIsTheConvolutionMinusTheGeometric
+
+intheory theSpectralSideIsTheKernelIntegral
+
+/// The global integral is the spectral side — equation (12.5.1.4). Strategy: take the
+/// kernel-checked rearrangement of Def 10.4.3.7 at a point, then apply the author's
+/// identification.
+theorem theSpectralSideIsTheKernelIntegral:
   forall f: TestFunction;
   isTestFunction(f) -> theGlobalIntegral(f) = theSpectralSide(f)
+proof
+  @generalize-f |
+    fix f: TestFunction {
+      @given-phi-is-a-test-function |
+        assume isTestFunction(f) {
+          @phi-is-a-test-function |
+            isTestFunction(f)
+            [by hypothesis given-phi-is-a-test-function]
+          @the-kernel-rearrangement |
+            forall q: spectral.KernelPoint; forall g: TestFunction;
+              spectral.theSpectralKernelValue(q, g) =
+              spectral.sub(spectral.theConvolutionValue(q, g),
+              spectral.theGeometricKernelValue(q, g))
+            [by cite theSpectralKernelIsTheConvolutionMinusTheGeometric]
+          @the-kernel-rearrangement-at-the-point |
+            spectral.theSpectralKernelValue(theGlobalKernelPoint, f) =
+              spectral.sub(spectral.theConvolutionValue(theGlobalKernelPoint, f),
+              spectral.theGeometricKernelValue(theGlobalKernelPoint, f))
+            [by apply_at(theGlobalKernelPoint, f) the-kernel-rearrangement]
+          @conclusion-the-global-integral |
+            theGlobalIntegral(f) = theSpectralSide(f)
+            [using specialize theGlobalIntegralIsTheSpectralKernelValue(f,
+              theGlobalKernelPoint)
+              phi-is-a-test-function the-kernel-rearrangement-at-the-point]
+        }
+      @test-function-implies-the-spectral-side |
+        isTestFunction(f) -> theGlobalIntegral(f) = theSpectralSide(f)
+        [by discharge given-phi-is-a-test-function]
+    }
+  @conclusion |
+    forall f: TestFunction;
+      isTestFunction(f) -> theGlobalIntegral(f) = theSpectralSide(f)
+    [by generalize generalize-f]
+qed
 
 // Adding zero changes nothing. Standard in any additive structure; `Quantity` is opaque
 // here, so the one algebraic fact the combination needs is stated rather than derived.

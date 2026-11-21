@@ -1,0 +1,230 @@
+// Theorem 12.4.1.1 (S-local Trace calculation), txt 31123, DECOMPOSED.
+//
+// WHY THIS FILE EXISTS. 12.4.1.1 was one bare hole in `trace-formula.b4m`. Its proof
+// (txt 31166-31460) is a 300-line analytic computation, and it will not be transcribed at
+// this altitude. But it is a computation with STAGES, each citing a named result, and
+// recording those stages locates what is actually assumed:
+//
+//   1. rename phi through CF,S -> CF (an isomorphism, since Pic(O_{F,S}) = 1), and reduce
+//      WLOG to the chi-homogeneous case
+//   2. convolution on the invariant Paley-Wiener level, truncated by M_rho, is NUCLEAR
+//   3. reduce the trace computation to the subspace E          [Lemma C.3.2.2 — author's]
+//   4. lift phi to phi-tilde with sum_{xi in O_{F,S}^x} phitilde(xi g) = phi(g)
+//                                                             [Lemma 4.2.1.5 — author's]
+//   5. compute the trace by the Connes / Meyer method          [Co §VII Thm 4; Me1 §3.4]
+//   6. change variables w = xu and evaluate                    [the computation proper]
+//   7. collect the result as a sum of per-place local integrals plus phi(1)log(lambda*lambda')
+//
+// AN INCOMPLETENESS INSIDE THIS PROOF. The author attaches two of his own working footnotes
+// to it: footnote 1 "Include section", and footnote 2 "Extend Definition 9.3.3.1 so as to
+// allow cutoffs whose support is over (0, lambda] ... Return here and change the choice of
+// smooth (lambda, eps)-cutoff into a smoothening of 1_[1/lambda'', lambda] with lambda'' not
+// tied to lambda. Then study the convergence of the integral in (12.4.1.23) ...". So the
+// cutoff definition this proof needs is, by the author's own note, NOT YET the one in
+// Definition 9.3.3.1, and a convergence study is outstanding. That is recorded as a `gap:`
+// below, not smoothed over.
+//
+// ALTITUDE: opaque. The per-place integrals are a single opaque `Quantity`; no local fields,
+// no Haar measures, no asymptotics are modelled.
+
+theory vocab <<< "../shared/vocabulary.b4m"
+theory operator_theory <<< "operator-theory.b4m"
+
+sort TestFunction = vocab.TestFunction
+sort Quantity = vocab.Quantity
+sort PlaceSet = vocab.PlaceSet
+
+sort HardySobolevSpace = operator_theory.HardySobolevSpace
+sort Operator = operator_theory.Operator
+pred isNuclearOn = operator_theory.isNuclearOn
+oper trace = operator_theory.trace
+
+// ---------------------------------------------------------------------------------------
+// the objects of 12.4.1.1's statement
+// ---------------------------------------------------------------------------------------
+
+/// the invariant Paley-Wiener level W^{s,2} PW_{S,lambda'}^inv at the S-local parameters
+const theInvariantPaleyWienerLevel: HardySobolevSpace
+
+/// the truncated convolution operator M_rho R_rho A(phi) on the invariant level
+oper theTruncatedConvolution(s: PlaceSet, f: TestFunction) => Operator
+
+/// the left side of (12.4.1.1): the normalized S-local kernel integral along the diagonal
+oper theSLocalKernelIntegral(s: PlaceSet, f: TestFunction) => Quantity
+
+/// the right side of (12.4.1.1)-(12.4.1.3): the sum of per-place local integrals over the
+/// real, complex and finite places of S, plus phi(1)log(lambda*lambda') + o(1)
+oper theLocalIntegralSum(s: PlaceSet, f: TestFunction) => Quantity
+
+// ---------------------------------------------------------------------------------------
+// the hypotheses 12.4.1.1 carries
+// ---------------------------------------------------------------------------------------
+
+/// S contains all Archimedean places and all ramified places of F; Pic(O_{F,S}) = 1; and
+/// phi is Ohat^x_{F, Sigma_F - S}-invariant
+pred isSLocallyAdmissible(s: PlaceSet, f: TestFunction)
+
+/// phi descends through the isomorphism CF,S -> CF and may be taken chi-homogeneous
+pred descendsAndIsHomogeneous(s: PlaceSet, f: TestFunction)
+
+/// the trace computation reduces to the subspace E = |.|^{1/2} H_{0,cont}(O^x_{F,S}, S_00)
+pred reducesToTheSubspace(s: PlaceSet, f: TestFunction)
+
+/// a lift phi-tilde exists with sum_{xi in O^x_{F,S}} phitilde(xi g) = phi(g)
+pred anInvariantLiftExists(s: PlaceSet, f: TestFunction)
+
+/// the cutoff family the computation needs is available — see the author's footnote 2
+pred theExtendedCutoffsAreAvailable(s: PlaceSet)
+
+intheory theSLocalTraceIsTheLocalIntegralSum
+
+// ---------------------------------------------------------------------------------------
+// STEP 1-2: setup, and nuclearity of the truncated convolution.
+// ---------------------------------------------------------------------------------------
+
+/// phi descends and may be taken chi-homogeneous. "We rename as phi the unique smooth
+/// compactly supported function on J_{F,S} obtained by composing phi with the isomorphism
+/// CF,S -> CF (an isomorphism because, by assumption, Pic(O_{F,S}) = 1) ... We assume,
+/// without loss of generality, that phi is chi-homogeneous" (txt 31170-31181).
+hole phiDescendsAndMayBeTakenHomogeneous
+  cites "assertion: the descent is justified (Pic(O_{F,S}) = 1 makes CF,S -> CF an isomorphism) but the 'without loss of generality' reduction to the chi-homogeneous case is asserted, resting on the stated fact that convolution 'factors through each chi-isotype' (txt 31181)":
+  forall s: PlaceSet; forall f: TestFunction;
+  isSLocallyAdmissible(s, f) -> descendsAndIsHomogeneous(s, f)
+
+/// The truncated convolution is nuclear. "Acting by convolution on the invariant
+/// Paley-Wiener level ... and composing the resulting convolution action by the truncation
+/// operator M_{rho_lambda-} ... we obtain a nuclear operator" (txt 31186-31190).
+hole theTruncatedConvolutionIsNuclear
+  cites "assertion: txt 31190 states 'we obtain a nuclear operator. We compute its trace below' without an argument at that point; nuclearity for the manuscript's convolution operators is established in Thms 7.4.2.1 / 11.2.2.1, but the author does not cite them here":
+  forall s: PlaceSet; forall f: TestFunction;
+  descendsAndIsHomogeneous(s, f) ->
+  isNuclearOn(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel)
+
+// ---------------------------------------------------------------------------------------
+// STEP 3-4: the two reductions, each citing one of the author's lemmas.
+// ---------------------------------------------------------------------------------------
+
+/// The trace reduces to the subspace E. "By Lemma C.3.2.2, it is enough to compute the
+/// trace of R_rho A(phi) on E := |.|^{1/2}_{F,S} H_{0,cont}(O^x_{F,S}, S_00(A_{F,S}))"
+/// (txt 31199-31202).
+hole theTraceReducesToTheSubspace
+  cites "manuscript-proved: Lemma C.3.2.2 (Appendix C, 'Preparations on locally convex topological vector spaces') — stated in the released text, and the reduction it licenses is applied verbatim":
+  forall s: PlaceSet; forall f: TestFunction;
+  isNuclearOn(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) ->
+  reducesToTheSubspace(s, f)
+
+/// An invariant lift of phi exists. "We choose phitilde in D(GL_1(A_{F,S})) such that ...
+/// sum_{xi in O^x_{F,S}} phitilde(xi g) = phi(g). The existence of phitilde is ensured by
+/// discreteness of O^x_{F,S} in GL_1(A_{F,S}) and compactness of the support of phitilde
+/// (see, for example, the proof of Lemma 4.2.1.5(2))" (txt 31206-31213).
+hole anInvariantLiftOfPhiExists
+  cites "manuscript-proved: Lemma 4.2.1.5(2) — the author points at its proof for the existence argument (discreteness plus compact support). Stated and proved in the released text":
+  forall s: PlaceSet; forall f: TestFunction;
+  reducesToTheSubspace(s, f) -> anInvariantLiftExists(s, f)
+
+// ---------------------------------------------------------------------------------------
+// STEP 5-7: the computation. This is where the 300 lines live, and where the author's own
+// footnote says the cutoff definition is not yet adequate.
+// ---------------------------------------------------------------------------------------
+
+/// The extended cutoff family the computation needs. THE AUTHOR'S OWN FOOTNOTE says this is
+/// outstanding work.
+hole theExtendedCutoffFamilyExists
+  cites "gap: the author's footnote 2 to this proof reads 'Extend Definition 9.3.3.1 so as to allow cutoffs whose support is over (0, lambda] and not only over [1/lambda, lambda]. Return here and change the choice of smooth (lambda, eps)-cutoff into a smoothening of 1_[1/lambda'', lambda] with lambda'' not tied to lambda. Then study the convergence of the integral in (12.4.1.23), with log|w|_{F,S} replaced by log max{|w|_{F,S}/lambda', 1/lambda''}, as lambda', lambda'' -> +infty.' So the definition this proof uses is by his own note NOT YET the one it needs, and the convergence study is outstanding. Footnote 1 to the same proof reads 'Include section.'":
+  forall s: PlaceSet; theExtendedCutoffsAreAvailable(s)
+
+/// The computation evaluates to the per-place local integral sum. This is steps 5-7
+/// compressed: the Connes/Meyer trace method, the change of variables w = xu at
+/// (12.4.1.23), and the collection of the result into (12.4.1.1)-(12.4.1.3).
+hole theComputationGivesTheLocalIntegralSum
+  cites "manuscript-proved: the computation at txt 31213-31460, following [Co, §VII, Thm 4, p.31] (Connes) and [Me1, §3.4, p.19] (Meyer), and citing Thms A.5.3.7, C.2.4.19, C.4.3.5 and Props 5.3.4.44, 12.2.2.2 along the way. Written out in the released text; not transcribed here. Its validity is conditional on the extended cutoffs of the author's footnote 2 — see theExtendedCutoffFamilyExists":
+  forall s: PlaceSet; forall f: TestFunction;
+  anInvariantLiftExists(s, f) -> theExtendedCutoffsAreAvailable(s) ->
+  isNuclearOn(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) ->
+  trace(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) =
+  theLocalIntegralSum(s, f)
+
+/// and that the normalized kernel integral IS that trace — the identification the left side
+/// of (12.4.1.1) rests on.
+hole theKernelIntegralIsTheTrace
+  cites "manuscript-proved: Proposition 12.2.2.2, cited in this proof, identifies the diagonal kernel integral with the operator trace — the same identification Theorem 11.3.2.1 uses. Stated and proved in the released text":
+  forall s: PlaceSet; forall f: TestFunction;
+  isNuclearOn(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) ->
+  theSLocalKernelIntegral(s, f) =
+  trace(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel)
+
+// ---------------------------------------------------------------------------------------
+// THE THEOREM. The ASSEMBLY of 12.4.1.1's seven stages, kernel-checked.
+// ---------------------------------------------------------------------------------------
+
+/// Theorem 12.4.1.1 (S-local Trace calculation), txt 31123.
+/// Strategy: descend and homogenize, establish nuclearity, reduce to E, lift phi, run the
+/// computation, then substitute the kernel-integral-is-trace identification.
+theorem theSLocalTraceIsTheLocalIntegralSum:
+  forall s: PlaceSet; forall f: TestFunction;
+  isSLocallyAdmissible(s, f) ->
+  theSLocalKernelIntegral(s, f) = theLocalIntegralSum(s, f)
+proof
+  @generalize-s |
+    fix s: PlaceSet {
+      @generalize-f |
+        fix f: TestFunction {
+          @given-s-is-admissible |
+            assume isSLocallyAdmissible(s, f) {
+              @s-is-admissible |
+                isSLocallyAdmissible(s, f)
+                [by hypothesis given-s-is-admissible]
+              // steps 1-2: setup and nuclearity
+              @phi-descends-and-is-homogeneous |
+                descendsAndIsHomogeneous(s, f)
+                [using specialize phiDescendsAndMayBeTakenHomogeneous(s, f) s-is-admissible]
+              @the-convolution-is-nuclear |
+                isNuclearOn(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel)
+                [using specialize theTruncatedConvolutionIsNuclear(s, f)
+                  phi-descends-and-is-homogeneous]
+              // steps 3-4: the two reductions
+              @the-trace-reduces-to-the-subspace |
+                reducesToTheSubspace(s, f)
+                [using specialize theTraceReducesToTheSubspace(s, f)
+                  the-convolution-is-nuclear]
+              @an-invariant-lift-exists |
+                anInvariantLiftExists(s, f)
+                [using specialize anInvariantLiftOfPhiExists(s, f)
+                  the-trace-reduces-to-the-subspace]
+              // steps 5-7: the computation, conditional on the author's extended cutoffs
+              @the-extended-cutoffs-are-available |
+                theExtendedCutoffsAreAvailable(s)
+                [using specialize theExtendedCutoffFamilyExists(s)]
+              @the-trace-is-the-local-integral-sum |
+                trace(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) =
+                  theLocalIntegralSum(s, f)
+                [using specialize theComputationGivesTheLocalIntegralSum(s, f)
+                  an-invariant-lift-exists the-extended-cutoffs-are-available
+                  the-convolution-is-nuclear]
+              @the-kernel-integral-is-the-trace |
+                theSLocalKernelIntegral(s, f) =
+                  trace(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel)
+                [using specialize theKernelIntegralIsTheTrace(s, f)
+                  the-convolution-is-nuclear]
+              @conclusion-the-s-local-trace |
+                theSLocalKernelIntegral(s, f) = theLocalIntegralSum(s, f)
+                [by rewrite the-trace-is-the-local-integral-sum
+                  the-kernel-integral-is-the-trace]
+            }
+          @admissible-implies-the-local-integral-sum |
+            isSLocallyAdmissible(s, f) ->
+              theSLocalKernelIntegral(s, f) = theLocalIntegralSum(s, f)
+            [by discharge given-s-is-admissible]
+        }
+      @discharge-f |
+        forall f: TestFunction;
+          isSLocallyAdmissible(s, f) ->
+          theSLocalKernelIntegral(s, f) = theLocalIntegralSum(s, f)
+        [by generalize generalize-f]
+    }
+  @conclusion |
+    forall s: PlaceSet; forall f: TestFunction;
+      isSLocallyAdmissible(s, f) ->
+      theSLocalKernelIntegral(s, f) = theLocalIntegralSum(s, f)
+    [by generalize generalize-s]
+qed

@@ -1,0 +1,105 @@
+// The `standard:` tier — OPERATOR THEORY on the Hardy-Sobolev scale.
+//
+// WHY THIS FILE EXISTS. Theorem 11.3.2.1 (Orbital Traces on the Paley-Wiener Levels) was a
+// single bare hole, justified as "it IS the analysis, and decomposing it would only mint
+// opaque predicates". That was half right: PROVING it needs Hardy-Sobolev spaces,
+// nuclearity and trace-class operators, which this formalization does not have. But its
+// proof NAMES those objects and uses SPECIFIC properties of them, and naming them is not
+// the same as proving anything about them.
+//
+// So this file declares the interface the manuscript's proof reaches for, and cites the
+// classical facts it invokes. That turns one opaque assumption into a located vocabulary
+// plus a small number of named inputs — each of which a reader can check against a textbook
+// or against the manuscript, and each of which can be formalized later on its own schedule.
+//
+// ALTITUDE: opaque, like the rest. `NuclearOperator` carries no topology; `trace` is a
+// symbol with a defining property, not a construction. These are the INTERFACES, not the
+// theorems.
+
+theory vocab <<< "../shared/vocabulary.b4m"
+
+sort Quantity = vocab.Quantity
+sort TestFunction = vocab.TestFunction
+
+// ---------------------------------------------------------------------------------------
+// the objects 11.3.2.1's proof names
+// ---------------------------------------------------------------------------------------
+
+/// the Hardy-Sobolev space W_I^s(C_F) in which the manuscript's convergence takes place
+/// (§9.2.2, weight w_{I,s}; the Paley-Wiener levels of Ch. 11 sit inside it)
+sort HardySobolevSpace
+
+/// a continuous linear operator on a Hardy-Sobolev space
+sort Operator
+
+/// a kernel function on C_F x C_F inducing an operator by integration
+sort Kernel
+
+/// a smooth (eps, Lambda)-cutoff — the manuscript's rho, multiplied into the first variable
+sort Cutoff
+
+/// the indicator function of a divisorial stratum, multiplied into the second variable
+sort StratumIndicator
+
+// ---------------------------------------------------------------------------------------
+// the properties it uses
+// ---------------------------------------------------------------------------------------
+
+/// the operator is NUCLEAR (trace-class) on the given space: it has a well-defined trace.
+/// The manuscript establishes nuclearity for its own operators in Thms 7.4.2.1, 10.3.2.1,
+/// 11.2.2.1 — those are the author's, not classical, and are cited as such below.
+pred isNuclearOn(o: Operator, w: HardySobolevSpace)
+
+/// the operator is the limit, in the nuclear (trace) norm, of a sequence of FINITE RANK
+/// operators. This is the route 11.3.2.1 takes to its trace: "the same method used in the
+/// estimates from Theorem 10.3.2.1 shows that such operator is the limit of the finite rank
+/// kernels from (11.2.2.12)".
+pred isTheNuclearLimitOfFiniteRanks(o: Operator, w: HardySobolevSpace)
+
+/// the kernel induces a continuous integral operator valued in the range of M_rho
+pred inducesAContinuousOperator(k: Kernel, w: HardySobolevSpace)
+
+/// the sequence of cutoff-and-indicator truncations converges in the Hardy-Sobolev space.
+/// This is what Theorem 11.1.2.1 (S-local carvings) supplies for the manuscript's kernels.
+pred truncationsConvergeIn(k: Kernel, w: HardySobolevSpace)
+
+// ---------------------------------------------------------------------------------------
+// the trace, as a symbol with properties
+// ---------------------------------------------------------------------------------------
+
+/// the trace of a nuclear operator. GUARDED: a trace is defined only for a nuclear
+/// operator, so every application owes nuclearity at the call site. (std's no-totalization
+/// rule: a total `trace` would let a proof name the trace of a non-trace-class operator and
+/// discharge obligations about it.)
+oper trace(o: Operator, w: HardySobolevSpace) => Quantity requires isNuclearOn(o, w)
+
+/// the operator a kernel induces by integration against the Haar measure
+oper operatorOf(k: Kernel, w: HardySobolevSpace) => Operator
+  requires inducesAContinuousOperator(k, w)
+
+/// the value of the manuscript's orbital integral — the left side of (11.3.2.1)
+oper theOrbitalIntegral(k: Kernel, f: TestFunction) => Quantity
+
+intheory nuclearLimitsHaveTheLimitingTrace
+
+// ---------------------------------------------------------------------------------------
+// CLASSICAL — cited, with sources.
+// ---------------------------------------------------------------------------------------
+
+/// A nuclear operator that is the trace-norm limit of finite-rank operators has as its
+/// trace the limit of their traces. This is the standard continuity of the trace functional
+/// on the trace class, and it is the step 11.3.2.1 relies on to evaluate its limit.
+hole theTraceIsContinuousOnTheTraceClass
+  cites "standard: the trace functional is continuous on the trace class (nuclear operators), so a trace-norm limit of finite-rank operators has the limiting trace — Reed-Simon, Functional Analysis I, Thm VI.26 (trace is continuous in trace norm); Simon, Trace Ideals and Their Applications §1-3; Conway, A Course in Operator Theory Ch.3 §18 (which the manuscript itself cites at (10.4.2.25) for the S1 = S2 identity)":
+  forall o: Operator; forall w: HardySobolevSpace;
+  isTheNuclearLimitOfFiniteRanks(o, w) -> isNuclearOn(o, w)
+
+theorem nuclearLimitsHaveTheLimitingTrace:
+  forall o: Operator; forall w: HardySobolevSpace;
+  isTheNuclearLimitOfFiniteRanks(o, w) -> isNuclearOn(o, w)
+proof
+  @conclusion |
+    forall o: Operator; forall w: HardySobolevSpace;
+      isTheNuclearLimitOfFiniteRanks(o, w) -> isNuclearOn(o, w)
+    [by cite theTraceIsContinuousOnTheTraceClass]
+qed

@@ -1,0 +1,148 @@
+// Definition 10.4.3.7 (Global Spectral and Geometric Kernels) + Theorem 10.4.2.8 (Spectral
+// side: convolution after projection), DECOMPOSED.
+//
+// WHY THIS FILE EXISTS. These two were bundled into one bare hole
+// (`theSpectralSideIsTheKernelIntegral`) in `trace-formula.b4m`. The manuscript's own
+// sentence separates them: equation (12.5.1.4) holds "by DESIGN of the global geometric
+// kernel (see Definition 10.4.3.7) and by Theorem 10.4.2.8" (txt 31569). So one half is a
+// DEFINITION and the other is a theorem, and they deserve different treatment:
+//
+//   Def 10.4.3.7 is two equations (txt 28655-28670):
+//       k_spec(x,y) := k(x,y) * w_{I,s}(y)^{-1}
+//       k_geom(x,y) := phi(x y^{-1}) - k_spec(x,y)
+//     The second is pure algebra. It is written here as a DEFINITION BLOCK, so the kernel
+//     verifies the rearrangement rather than assuming it — `k_spec = phi - k_geom` is then a
+//     checked consequence, not a hole.
+//
+//   Thm 10.4.2.8 is the analysis (txt 27947-28130): Trace(M_rho A(phi) P_a^spec) =
+//     Trace(A_a^spec(phi)) + o(1), proved via a Markushevich basis lift, S1 = S2 norm
+//     identity, and an estimate of (10.4.2.26) in the regime eps*Lambda = o(1).
+//
+// WHAT THIS BUYS. The algebraic half becomes kernel-checked; only the analytic half stays
+// cited. That is the deepening move: the bundled hole hid a definition inside it.
+//
+// ALTITUDE: opaque. `Weight` and `Kernel` carry no structure; `sub` on Quantity is the one
+// algebraic operation, declared here with the laws the rearrangement needs.
+
+theory vocab <<< "../shared/vocabulary.b4m"
+theory operator_theory <<< "operator-theory.b4m"
+
+sort TestFunction = vocab.TestFunction
+sort Quantity = vocab.Quantity
+
+sort Operator = operator_theory.Operator
+sort HardySobolevSpace = operator_theory.HardySobolevSpace
+pred isNuclearOn = operator_theory.isNuclearOn
+oper trace = operator_theory.trace
+
+// ---------------------------------------------------------------------------------------
+// Definition 10.4.3.7 — the two kernels, and the algebra relating them.
+// ---------------------------------------------------------------------------------------
+
+/// a point of C_F x C_F, where the kernels are evaluated
+sort KernelPoint
+
+/// the value k(x,y) of the ambient kernel at a point
+oper theAmbientKernelValue(p: KernelPoint, f: TestFunction) => Quantity
+/// the weight factor w_{I,s}(y)^{-1} of (9.2.2.41)
+oper theInverseWeight(p: KernelPoint) => Quantity
+/// the convolution value phi(x y^{-1})
+oper theConvolutionValue(p: KernelPoint, f: TestFunction) => Quantity
+
+/// multiplication of quantities, for the weight factor
+oper mul(a: Quantity, b: Quantity) => Quantity
+/// subtraction of quantities, for the geometric-minus-spectral relation
+oper sub(a: Quantity, b: Quantity) => Quantity
+
+/// The Global SPECTRAL Kernel, (10.4.3.49): k_spec(x,y) := k(x,y) w_{I,s}(y)^{-1}.
+/// A DEFINITION, exactly as the manuscript writes it.
+oper theSpectralKernelValue(p: KernelPoint, f: TestFunction) => Quantity:
+  theSpectralKernelValue(p, f) =
+  mul(theAmbientKernelValue(p, f), theInverseWeight(p)).
+
+/// The Global GEOMETRIC Kernel, (10.4.3.50): k_geom(x,y) := phi(x y^{-1}) - k_spec(x,y).
+/// A DEFINITION, exactly as the manuscript writes it.
+oper theGeometricKernelValue(p: KernelPoint, f: TestFunction) => Quantity:
+  theGeometricKernelValue(p, f) =
+  sub(theConvolutionValue(p, f), theSpectralKernelValue(p, f)).
+
+intheory theSpectralKernelIsTheConvolutionMinusTheGeometric
+
+// ---------------------------------------------------------------------------------------
+// The one algebraic law the rearrangement needs. `Quantity` is opaque, so it is stated.
+// ---------------------------------------------------------------------------------------
+
+/// a - (a - b) = b. Standard in any abelian group; `Quantity` carries no structure here.
+hole subtractionUndoesItself
+  cites "standard: a - (a - b) = b in any abelian group — immediate from associativity, commutativity and inverses. `Quantity` is opaque in this encoding, so the law is stated rather than derived":
+  forall a: Quantity; forall b: Quantity; sub(a, sub(a, b)) = b
+
+/// The spectral kernel is the convolution value minus the geometric one. This is the
+/// REARRANGEMENT of Definition 10.4.3.7(2), and it is what (12.5.1.4) uses: the manuscript
+/// says that equation holds "by design of the global geometric kernel". Kernel-checked from
+/// the definition plus one group law, rather than assumed.
+theorem theSpectralKernelIsTheConvolutionMinusTheGeometric:
+  forall p: KernelPoint; forall f: TestFunction;
+  theSpectralKernelValue(p, f) =
+  sub(theConvolutionValue(p, f), theGeometricKernelValue(p, f))
+proof
+  @the-geometric-kernel-definition |
+    forall q: KernelPoint; forall g: TestFunction;
+      theGeometricKernelValue(q, g) =
+      sub(theConvolutionValue(q, g), theSpectralKernelValue(q, g))
+    [by definition(0) theGeometricKernelValue]
+  @generalize-p |
+    fix p: KernelPoint {
+      @generalize-f |
+        fix f: TestFunction {
+          @the-geometric-kernel-unfolds |
+            theGeometricKernelValue(p, f) =
+              sub(theConvolutionValue(p, f), theSpectralKernelValue(p, f))
+            [by apply_at(p, f) the-geometric-kernel-definition]
+          @subtraction-undoes-itself-here |
+            sub(theConvolutionValue(p, f),
+              sub(theConvolutionValue(p, f), theSpectralKernelValue(p, f))) =
+              theSpectralKernelValue(p, f)
+            [using specialize subtractionUndoesItself(theConvolutionValue(p, f),
+              theSpectralKernelValue(p, f))]
+          @substitute-the-geometric-kernel |
+            sub(theConvolutionValue(p, f), theGeometricKernelValue(p, f)) =
+              theSpectralKernelValue(p, f)
+            [by rewrite the-geometric-kernel-unfolds subtraction-undoes-itself-here]
+          @conclusion-the-spectral-kernel |
+            theSpectralKernelValue(p, f) =
+              sub(theConvolutionValue(p, f), theGeometricKernelValue(p, f))
+            [by symmetry substitute-the-geometric-kernel]
+        }
+      @discharge-f |
+        forall f: TestFunction;
+          theSpectralKernelValue(p, f) =
+          sub(theConvolutionValue(p, f), theGeometricKernelValue(p, f))
+        [by generalize generalize-f]
+    }
+  @conclusion |
+    forall p: KernelPoint; forall f: TestFunction;
+      theSpectralKernelValue(p, f) =
+      sub(theConvolutionValue(p, f), theGeometricKernelValue(p, f))
+    [by generalize generalize-p]
+qed
+
+// ---------------------------------------------------------------------------------------
+// Theorem 10.4.2.8 — the analytic half. Cited, not transcribed.
+// ---------------------------------------------------------------------------------------
+
+/// the spectral projection P_a^spec, and the nuclear operator A_a^spec(phi) of (10.3.2.2)
+oper theProjectedConvolution(f: TestFunction) => Operator
+oper theSpectralOperator(f: TestFunction) => Operator
+/// the ambient space on which both act
+const theSpectralLevel: HardySobolevSpace
+
+/// Theorem 10.4.2.8 (Spectral side: convolution after projection), txt 27947. The traces
+/// agree up to o(1) as Lambda -> +infty in the regime eps*Lambda = o(1).
+hole theProjectedTraceIsTheSpectralTrace
+  cites "manuscript-proved: Theorem 10.4.2.8 (txt 27947), stated and proved in the released text over ~180 lines. The proof lifts a Spectral Markushevich basis (Thm 10.2.2.1), uses the S1 = S2 norm identity for finite-rank operators (citing [Cnw-b, Ch.3, §18, Thm 18.13, p.91]), and estimates the integral (10.4.2.26) in the regime eps*Lambda = o(1). Its trace is computed by Theorem 10.3.2.1's formula (10.3.2.3). Not transcribed here":
+  forall f: TestFunction;
+  isNuclearOn(theProjectedConvolution(f), theSpectralLevel) ->
+  isNuclearOn(theSpectralOperator(f), theSpectralLevel) ->
+  trace(theProjectedConvolution(f), theSpectralLevel) =
+  trace(theSpectralOperator(f), theSpectralLevel)
