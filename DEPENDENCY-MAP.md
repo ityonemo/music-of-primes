@@ -5,38 +5,45 @@ kernel-checked. This file is the index to it.
 
 ## The current frontier, exactly
 
-**`2b4m check examples/music-of-primes` PASSES.** There are no bare holes left: every
-result the chain rests on is either kernel-checked here or cited with a prefix saying who
-owes it. `--axioms` on `generalizedRiemannHypothesis` reports **40 entries**.
+`2b4m check --axioms --draft grh.b4m generalizedRiemannHypothesis` reports **52 entries**.
+Strict `check` FAILS on the 10 bare holes — that is the intended state, and their list is
+the worklist.
 
 ### The full accounting
 
 | | n | means | who owes it |
 |---|---|---|---|
+| **bare `hole`** | **10** | the manuscript PROVES it; ours to transcribe | **us** |
 | `cites "gap: …"` | 5 | absent from the released draft | **the author** |
-| `cites "assertion: …"` | 13 | he states it, does not prove it | the author, or a reader |
-| `cites "manuscript-proved: …"` | 4 | stated AND proved in the text, not transcribed here | **us**, as future work |
-| `cites "standard: …"` | 14 | classical, with a textbook source | nobody — cited and closed |
+| `cites "assertion: …"` | 17 | he states it, does not prove it | the author, or a reader |
+| `cites "standard: …"` | 16 | classical, with a textbook source | nobody — cited and closed |
 | DEFINITION clause | 4 | introduces a symbol, not an assumption | — |
-| **total `--axioms` entries** | **40** | | 36 cited + 4 definitions |
+| **total `--axioms` entries** | **52** | | 10 + 5 + 17 + 16 + 4 |
+
+The prefixes answer different questions about the author's text — *absent* / *claimed* /
+*classical* — and a BARE hole answers a question about us: it is work we have not done.
+
+    2b4m check examples/music-of-primes                  # the worklist (fails by design)
+    grep -rn 'TRANSCRIBE:' .                             # the bare holes' manuscript refs
+    grep -rn 'cites "gap:' .                             # the list to send the author
+    grep -rn 'cites "assertion:' .                       # candidates a reader could close
 
 These are what `generalizedRiemannHypothesis` **transitively rests on**. The `standard/`
-files declare more than GRH reaches (19 `standard:` and 10 `manuscript-proved:` holes exist
-across the corpus), because each classical fact is kept load-bearing for a local theorem in
-its own file — an uncited hole is invisible to `--axioms`, so leaving one dangling would hide
-it. Quote the GRH-transitive numbers when asking "what does the claim rest on"; the corpus
-totals answer a different question.
+files declare more than GRH reaches, because each classical fact is kept load-bearing for a
+local theorem in its own file — an uncited hole is invisible to `--axioms`, so leaving one
+dangling would hide it.
 
-The four prefixes answer different questions about the author's text — *absent* /
-*claimed* / *proved-but-untranscribed* / *classical*:
+### Why `manuscript-proved:` is not a citation tier
 
-    grep -rn 'cites "gap:' .                 # the list to send the author
-    grep -rn 'cites "assertion:' .           # candidates a reader could close
-    grep -rn 'cites "manuscript-proved:' .   # OUR transcription backlog
+An earlier round gave these 10 holes a `cites "manuscript-proved: …"` string, on the reasoning
+that the released text really does prove them. That was a mistake, and a instructive one: it
+let OUR OWN BACKLOG pass strict `check`. The bare/cited split exists precisely to separate
+"someone else owes this" from "we have not done this yet", and a result the manuscript proves
+falls on our side. The manuscript reference survives as a `// TRANSCRIBE:` comment above each
+bare hole, so nothing was lost but the false green checkmark.
 
-`manuscript-proved:` is the one that is work for us rather than for him. Each names a
-theorem the released text states and proves; transcribing one changes nothing downstream,
-because the interface its consumers depend on is already fixed.
+Converting them back exposed **two orphaned proofs** that had been invisible — see
+*Two things the decomposition surfaced*, below.
 
 ## How to read the holes
 
@@ -48,17 +55,21 @@ and the prefix says whose:
 | **bare `hole X`** | ours to transcribe, not yet attempted | **FAILS** — stays on the worklist |
 | **`hole X cites "<prefix>: …"`** | assumed; the prefix records why and who owes it | passes, disclosed |
 
-There are currently **no bare holes**. A bare hole is how a new piece of work enters: write
-it bare, and strict `check` keeps it on the worklist until it is proved or cited.
-
-    2b4m check examples/music-of-primes                     # passes
-    2b4m check --axioms examples/music-of-primes/grh.b4m generalizedRiemannHypothesis
+There are **10 bare holes**, so strict `check` fails — by design. A bare hole is how work
+enters: write it bare, and the checker keeps it on the worklist until it is proved, or until
+a real external source vouches for it. Never relabel a bare hole to make the check pass.
 
 ## What is kernel-checked
 
-Four of the manuscript's results were bare holes until their proofs were read and recorded
-as the chains they are. Each assembly below is verified by the kernel; only its analytic
-inputs are cited.
+Four of the manuscript's results were single opaque holes until their proofs were read and
+recorded as the chains they are. **The ASSEMBLY of each is verified by the kernel** — the
+steps compose, the hypotheses thread, the equations substitute. What each assembly rests on
+is a mix of cited classical facts and BARE holes naming the author's own proved theorems,
+which are our transcription backlog.
+
+So "kernel-checked" here means the SHAPE of the argument is machine-verified, not that the
+analysis is. That is the honest content of this artifact, and the distinction is the whole
+point of reading `--axioms` rather than the green checkmark.
 
 | result | file | shape of the proof |
 |---|---|---|
@@ -66,6 +77,24 @@ inputs are cited.
 | Thm 11.3.2.1 (Orbital Traces) | `standard/orbital-traces.b4m` | vanishing → indicator → convergence → nuclearity → finite-rank limit → zero side → Poisson |
 | Thm 12.4.1.1 (S-local Trace) | `standard/s-local-trace.b4m` | descend → nuclearity → reduce to E → lift phi → compute → collect per-place |
 | Def 10.4.3.7 (kernel algebra) | `standard/spectral-kernel.b4m` | definition block; the rearrangement is PROVED, not assumed |
+
+### Two orphaned proofs the bare-hole conversion exposed
+
+Both were defects of the same kind — a proof that carried no weight, looking like depth:
+
+**Thm 11.3.2.1 was proved and then bypassed.** `standard/orbital-traces.b4m` establishes its
+seven-step chain, but the off-S vanishing asserted the Euler contribution is zero DIRECTLY,
+so the chain fed nothing. The manuscript's argument routes through 11.3.2.1: the orbital
+integral EQUALS the Euler contribution (that is the theorem), and the integral is what
+vanishes. Now rewired, and 11.3.2.1 reaches `generalizedRiemannHypothesis`.
+
+**Thm 10.4.2.8 was declared and never cited.** The spectral-side bridge named it in its own
+citation text while using only Def 10.4.3.7's algebraic half. Now the bridge requires the
+trace comparison, discharged by `theProjectedTraceIsTheSpectralTrace`.
+
+Neither was visible while they were cited holes, because an uncited hole is invisible to
+`--axioms`. Making them bare is what surfaced them. The sweep is now clean: every hole in the
+corpus names a dependent.
 
 ### Two things the decomposition surfaced
 
@@ -154,8 +183,8 @@ was not.
 
 ## The chain
 
-A DAG. Legend: plain = kernel-checked here, *italic* = cited (the prefix says which tier).
-No node is a bare hole any more.
+A DAG. Legend: plain = kernel-checked here, **bold** = a bare hole we owe (the manuscript
+proves it; ours to transcribe), *italic* = cited, with the tier named.
 
 ```mermaid
 graph TD
@@ -183,25 +212,25 @@ graph TD
 
   subgraph orb["standard/orbital-traces.b4m — Thm 11.3.2.1, PROVED"]
     ORBTHM["theOrbitalTraceIsTheEulerContribution<br/>(kernel-checked)"]
-    OCONV["<i>theTruncationsConverge</i><br/>MS-PROVED: Thm 11.1.2.1"]
-    ONUC["<i>theConvergedValueIsANuclearTrace</i><br/>MS-PROVED: Prop 12.2.2.2"]
-    OFR["<i>theOperatorIsANuclearLimit…</i><br/>MS-PROVED: Thms 10.3.2.1, 11.2.2.1"]
-    OZERO["<i>theLimitValueIsTheZeroSide</i><br/>MS-PROVED: Thm 7.4.2.1"]
+    OCONV["<b>theTruncationsConverge</b><br/>BARE — transcribe: Thm 11.1.2.1"]
+    ONUC["<b>theConvergedValueIsANuclearTrace</b><br/>BARE — transcribe: Prop 12.2.2.2"]
+    OFR["<b>theOperatorIsANuclearLimit…</b><br/>BARE — transcribe: Thms 10.3.2.1, 11.2.2.1"]
+    OZERO["<b>theLimitValueIsTheZeroSide</b><br/>BARE — transcribe: Thm 7.4.2.1"]
     OPOIS["<i>poissonSummation…</i><br/>STANDARD: Prop B.4.1.2"]
   end
 
   subgraph sl["standard/s-local-trace.b4m — Thm 12.4.1.1, PROVED"]
     SLTHM["theSLocalTraceIsTheLocalIntegralSum<br/>(kernel-checked)"]
-    SLRED["<i>theTraceReducesToTheSubspace</i><br/>MS-PROVED: Lemma C.3.2.2"]
-    SLLIFT["<i>anInvariantLiftOfPhiExists</i><br/>MS-PROVED: Lemma 4.2.1.5"]
-    SLCOMP["<i>theComputationGives…</i><br/>MS-PROVED: txt 31213-31460"]
+    SLRED["<b>theTraceReducesToTheSubspace</b><br/>BARE — transcribe: Lemma C.3.2.2"]
+    SLLIFT["<b>anInvariantLiftOfPhiExists</b><br/>BARE — transcribe: Lemma 4.2.1.5"]
+    SLCOMP["<b>theComputationGives…</b><br/>BARE — transcribe: txt 31213-31460"]
     SLCUT["<i>theExtendedCutoffFamilyExists</i><br/>GAP: the author's footnote 2"]
   end
 
   subgraph sk["standard/spectral-kernel.b4m — Def 10.4.3.7, PROVED"]
     SKTHM["theSpectralKernelIsTheConvolution…<br/>(kernel-checked from the definition)"]
     SKSUB["<i>subtractionUndoesItself</i><br/>STANDARD: group law"]
-    SK428["<i>theProjectedTraceIsTheSpectralTrace</i><br/>MS-PROVED: Thm 10.4.2.8"]
+    SK428["<b>theProjectedTraceIsTheSpectralTrace</b><br/>BARE — transcribe: Thm 10.4.2.8"]
   end
 
   subgraph ot["standard/operator-theory.b4m"]
@@ -265,7 +294,7 @@ Decomposing 11.3.2.1 made **Poisson summation** live — it is now the last step
 `theOrbitalTraceIsTheEulerContribution`. Two `standard/analysis.b4m` citations remain outside
 the DAG: **Lebesgue differentiation** (Thm A.5.4.1) and **Hardy-Littlewood maximal**
 (Thm A.5.3.7). Both are classical inputs to the estimate work INSIDE the results now cited as
-`manuscript-proved:`, so they become live only when one of those is transcribed. Each is kept
+bare holes, so they become live only when one of those is transcribed. Each is kept
 load-bearing for a small local theorem in its own file, because an uncited hole is invisible
 to `--axioms`.
 
@@ -322,8 +351,8 @@ captures with real sources:
 | Prop B.4.1.2 | Poisson Summation Formula (jump singularities) — now LIVE in the DAG |
 
 The other eight are the author's own nuclearity machinery (Thms 7.4.2.1, 10.3.2.1, 11.1.2.1,
-11.2.2.1, 12.2.2.2; Defs 9.3.3.1, 12.1.1.1), and five of them are now cited individually as
-`manuscript-proved:` rather than bundled into one hole.
+11.2.2.1, 12.2.2.2; Defs 9.3.3.1, 12.1.1.1), and five of them are now separate BARE holes —
+each its own transcription task — rather than bundled into one opaque assumption.
 
 ## Two documentation issues to raise with the author
 
