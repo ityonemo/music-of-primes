@@ -120,7 +120,7 @@ hole holomorphyCoversTheWholeRightRegion
 // subsequence along which the ARCHIMEDEAN integrals converge uniformly; that the
 // infinite non-Archimedean sum also passes to the limit is asserted, not proved.
 hole theLimitInterchangeIsValid
-  cites "NOT IN THE RELEASED TEXT — assumed pending the author. Ch. 13 (which would prove it) is a 2-page stub; the author himself calls the infinite non-Archimedean sum 'the source of all the difficulties' (§1.4.3). Montel gives uniform convergence of the finitely many ARCHIMEDEAN integrals only":
+  cites "gap: NOT IN THE RELEASED TEXT — assumed pending the author. Ch. 13 (which would prove it) is a 2-page stub; the author himself calls the infinite non-Archimedean sum 'the source of all the difficulties' (§1.4.3). Montel gives uniform convergence of the finitely many ARCHIMEDEAN integrals only":
   forall f: TestFunction;
   isAMollifiedPowerApproximant(f) -> theTraceFormulaHoldsAt(f) ->
   theNonArchimedeanSumComputesTheLogDerivative(f)
@@ -130,7 +130,7 @@ hole theLimitInterchangeIsValid
 // reference, so the justification is not located in the released text. Two `Finish!`
 // footnotes (the author's own) also attach to §1.4's Trace Formula statement.
 hole theLogDerivativeHasOnlyTheCentralPole
-  cites "NOT IN THE RELEASED TEXT — assumed pending the author. §1.4.5 asserts it and cites '§5.1', but §5.1 is about topological vector spaces (a stale reference); two of the author's own 'Finish!' footnotes attach here":
+  cites "gap: NOT IN THE RELEASED TEXT — assumed pending the author. §1.4.5 asserts it and cites '§5.1', but §5.1 is about topological vector spaces (a stale reference); two of the author's own 'Finish!' footnotes attach here":
   forall f: TestFunction;
   theNonArchimedeanSumComputesTheLogDerivative(f) ->
   theLogDerivativeIsHolomorphicOffTheCentralPoint()
@@ -139,14 +139,14 @@ hole theLogDerivativeHasOnlyTheCentralPole
 // equation the same holds for L(s, χ) over C_{<1/2}"); the manuscript has the functional
 // equation, but this deduction is not written out.
 hole theFunctionalEquationReflectsTheZeroFreeRegion
-  cites "NOT IN THE RELEASED TEXT — assumed pending the author. One line in §1.4.5 ('so by the functional equation the same holds over C_{<1/2}'); the functional equation IS in the manuscript, this deduction from it is not written out":
+  cites "gap: NOT IN THE RELEASED TEXT — assumed pending the author. One line in §1.4.5 ('so by the functional equation the same holds over C_{<1/2}'); the functional equation IS in the manuscript, this deduction from it is not written out":
   noZerosRightOfTheCriticalLine() -> noZerosLeftOfTheCriticalLine()
 
 // The final step. No zeros strictly either side of the critical line leaves every
 // non-trivial zero ON it. Trivial as real analysis, but it is the content of Theorem
 // 13.3.1.2, whose statement in the released text is the footnote "Insert statement".
 hole everyZeroOffTheLineIsExcluded
-  cites "NOT IN THE RELEASED TEXT — assumed pending the author. This IS Theorem 13.3.1.2, whose statement in the released draft is the author's footnote 'Insert statement'":
+  cites "gap: NOT IN THE RELEASED TEXT — assumed pending the author. This IS Theorem 13.3.1.2, whose statement in the released draft is the author's footnote 'Insert statement'":
   noZerosRightOfTheCriticalLine() -> noZerosLeftOfTheCriticalLine() ->
   forall r: Zero; isNonTrivialZero(r) -> onTheCriticalLine(r)
 

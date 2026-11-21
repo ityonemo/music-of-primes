@@ -117,17 +117,32 @@ fact countableAdditivity = classical.countableAdditivity
 /// the locus the alpha_k strata carve out, for a given S and phi
 oper theFiltrationStrata(s: PlaceSet, f: TestFunction) => Locus
 
-/// OURS: the alpha_k indicators of the divisorial filtration PARTITION the ideles, and the
-/// integral therefore splits. Stated as one step rather than two: an intermediate "additivity
-/// gives the kernel-shaped split" hole would be pure glue — an artifact of this encoding's
-/// opacity, not a step in the manuscript — and glue holes make the artifact look deeper
-/// without checking anything more.
-///
-/// The CLASSICAL half is cited in standard/analysis.b4m: `countableAdditivity` is why
-/// partitioning licenses the split at all, and it appears in --axioms as its own entry.
-hole theDivisorialFiltrationSplitsTheIntegral:
+sort IndexSet = classical.IndexSet
+pred splitsIntoTwoParts = classical.splitsIntoTwoParts
+pred sumRegroupsOverTheSplit = classical.sumRegroupsOverTheSplit
+fact sumsRegroupOverAPartitionedIndex = classical.sumsRegroupOverAPartitionedIndex
+
+/// the index set of the strata, for a given S and phi
+oper theStrataIndex(s: PlaceSet, f: TestFunction) => IndexSet
+
+/// MICRO-HOLE, closed rather than parked. The manuscript says "By (11.3.1.4), this reads:"
+/// and writes `int k_S + sum_{p nmid S} int k_p = int k` with no argument (txt 31551). The
+/// content is an INDEX REGROUPING: the strata indexed by k >= 0 split into those whose places
+/// all lie in S (bundled as the single k_S term) and those involving a prime outside S (one
+/// k_p each). Regrouping an absolutely convergent sum over a partition is CLASSICAL and is
+/// cited; what remains is only that the index set does split that way, which is reading the
+/// definition of S.
+hole theStrataIndexSplitsAtS cites
+  "assertion: the author's single sentence at txt 31551 ('By (11.3.1.4), this reads:') asserts both that the strata index splits into the places-inside-S part and the one-prime-outside-S part, and that regrouping along that split yields the kernel shape. This is the first half — a claim about his own admissibility construction, which he does not argue":
   forall f: TestFunction; forall s: PlaceSet;
-  isAdmissibleFor(s, f) -> integralIsAdditiveOver(theFiltrationStrata(s, f)) ->
+  isAdmissibleFor(s, f) -> splitsIntoTwoParts(theStrataIndex(s, f))
+
+/// and that the regrouped sum IS the S-local-plus-off-S shape
+hole theRegroupedSumIsTheKernelSplit cites
+  "assertion: the author writes the regrouped identity 'int k_S dmu + sum_{p nmid S} int k_p dmu = int k dmu' with no argument, citing (11.3.1.4) (txt 31551). The regrouping itself is cited to Rudin/Halmos; this is the remaining claim that the regrouped shape IS the S-local-plus-off-S split":
+  forall f: TestFunction; forall s: PlaceSet;
+  integralIsAdditiveOver(theFiltrationStrata(s, f)) ->
+  sumRegroupsOverTheSplit(theStrataIndex(s, f)) ->
   theGlobalIntegral(f) = add(theSLocalIntegral(s, f), theOffSPieces(s, f))
 
 /// SPLIT. The manuscript's strata are the PREIMAGES under the norm map
@@ -204,46 +219,46 @@ theorem theTraceFormula: forall f: TestFunction;
 proof
   @generalize-phi |
     fix phi: TestFunction {
-      @given-test-function |
+      @given-phi-is-a-test-function |
         assume isTestFunction(phi) {
-          @given-vanishing |
+          @given-phi-vanishes-on-the-norm-one-ideles |
             assume vanishesOnTheNormOneIdeles(phi) {
-              @is-test-function |
+              @phi-is-a-test-function |
                 isTestFunction(phi)
-                [by hypothesis given-test-function]
+                [by hypothesis given-phi-is-a-test-function]
 
               // step 1: choose an admissible S. The CLASSICAL half is cited from
               // standard/algebraic-number-theory.b4m — a finite set meeting the
               // ramification conditions exists, and enlarging it trivializes the class
               // group. Only the phi-specific enlargement remains ours.
-              @classical-s |
+              @a-classical-s-exists |
                 exists s: PlaceSet;
                   containsTheRamifiedAndArchimedeanPlaces(s) and hasTrivialSClassGroup(s)
                 [using import(ant) enlargingSKillsTheClassGroup]
-              @with-classical-s |
-                unpack s0: PlaceSet from classical-s {
-                  @s0-props |
+              @with-classical-place-set-s0 |
+                unpack s0: PlaceSet from a-classical-s-exists {
+                  @the-classical-s-has-its-properties |
                     containsTheRamifiedAndArchimedeanPlaces(s0) and hasTrivialSClassGroup(s0)
-                    [by hypothesis with-classical-s]
+                    [by hypothesis with-classical-place-set-s0]
                   // the two CLASSICAL facts that make enlargement possible at all
-                  @obstruct-both |
+                  @finitely-many-places-obstruct |
                     primeNormsAreUnbounded() and
                       (forall f: TestFunction; compactSupportMeetsFinitelyManyPlaces(f))
                     [using import(ant) onlyFinitelyManyPlacesObstruct]
-                  @norms-unbounded |
+                  @the-prime-norms-are-unbounded |
                     primeNormsAreUnbounded()
-                    [by and_lhs obstruct-both]
-                  @support-all |
+                    [by and_lhs finitely-many-places-obstruct]
+                  @support-is-finite-for-every-test-function |
                     forall f: TestFunction; compactSupportMeetsFinitelyManyPlaces(f)
-                    [by and_rhs obstruct-both]
-                  @support-at-phi |
+                    [by and_rhs finitely-many-places-obstruct]
+                  @support-is-finite-for-phi |
                     compactSupportMeetsFinitelyManyPlaces(phi)
-                    [by apply_at(phi) support-all]
-                  @classical-facts |
+                    [by apply_at(phi) support-is-finite-for-every-test-function]
+                  @the-two-classical-inputs |
                     primeNormsAreUnbounded() and compactSupportMeetsFinitelyManyPlaces(phi)
-                    [by both norms-unbounded support-at-phi]
+                    [by both the-prime-norms-are-unbounded support-is-finite-for-phi]
                   // OURS: finitely many enlargements suffice, preserving the first two conditions
-                  @enlarge-pre |
+                  @enlargement-suffices-for-every-test-function |
                     forall f: TestFunction;
                       (primeNormsAreUnbounded() and compactSupportMeetsFinitelyManyPlaces(f)) ->
                       forall t: PlaceSet;
@@ -253,7 +268,7 @@ proof
                       (containsTheRamifiedAndArchimedeanPlaces(u) and hasTrivialSClassGroup(u))
                       and isLargeEnoughFor(u, f)
                     [by cite finitelyManyEnlargementsSuffice]
-                  @enlarge-pre-phi |
+                  @enlargement-suffices-for-phi |
                     (primeNormsAreUnbounded() and compactSupportMeetsFinitelyManyPlaces(phi)) ->
                       forall t: PlaceSet;
                       isTestFunction(phi) ->
@@ -261,274 +276,216 @@ proof
                       exists u: PlaceSet;
                       (containsTheRamifiedAndArchimedeanPlaces(u) and hasTrivialSClassGroup(u))
                       and isLargeEnoughFor(u, phi)
-                    [by apply_at(phi) enlarge-pre]
-                  @enlarge-at-phi |
+                    [by apply_at(phi) enlargement-suffices-for-every-test-function]
+                  @enlargement-suffices-at-phi |
                     forall t: PlaceSet;
                       isTestFunction(phi) ->
                       (containsTheRamifiedAndArchimedeanPlaces(t) and hasTrivialSClassGroup(t)) ->
                       exists u: PlaceSet;
                       (containsTheRamifiedAndArchimedeanPlaces(u) and hasTrivialSClassGroup(u))
                       and isLargeEnoughFor(u, phi)
-                    [by modus_ponens enlarge-pre-phi classical-facts]
-                  @enlarge-at-s0 |
+                    [by modus_ponens enlargement-suffices-for-phi the-two-classical-inputs]
+                  @enlargement-suffices-at-the-classical-s |
                     isTestFunction(phi) ->
                       (containsTheRamifiedAndArchimedeanPlaces(s0) and hasTrivialSClassGroup(s0)) ->
                       exists u: PlaceSet;
                       (containsTheRamifiedAndArchimedeanPlaces(u) and hasTrivialSClassGroup(u))
                       and isLargeEnoughFor(u, phi)
-                    [by apply_at(s0) enlarge-at-phi]
-                  @enlarge-needs-props |
+                    [by apply_at(s0) enlargement-suffices-at-phi]
+                  @enlargement-needs-the-classical-properties |
                     (containsTheRamifiedAndArchimedeanPlaces(s0) and hasTrivialSClassGroup(s0)) ->
                       exists u: PlaceSet;
                       (containsTheRamifiedAndArchimedeanPlaces(u) and hasTrivialSClassGroup(u))
                       and isLargeEnoughFor(u, phi)
-                    [by modus_ponens enlarge-at-s0 is-test-function]
-                  @some-enlarged |
+                    [by modus_ponens enlargement-suffices-at-the-classical-s phi-is-a-test-function]
+                  @an-admissible-enlargement-exists |
                     exists u: PlaceSet;
                       (containsTheRamifiedAndArchimedeanPlaces(u) and hasTrivialSClassGroup(u))
                       and isLargeEnoughFor(u, phi)
-                    [by modus_ponens enlarge-needs-props s0-props]
-                  @inner-conclusion |
-                    unpack s: PlaceSet from some-enlarged {
-                      @s-parts |
+                    [by modus_ponens enlargement-needs-the-classical-properties the-classical-s-has-its-properties]
+                  @conclusion-the-trace-formula-at-phi |
+                    unpack s: PlaceSet from an-admissible-enlargement-exists {
+                      @the-enlargement-has-its-properties |
                         (containsTheRamifiedAndArchimedeanPlaces(s) and hasTrivialSClassGroup(s))
                           and isLargeEnoughFor(s, phi)
-                        [by hypothesis inner-conclusion]
-                      @defn-adm-all |
+                        [by hypothesis conclusion-the-trace-formula-at-phi]
+                      @admissibility-unfolds |
                         forall t: PlaceSet; forall f: TestFunction;
                           isAdmissibleFor(t, f) iff
                           ((containsTheRamifiedAndArchimedeanPlaces(t) and hasTrivialSClassGroup(t))
                           and isLargeEnoughFor(t, f))
                         [by definition(0) isAdmissibleFor]
-                      @defn-adm-at-s |
+                      @admissibility-unfolds-at-s |
                         forall f: TestFunction;
                           isAdmissibleFor(s, f) iff
                           ((containsTheRamifiedAndArchimedeanPlaces(s) and hasTrivialSClassGroup(s))
                           and isLargeEnoughFor(s, f))
-                        [by apply_at(s) defn-adm-all]
-                      @defn-adm |
+                        [by apply_at(s) admissibility-unfolds]
+                      @admissibility-at-s-forward |
                         isAdmissibleFor(s, phi) iff
                           ((containsTheRamifiedAndArchimedeanPlaces(s) and hasTrivialSClassGroup(s))
                           and isLargeEnoughFor(s, phi))
-                        [by apply_at(phi) defn-adm-at-s]
-                      @defn-adm-converse |
+                        [by apply_at(phi) admissibility-unfolds-at-s]
+                      @admissibility-at-s-converse |
                         ((containsTheRamifiedAndArchimedeanPlaces(s) and hasTrivialSClassGroup(s))
                           and isLargeEnoughFor(s, phi)) -> isAdmissibleFor(s, phi)
-                        [by equiv_converse defn-adm]
+                        [by equiv_converse admissibility-at-s-forward]
                       @s-admissible |
                         isAdmissibleFor(s, phi)
-                        [by modus_ponens defn-adm-converse s-parts]
+                        [by modus_ponens admissibility-at-s-converse the-enlargement-has-its-properties]
 
                       // step 2: the kernel decomposes. The alpha_k strata partition (OURS); additivity of
                       // the integral over a partition is CLASSICAL (cited); together they give the split.
                       // the P_k are nested + exhausting (OURS)
                       // the strata are built from the T_k initial segments (reading the definition)
-                      @segs-all |
-                        forall f: TestFunction; forall t: PlaceSet;
-                          isAdmissibleFor(t, f) ->
-                          isTheInitialSegmentFamily(theRationalPrimeSegments(t, f))
-                        [by cite theStrataAreBuiltFromInitialSegments]
-                      @segs-at-phi |
-                        forall t: PlaceSet;
-                          isAdmissibleFor(t, phi) ->
-                          isTheInitialSegmentFamily(theRationalPrimeSegments(t, phi))
-                        [by apply_at(phi) segs-all]
-                      @segs-at-s |
-                        isAdmissibleFor(s, phi) ->
-                          isTheInitialSegmentFamily(theRationalPrimeSegments(s, phi))
-                        [by apply_at(s) segs-at-phi]
-                      @is-segments |
+                      @the-segments-are-initial-segments |
                         isTheInitialSegmentFamily(theRationalPrimeSegments(s, phi))
-                        [by modus_ponens segs-at-s s-admissible]
+                        [using specialize theStrataAreBuiltFromInitialSegments(phi, s) s-admissible]
                       // initial segments nest and exhaust — DEFINITIONAL, cited
-                      @nest-all |
+                      @initial-segments-nest-and-exhaust |
                         forall x: IndexedFamily;
                           isTheInitialSegmentFamily(x) -> nestsAndExhausts(x)
                         [by cite initialSegmentsNestAndExhaust]
-                      @nest-at-segs |
+                      @the-segments-nest-and-exhaust |
                         isTheInitialSegmentFamily(theRationalPrimeSegments(s, phi)) ->
                           nestsAndExhausts(theRationalPrimeSegments(s, phi))
-                        [by apply_at(theRationalPrimeSegments(s, phi)) nest-all]
-                      @segments-nest |
+                        [by apply_at(theRationalPrimeSegments(s, phi)) initial-segments-nest-and-exhaust]
+                      @the-segments-nest |
                         nestsAndExhausts(theRationalPrimeSegments(s, phi))
-                        [by modus_ponens nest-at-segs is-segments]
+                        [by modus_ponens the-segments-nest-and-exhaust the-segments-are-initial-segments]
                       // and that lifts to the strata through the norm-map preimage
-                      @lift-all |
-                        forall f: TestFunction; forall t: PlaceSet;
-                          nestsAndExhausts(theRationalPrimeSegments(t, f)) ->
-                          isANestedExhaustion(theFiltrationStrata(t, f))
-                        [by cite segmentNestingLiftsToTheStrata]
-                      @lift-at-phi |
-                        forall t: PlaceSet;
-                          nestsAndExhausts(theRationalPrimeSegments(t, phi)) ->
-                          isANestedExhaustion(theFiltrationStrata(t, phi))
-                        [by apply_at(phi) lift-all]
-                      @lift-at-s |
-                        nestsAndExhausts(theRationalPrimeSegments(s, phi)) ->
-                          isANestedExhaustion(theFiltrationStrata(s, phi))
-                        [by apply_at(s) lift-at-phi]
-                      @is-nested |
+                      @the-strata-are-nested |
                         isANestedExhaustion(theFiltrationStrata(s, phi))
-                        [by modus_ponens lift-at-s segments-nest]
+                        [using specialize segmentNestingLiftsToTheStrata(phi, s) the-segments-nest]
                       // successive differences therefore partition (CLASSICAL, cited)
-                      @diffs-all |
+                      @nested-exhaustions-partition |
                         forall l: Locus; isANestedExhaustion(l) -> successiveDifferencesPartition(l)
                         [by cite nestedExhaustionsPartition]
-                      @diffs-at-strata |
+                      @the-strata-differences-partition-pre |
                         isANestedExhaustion(theFiltrationStrata(s, phi)) ->
                           successiveDifferencesPartition(theFiltrationStrata(s, phi))
-                        [by apply_at(theFiltrationStrata(s, phi)) diffs-all]
-                      @diffs-partition |
+                        [by apply_at(theFiltrationStrata(s, phi)) nested-exhaustions-partition]
+                      @the-strata-differences-partition |
                         successiveDifferencesPartition(theFiltrationStrata(s, phi))
-                        [by modus_ponens diffs-at-strata is-nested]
+                        [by modus_ponens the-strata-differences-partition-pre the-strata-are-nested]
                       // and `partitionsTheDomain` is DEFINED as exactly that, so unfold rather than glue
-                      @defn-part-all |
+                      @partitioning-unfolds |
                         forall l: Locus;
                           partitionsTheDomain(l) iff successiveDifferencesPartition(l)
                         [using import(classical) definition(0) classical.partitionsTheDomain]
-                      @defn-part |
+                      @partitioning-unfolds-at-the-strata |
                         partitionsTheDomain(theFiltrationStrata(s, phi)) iff
                           successiveDifferencesPartition(theFiltrationStrata(s, phi))
-                        [by apply_at(theFiltrationStrata(s, phi)) defn-part-all]
-                      @defn-part-conv |
+                        [by apply_at(theFiltrationStrata(s, phi)) partitioning-unfolds]
+                      @partitioning-unfolds-converse |
                         successiveDifferencesPartition(theFiltrationStrata(s, phi)) ->
                           partitionsTheDomain(theFiltrationStrata(s, phi))
-                        [by equiv_converse defn-part]
-                      @partitions |
+                        [by equiv_converse partitioning-unfolds-at-the-strata]
+                      @the-strata-partition-the-domain |
                         partitionsTheDomain(theFiltrationStrata(s, phi))
-                        [by modus_ponens defn-part-conv diffs-partition]
-                      @additive-all |
+                        [by modus_ponens partitioning-unfolds-converse the-strata-differences-partition]
+                      @the-integral-is-countably-additive |
                         forall l: Locus; partitionsTheDomain(l) -> integralIsAdditiveOver(l)
                         [by cite countableAdditivity]
-                      @additive-at-strata |
+                      @additivity-at-the-strata |
                         partitionsTheDomain(theFiltrationStrata(s, phi)) ->
                           integralIsAdditiveOver(theFiltrationStrata(s, phi))
-                        [by apply_at(theFiltrationStrata(s, phi)) additive-all]
-                      @is-additive |
+                        [by apply_at(theFiltrationStrata(s, phi)) the-integral-is-countably-additive]
+                      @the-integral-is-additive-over-the-strata |
                         integralIsAdditiveOver(theFiltrationStrata(s, phi))
-                        [by modus_ponens additive-at-strata partitions]
-                      @split-all |
-                        forall f: TestFunction; forall t: PlaceSet;
-                          isAdmissibleFor(t, f) -> integralIsAdditiveOver(theFiltrationStrata(t, f)) ->
-                          theGlobalIntegral(f) = add(theSLocalIntegral(t, f), theOffSPieces(t, f))
-                        [by cite theDivisorialFiltrationSplitsTheIntegral]
-                      @split-at-phi |
-                        forall t: PlaceSet;
-                          isAdmissibleFor(t, phi) -> integralIsAdditiveOver(theFiltrationStrata(t, phi)) ->
-                          theGlobalIntegral(phi) = add(theSLocalIntegral(t, phi), theOffSPieces(t, phi))
-                        [by apply_at(phi) split-all]
-                      @split-at-s |
-                        isAdmissibleFor(s, phi) -> integralIsAdditiveOver(theFiltrationStrata(s, phi)) ->
-                          theGlobalIntegral(phi) = add(theSLocalIntegral(s, phi), theOffSPieces(s, phi))
-                        [by apply_at(s) split-at-phi]
-                      @split-needs-additive |
-                        integralIsAdditiveOver(theFiltrationStrata(s, phi)) ->
-                          theGlobalIntegral(phi) = add(theSLocalIntegral(s, phi), theOffSPieces(s, phi))
-                        [by modus_ponens split-at-s s-admissible]
-                      @decomposition |
+                        [by modus_ponens additivity-at-the-strata the-strata-partition-the-domain]
+                      // the strata index splits at S (reading S's definition)
+                      @the-strata-index-splits-at-s |
+                        splitsIntoTwoParts(theStrataIndex(s, phi))
+                        [using specialize theStrataIndexSplitsAtS(phi, s) s-admissible]
+                      // regrouping over a split index is CLASSICAL, cited
+                      @sums-regroup-over-a-partitioned-index |
+                        forall i: IndexSet;
+                          splitsIntoTwoParts(i) -> sumRegroupsOverTheSplit(i)
+                        [by cite sumsRegroupOverAPartitionedIndex]
+                      @sums-regroup-at-the-strata-index |
+                        splitsIntoTwoParts(theStrataIndex(s, phi)) ->
+                          sumRegroupsOverTheSplit(theStrataIndex(s, phi))
+                        [by apply_at(theStrataIndex(s, phi)) sums-regroup-over-a-partitioned-index]
+                      @the-strata-sum-regroups |
+                        sumRegroupsOverTheSplit(theStrataIndex(s, phi))
+                        [by modus_ponens sums-regroup-at-the-strata-index the-strata-index-splits-at-s]
+                      // the manuscript's assertion: that regrouping yields exactly this equation
+                      @the-integral-splits-at-s |
                         theGlobalIntegral(phi) = add(theSLocalIntegral(s, phi), theOffSPieces(s, phi))
-                        [by modus_ponens split-needs-additive is-additive]
+                        [using specialize theRegroupedSumIsTheKernelSplit(phi, s) the-integral-is-additive-over-the-strata the-strata-sum-regroups]
 
                       // step 3: the off-S pieces vanish (Thm 11.3.2.1)
-                      @vanish-all |
-                        forall f: TestFunction; forall t: PlaceSet;
-                          isAdmissibleFor(t, f) -> theOffSPieces(t, f) = noQuantity
-                        [by cite theOrbitalTracesVanishOffS]
-                      @vanish-at-phi |
-                        forall t: PlaceSet;
-                          isAdmissibleFor(t, phi) -> theOffSPieces(t, phi) = noQuantity
-                        [by apply_at(phi) vanish-all]
-                      @vanish-at-s |
-                        isAdmissibleFor(s, phi) -> theOffSPieces(s, phi) = noQuantity
-                        [by apply_at(s) vanish-at-phi]
-                      @off-s-vanishes |
+                      @the-off-s-pieces-vanish |
                         theOffSPieces(s, phi) = noQuantity
-                        [by modus_ponens vanish-at-s s-admissible]
+                        [using specialize theOrbitalTracesVanishOffS(phi, s) s-admissible]
 
                       // step 4: the S-local calculation (Thm 12.4.1.1)
-                      @slocal-all |
-                        forall f: TestFunction; forall t: PlaceSet;
-                          isAdmissibleFor(t, f) -> theSLocalIntegral(t, f) = theGeometricSide(f)
-                        [by cite theSLocalTraceCalculation]
-                      @slocal-at-phi |
-                        forall t: PlaceSet;
-                          isAdmissibleFor(t, phi) -> theSLocalIntegral(t, phi) = theGeometricSide(phi)
-                        [by apply_at(phi) slocal-all]
-                      @slocal-at-s |
-                        isAdmissibleFor(s, phi) -> theSLocalIntegral(s, phi) = theGeometricSide(phi)
-                        [by apply_at(s) slocal-at-phi]
-                      @s-local-is-geometric |
+                      @the-s-local-piece-is-the-geometric-side |
                         theSLocalIntegral(s, phi) = theGeometricSide(phi)
-                        [by modus_ponens slocal-at-s s-admissible]
+                        [using specialize theSLocalTraceCalculation(phi, s) s-admissible]
 
                       // step 5: the spectral side (Def 10.4.3.7 + Thm 10.4.2.8), eq (12.5.1.4)
-                      @spectral-all |
-                        forall f: TestFunction;
-                          isTestFunction(f) -> theGlobalIntegral(f) = theSpectralSide(f)
-                        [by cite theSpectralSideIsTheKernelIntegral]
-                      @spectral-at-phi |
-                        isTestFunction(phi) -> theGlobalIntegral(phi) = theSpectralSide(phi)
-                        [by apply_at(phi) spectral-all]
-                      @global-is-spectral |
+                      @the-global-integral-is-the-spectral-side |
                         theGlobalIntegral(phi) = theSpectralSide(phi)
-                        [by modus_ponens spectral-at-phi is-test-function]
+                        [using specialize theSpectralSideIsTheKernelIntegral(phi) phi-is-a-test-function]
 
                       // step 6: COMBINE. Substitute the vanishing and the unit law into the
-                      // decomposition to get global = geometric, then chain with (12.5.1.4).
-                      @unit-all |
+                      // the-integral-splits-at-s to get global = geometric, then chain with (12.5.1.4).
+                      @adding-nothing-changes-nothing |
                         forall q: Quantity; add(q, noQuantity) = q
                         [by cite addingNothingChangesNothing]
-                      @unit-at-geometric |
+                      @adding-nothing-to-the-geometric-side |
                         add(theGeometricSide(phi), noQuantity) = theGeometricSide(phi)
-                        [by apply_at(theGeometricSide(phi)) unit-all]
-                      @decomp-with-geometric |
+                        [by apply_at(theGeometricSide(phi)) adding-nothing-changes-nothing]
+                      @the-split-with-the-geometric-side |
                         theGlobalIntegral(phi) = add(theGeometricSide(phi), theOffSPieces(s, phi))
-                        [by rewrite s-local-is-geometric decomposition]
-                      @decomp-with-zero |
+                        [by rewrite the-s-local-piece-is-the-geometric-side the-integral-splits-at-s]
+                      @the-split-with-the-vanishing-off-s-part |
                         theGlobalIntegral(phi) = add(theGeometricSide(phi), noQuantity)
-                        [by rewrite off-s-vanishes decomp-with-geometric]
-                      @global-is-geometric |
+                        [by rewrite the-off-s-pieces-vanish the-split-with-the-geometric-side]
+                      @the-spectral-side-is-the-geometric-side |
                         theGlobalIntegral(phi) = theGeometricSide(phi)
-                        [by rewrite unit-at-geometric decomp-with-zero]
-                      @geometric-is-global |
+                        [by rewrite adding-nothing-to-the-geometric-side the-split-with-the-vanishing-off-s-part]
+                      @the-geometric-side-is-the-spectral-side |
                         theGeometricSide(phi) = theGlobalIntegral(phi)
-                        [by symmetry global-is-geometric]
-                      @sides-agree-inner |
+                        [by symmetry the-spectral-side-is-the-geometric-side]
+                      @conclusion-the-two-sides-agree |
                         theGeometricSide(phi) = theSpectralSide(phi)
-                        [by rewrite global-is-spectral geometric-is-global]
+                        [by rewrite the-global-integral-is-the-spectral-side the-geometric-side-is-the-spectral-side]
                     }
                   // export past the inner `unpack s` (the witness is gone from the statement)
-                  @sides-agree-at-s0 |
+                  @the-two-sides-agree-at-the-classical-s |
                     theGeometricSide(phi) = theSpectralSide(phi)
-                    [by unpacked inner-conclusion]
+                    [by unpacked conclusion-the-trace-formula-at-phi]
                 }
               // and past the outer `unpack s0`
-              @sides-agree |
+              @the-two-sides-agree |
                 theGeometricSide(phi) = theSpectralSide(phi)
-                [by unpacked with-classical-s]
+                [by unpacked with-classical-place-set-s0]
               // `theTraceFormulaHoldsAt` is DEFINED as this equality, so the consumer-facing
               // statement follows by unfolding the definition.
-              @defn-all |
+              @the-trace-formula-unfolds |
                 forall f: TestFunction;
                   theTraceFormulaHoldsAt(f) iff theGeometricSide(f) = theSpectralSide(f)
                 [using import(vocab) definition(0) vocab.theTraceFormulaHoldsAt]
-              @defn |
+              @the-trace-formula-unfolds-at-phi |
                 theTraceFormulaHoldsAt(phi) iff theGeometricSide(phi) = theSpectralSide(phi)
-                [by apply_at(phi) defn-all]
-              @defn-converse |
+                [by apply_at(phi) the-trace-formula-unfolds]
+              @the-trace-formula-unfolds-converse |
                 theGeometricSide(phi) = theSpectralSide(phi) -> theTraceFormulaHoldsAt(phi)
-                [by equiv_converse defn]
-              @holds |
+                [by equiv_converse the-trace-formula-unfolds-at-phi]
+              @the-trace-formula-holds-at-phi |
                 theTraceFormulaHoldsAt(phi)
-                [by modus_ponens defn-converse sides-agree]
+                [by modus_ponens the-trace-formula-unfolds-converse the-two-sides-agree]
             }
-          @discharge-vanishing |
+          @vanishing-implies-the-trace-formula |
             vanishesOnTheNormOneIdeles(phi) -> theTraceFormulaHoldsAt(phi)
-            [by discharge given-vanishing]
+            [by discharge given-phi-vanishes-on-the-norm-one-ideles]
         }
-      @discharge-test-function |
+      @test-function-implies-the-trace-formula |
         isTestFunction(phi) -> vanishesOnTheNormOneIdeles(phi) -> theTraceFormulaHoldsAt(phi)
-        [by discharge given-test-function]
+        [by discharge given-phi-is-a-test-function]
     }
   @conclusion |
     forall f: TestFunction;

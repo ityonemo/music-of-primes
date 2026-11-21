@@ -5,49 +5,63 @@ kernel-checked. This file is the index to it.
 
 ## The current frontier, exactly
 
-`2b4m check --draft --axioms grh.b4m generalizedRiemannHypothesis` reports **27 entries**,
-and they are three different kinds — worth separating, because only the first is work we owe:
+`2b4m check --draft --axioms grh.b4m generalizedRiemannHypothesis` reports **29 entries**.
+They are not one kind of thing, and only the first is work we owe:
 
 | kind | n | |
 |---|---|---|
-| bare `hole` — **ours to transcribe** | **4** | all in `trace-formula/` |
-| `hole … cites` — assumed | 20 | 4 the author's unwritten gaps + 5 ASSERTIONS + 11 classical |
+| bare `hole` — **ours to transcribe** | **3** | all in `trace-formula/`; all three ARE the analysis |
+| `hole … cites` — assumed, disclosed | 23 | by prefix, below |
 | DEFINITION clause | 3 | `theTraceFormulaHoldsAt`, `isAdmissibleFor`, `partitionsTheDomain` |
 
-(4 + 20 + 3 = 27, which is what `--axioms` reports.)
+A definition is not an assumption — it introduces a symbol rather than constraining a
+primitive, which is why `--axioms` labels it separately; count it apart when quoting totals.
 
-**Bare holes fell 8 → 4** by applying a distinction that had been missing: where the author
-ASSERTS a step rather than proving it, that is not work we owe — it is an assumption of his,
-and it is now recorded as `cites "assertion: …"` quoting his own words. Five such:
+The 23 cited holes carry a machine-readable prefix saying WHY they are assumed. The three
+answer different questions about the author's text — *absent* / *claimed* / *classical*:
 
-| hole | the author's words |
-|---|---|
-| `finitelyManyEnlargementsSuffice` | "We further assume S is large enough so as to arrange…" |
-| `theStrataAreBuiltFromInitialSegments` | "…where we **assume**: (1) S is saturated…" |
-| `segmentNestingLiftsToTheStrata` | stated as the construction, not argued |
-| `theConstructionSatisfiesTheStandingHypotheses` | "**For example**, take ε > 0 small…" |
-| `holomorphyCoversTheWholeRightRegion` | "This implies that L_f(s,χ)… has no zeros over C_{>1/2}" |
+| prefix | n | the author's text says | who owes it |
+|---|---|---|---|
+| `gap:` | 4 | nothing — absent from the released draft | **the author** |
+| `assertion:` | 7 | states it, does not prove it | the author, or a reader filling a small gap |
+| `standard:` | 12 | classical, with a textbook source | nobody — cited and closed |
 
-Two are marked CANDIDATE TO CLOSE: Vakil's announcement invites readers to fill small gaps,
-and those two look routine.
+### The full accounting
 
-### STRUCTURAL DECOMPOSITION IS COMPLETE
+| | n | strict `check` | |
+|---|---|---|---|
+| bare `hole` | **3** | **FAILS** | ours to transcribe; all three ARE the analysis |
+| `cites "gap: …"` | 4 | passes | the list to send the author |
+| `cites "assertion: …"` | 7 | passes | candidates a reader could close |
+| `cites "standard: …"` | 12 | passes | classical, sourced |
+| DEFINITION clause | 3 | — | not an assumption; `--axioms` labels it apart |
+| **total `--axioms` entries** | **29** | | 3 + 4 + 7 + 12 + 3 |
 
-Every hole that could be split without real analytic foundations has been. The eight
-remaining bare holes are now of exactly two kinds:
+Grep the prefix to get any one list:
 
-**Five sharp manuscript-specific claims** — each names a convention or construction of the
-author's, which a reader can check against his text:
+    grep -rn 'cites "gap:' .          # the list to send the author
+    grep -rn 'cites "assertion:' .    # candidates a reader could close
 
-| hole | the claim |
-|---|---|
-| `theConstructionSatisfiesTheStandingHypotheses` | §1.4.2's `h·(ρ_ε * φ_z)` lands in D(C_F) and kills φ(C_F¹) |
-| `holomorphyCoversTheWholeRightRegion` | the region bookkeeping, incl. the s=1/2 exception |
-| `finitelyManyEnlargementsSuffice` | enlarging S preserves ramification/class-group while fixing φ |
-| `thePrimaryStrataAreNestedAndExhausting` | the P_k are nested and exhaust (saturation, finest refinement) |
-| `theDivisorialFiltrationSplitsTheIntegral` | the strata's partition yields the kernel-shaped split |
+## How to read the holes
 
-**Three that ARE the analysis** — and splitting these further would be dishonest at this
+`hole` here is a **workspace tool**, not a verdict on the manuscript. It marks "work to do,"
+and the kinds split that work by who owes it:
+
+| kind | means | strict `check` |
+|---|---|---|
+| **bare `hole X`** | the manuscript PROVES this; it is OURS to transcribe into 2b4m | **FAILS** — stays on the worklist |
+| **`hole X cites "<prefix>: …"`** | assumed; the prefix records why and who owes it | passes, disclosed |
+
+So a failing `2b4m check` is the normal state, and its output is the transcription backlog.
+When every bare hole is discharged, what remains is exactly the list to send the author.
+
+    2b4m check examples/music-of-primes/grh.b4m              # the backlog
+    2b4m check --draft --axioms examples/music-of-primes/grh.b4m generalizedRiemannHypothesis
+
+## Structural decomposition is complete
+
+Every hole that could be split without real analytic foundations has been. The three
+remaining bare holes ARE the analysis, and splitting them further would be dishonest at this
 altitude, because every piece would be another opaque predicate:
 
 | hole | what it is |
@@ -56,14 +70,32 @@ altitude, because every piece would be another opaque predicate:
 | `theSLocalTraceCalculation` | Thm 12.4.1.1 — a 382-line analytic computation |
 | `theSpectralSideIsTheKernelIntegral` | Def 10.4.3.7 + Thm 10.4.2.8 |
 
-**Two glue holes were caught and removed** during this work (`additivityGivesTheKernelSplit`,
-`differencesPartitioningIsTheDomainPartition`). Both related two opaque predicates that meant
-the same thing at this altitude — they made the artifact look deeper while checking nothing.
-The fix in both cases was to DEFINE one predicate in terms of the other, so the step is a
-definition unfold the kernel verifies rather than an assumption. Worth watching for: a hole
-whose statement is `P(x) -> Q(x)` with both opaque is almost always glue.
+### The `assertion:` tier (7) — where the author asserts rather than proves
 
-### The classical tier so far
+Each quotes his own words, so a reader can check the attribution:
+
+| hole | the author's words |
+|---|---|
+| `finitelyManyEnlargementsSuffice` | "We further assume S is large enough so as to arrange…" |
+| `theStrataAreBuiltFromInitialSegments` | "…where we **assume**: (1) S is saturated…" |
+| `segmentNestingLiftsToTheStrata` | stated as the construction, not argued |
+| `theConstructionSatisfiesTheStandingHypotheses` | "**For example**, take ε > 0 small…" |
+| `holomorphyCoversTheWholeRightRegion` | "This implies that L_f(s,χ)… has no zeros over C_{>1/2}" |
+| `theStrataIndexSplitsAtS` | "By (11.3.1.4), this reads:" — the index-splits half |
+| `theRegroupedSumIsTheKernelSplit` | the same sentence's other half: that regrouping gives the kernel shape |
+
+Vakil's announcement invites readers to fill small gaps, so these are candidates to close
+rather than permanent assumptions.
+
+### Glue holes — the failure mode to watch for
+
+A hole whose statement is `P(x) -> Q(x)` with both sides opaque is almost always **glue**: it
+moves an assumption without checking anything, while making the artifact look deeper. The fix
+is to DEFINE one predicate in terms of the other, so the step becomes a definition unfold the
+kernel verifies. Three were caught and removed this way; `partitionsTheDomain` in
+`standard/analysis.b4m` is the surviving example of the fix.
+
+### The classical tier (`standard:`)
 
 | cited | source |
 |---|---|
@@ -72,6 +104,7 @@ whose statement is `P(x) -> Q(x)` with both opaque is almost always glue.
 | Poisson summation (jump singularities) | Tate's thesis; Weil BNT §VII |
 | non-vanishing of L(s,χ) on Re(s)=1 | Hadamard-de la Vallée Poussin; Iwaniec-Kowalski Thm 5.10 |
 | countable additivity of a Haar integral | Halmos §25; Hewitt-Ross I §15 |
+| regrouping an absolutely convergent sum over a partition | Rudin PMA Thm 3.55, §8; Halmos §25 |
 | bump functions + mollifier convergence | Hörmander I §1.2-1.4; Rudin FA Thm 6.20 |
 | ideal class group finiteness ⇒ Pic(O_{F,S})=1 | Neukirch I §6, §12 |
 | finitely many Archimedean/ramified places | Neukirch I §8, III §2 |
@@ -80,42 +113,14 @@ whose statement is `P(x) -> Q(x)` with both opaque is almost always glue.
 | compact support meets finitely many places | Weil BNT IV §1; Tate's thesis §3.1 |
 | x + 0 = x | (additive unit law, `Quantity` being opaque here) |
 
-**The bare count can go UP, and did.** Splitting the kernel decomposition traded one opaque
-hole for two sharper ones plus a classical citation (countable additivity, Halmos §25). That
-is a better artifact — "the alpha_k strata partition the ideles" is a checkable claim about
-the manuscript's filtration, where "the kernel decomposes" was a black box — but it is not a
-reduction, and pretending otherwise would be dishonest bookkeeping.
-
-**The bare count does not fall every round, and that is expected.** Two rounds running, the
-gain was RECLASSIFICATION: an assumption moved from "ours, opaque" to "classical, cited with
-a source a reader can check". `rests on class-group finiteness — Neukirch I §6` is auditable;
-`rests on anAdmissibleSetOfPlacesExists` was not. Both are worth as much to an evaluator as
-a reduction, and a bundled hole hiding a classical fact inside it is the thing actually worth
-fixing.
-
-A definition is not an assumption — it introduces a symbol rather than constraining a
-primitive, which is why `--axioms` labels it separately. Count it apart when quoting totals.
-
-## How to read the holes
-
-`hole` here is a **workspace tool**, not a verdict on the manuscript. It marks "work to do,"
-and the two kinds split that work by WHO owes it:
-
-| kind | means | strict `check` |
-|---|---|---|
-| **bare `hole X`** | the manuscript PROVES this; it is OURS to transcribe into 2b4m | **FAILS** — stays on the worklist |
-| **`hole X cites "…"`** | a true gap in the released text; assumed pending the author | passes, disclosed |
-
-So a failing `2b4m check` is the normal state, and its output is the transcription backlog.
-When every bare hole is discharged, what remains is exactly the list to send the author.
-
-    2b4m check examples/music-of-primes/grh.b4m              # the backlog
-    2b4m check --draft --axioms examples/music-of-primes/grh.b4m generalizedRiemannHypothesis
-
+**A round that reclassifies rather than reduces is still progress, and the bare count can go
+UP.** Splitting a bundled hole often trades one opaque assumption for two sharper ones plus a
+classical citation. `rests on class-group finiteness — Neukirch I §6` is auditable where
+`rests on anAdmissibleSetOfPlacesExists` was not; a bundled hole hiding a classical fact
+inside it is the thing actually worth fixing.
 ## The chain
 
-A DAG, not a line — it branched once `standard/` and the trace-formula layer appeared.
-Legend: **bold** = a bare hole we owe, *italic* = cited (classical or the author's), plain =
+A DAG, not a line. Legend: **bold** = a bare hole we owe, *italic* = cited, plain =
 kernel-checked.
 
 ```mermaid
@@ -123,19 +128,21 @@ graph TD
   GRH["generalizedRiemannHypothesis<br/>(kernel-checked)"]
 
   subgraph grh["grh.b4m — the §1.4 deduction"]
-    CONSTR["<b>theConstructionSatisfiesTheStandingHypotheses</b><br/>§1.4.2 lands in D(C_F), φ(C_F¹)=0"]
-    LIMIT["<i>theLimitInterchangeIsValid</i><br/>AUTHOR: §1.4.3-4, the hard step"]
-    POLE["<i>theLogDerivativeHasOnlyTheCentralPole</i><br/>AUTHOR: §1.4.5, stale §5.1 ref"]
-    RIGHT["<b>holomorphyCoversTheWholeRightRegion</b><br/>the region bookkeeping"]
-    REFL["<i>theFunctionalEquationReflects…</i><br/>AUTHOR: §1.4.5, one line"]
-    EXCL["<i>everyZeroOffTheLineIsExcluded</i><br/>AUTHOR: IS Thm 13.3.1.2"]
+    CONSTR["<i>theConstructionSatisfiesTheStandingHypotheses</i><br/>ASSERTION: §1.4.2 lands in D(C_F), φ(C_F¹)=0"]
+    LIMIT["<i>theLimitInterchangeIsValid</i><br/>GAP: §1.4.3-4, the hard step"]
+    POLE["<i>theLogDerivativeHasOnlyTheCentralPole</i><br/>GAP: §1.4.5, stale §5.1 ref"]
+    RIGHT["<i>holomorphyCoversTheWholeRightRegion</i><br/>ASSERTION: the region bookkeeping"]
+    REFL["<i>theFunctionalEquationReflects…</i><br/>GAP: §1.4.5, one line"]
+    EXCL["<i>everyZeroOffTheLineIsExcluded</i><br/>GAP: IS Thm 13.3.1.2"]
   end
 
   subgraph tf["trace-formula/ — Thm 12.5.1.1, PROVED"]
     TF["theTraceFormula<br/>(kernel-checked)"]
-    ENL["<b>aPlaceSetCanBeEnlargedToSuitAnyTestFunction</b>"]
-    PART["<b>theDivisorialFiltrationPartitionsTheIdeles</b>"]
-    SPLIT["<b>theDivisorialFiltrationSplitsTheIntegral</b>"]
+    ENL["<i>finitelyManyEnlargementsSuffice</i><br/>ASSERTION: S can be enlarged to suit φ"]
+    SEGS["<i>theStrataAreBuiltFromInitialSegments</i><br/>ASSERTION: the saturation hypotheses"]
+    LIFT["<i>segmentNestingLiftsToTheStrata</i><br/>ASSERTION: stated as construction"]
+    ISPLIT["<i>theStrataIndexSplitsAtS</i><br/>ASSERTION: the index splits at S"]
+    RSPLIT["<i>theRegroupedSumIsTheKernelSplit</i><br/>ASSERTION: 'By (11.3.1.4), this reads:'"]
     ORB["<b>theOrbitalTracesVanishOffS</b><br/>Thm 11.3.2.1 — ANALYSIS"]
     SLOC["<b>theSLocalTraceCalculation</b><br/>Thm 12.4.1.1 — ANALYSIS"]
     SPEC["<b>theSpectralSideIsTheKernelIntegral</b><br/>Def 10.4.3.7 + Thm 10.4.2.8 — ANALYSIS"]
@@ -147,6 +154,8 @@ graph TD
     NONV["<i>non-vanishing on Re(s)=1</i><br/>Hadamard-dlVP"]
     ZPOLE["<i>a zero forces a pole of L'/L</i><br/>Ahlfors Ch.4 §3"]
     ADD["<i>countable additivity of a Haar integral</i><br/>Halmos §25"]
+    REGRP["<i>sums regroup over a partition</i><br/>Rudin PMA 3.55"]
+    NEST["<i>nested exhaustions partition</i><br/>+ initial segments nest"]
     CLS["<i>Pic(O_F,S)=1 for large S</i><br/>Neukirch I §6,§12"]
     FIN["<i>finitely many ramified places</i><br/>Neukirch I §8"]
   end
@@ -165,14 +174,24 @@ graph TD
   CLS --> ENL
   FIN --> ENL
   ENL --> TF
-  ADD --> SPLIT
-  PART --> SPLIT
-  SPLIT --> TF
+  SEGS --> LIFT
+  NEST --> LIFT
+  LIFT --> ADD
+  ADD --> RSPLIT
+  ISPLIT --> REGRP
+  REGRP --> RSPLIT
+  RSPLIT --> TF
   ORB --> TF
   SLOC --> TF
   SPEC --> TF
   UNIT --> TF
 ```
+
+The Trace Formula's own proof (txt 31539-31567) follows the manuscript's skeleton: choose an
+admissible S, build the strata from initial segments, show they nest and partition the
+domain, invoke countable additivity, split the strata index at S, regroup the sum, kill the
+off-S pieces, identify the S-local piece with the geometric side and the global integral with
+the spectral side, conclude the two sides agree. `2b4m query outline` prints exactly that.
 
 ### Recorded but NOT yet reachable from GRH
 
@@ -186,40 +205,14 @@ so they are recorded (and checked) but nothing yet depends on them. They become 
 An uncited hole is invisible to `--axioms`, so each is kept load-bearing for a small local
 theorem in its own file rather than left dangling.
 
-## OURS to transcribe (8) — bare holes, currently failing
-
-**`theTraceFormula` is CLOSED** (2026-11-20): Theorem 12.5.1.1 is now proved in
-`trace-formula/trace-formula.b4m` from the manuscript's own skeleton, and `grh.b4m` cites it.
-Its six dependencies became the new frontier — which is the deepening move working as
-intended: one opaque assumption replaced by six located ones.
-
-In `grh.b4m`:
-
-| hole | manuscript source | status there |
-|---|---|---|
-| `theMollifiedApproximantsExist` | **§1.4.2** | explicit construction (mollifier ρ_ε, bump h) |
-| `theEulerProductsOnTheOneLine` | **Theorems B.7.2.1, B.7.2.4** | stated and proved, Appendix B.7 |
-
-In `trace-formula/trace-formula.b4m` (the Trace Formula's own proof, txt 31539-31567):
-
-| hole | manuscript source | status there |
-|---|---|---|
-| `anAdmissibleSetOfPlacesExists` | proof ¶1 | by construction; rests on Appendix A (S-units, class group) |
-| `theGeometricKernelDecomposition` | **eq (11.3.1.4)** | the kernel splits along the diagonal |
-| `theOrbitalTracesVanishOffS` | **Theorem 11.3.2.1**, txt 29947 | proved |
-| `theSLocalTraceCalculation` | **Theorem 12.4.1.1**, txt 31123 | proved |
-| `theSpectralSideIsTheKernelIntegral` | **Def 10.4.3.7** + **Thm 10.4.2.8**, txt 28655 / 27947 | both proved |
-| `theTwoSidesCombine` | proof's last line | assembly only |
-
 Also proved in the text and available when the chain needs it: **Theorem B.4.4.7** (Idelic
 Explicit Formulas, Appendix B.4, proof written out) — what §13.1 was to recall. Not currently
-cited by `grh.b4m`, and an uncited hole is invisible, so it is recorded here rather than
-declared.
+cited, and an uncited hole is invisible, so it is recorded here rather than declared.
 
-## The AUTHOR's gaps (4) — cited holes, assumed pending his work
+## The author's gaps (4) — `cites "gap: …"`, assumed pending his work
 
 Each is a `cites` string in `grh.b4m` recording what is assumed and why the released text
-does not supply it.
+does not supply it. **This is the list to send the author.**
 
 1. **`theLimitInterchangeIsValid`** — §1.4.3–1.4.4. Montel's theorem gives uniform
    convergence for the **finitely many Archimedean** integrals. The non-Archimedean sum is
@@ -267,10 +260,9 @@ the assumption and makes the artifact look deeper than it is. The three classica
 captured in `standard/analysis.b4m` with real sources, which is useful; the analytic core
 stays one bare hole until someone has the foundations to state it properly.
 
-That is the honest boundary of this approach, and it is worth knowing where it falls: the
-STRUCTURE of the Trace Formula's derivation is now machine-checked; the ANALYSIS underneath
-it is not, and cannot be without the measure theory and functional analysis
-`WHAT-IT-WOULD-TAKE.md` measures.
+That is the honest boundary of this approach: the STRUCTURE of the Trace Formula's derivation
+is machine-checked; the ANALYSIS underneath it is not, and cannot be without the measure
+theory and functional analysis `WHAT-IT-WOULD-TAKE.md` measures.
 
 ## Two documentation issues to raise with the author
 

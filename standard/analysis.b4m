@@ -251,3 +251,34 @@ proof
     forall x: IndexedFamily; isTheInitialSegmentFamily(x) -> nestsAndExhausts(x)
     [by cite initialSegmentsNest]
 qed
+
+// ---------------------------------------------------------------------------------------
+// SUMS OVER A PARTITIONED INDEX SET — regrouping, which is what "this reads:" means.
+// ---------------------------------------------------------------------------------------
+
+/// an index set for a convergent sum
+sort IndexSet
+
+/// the index set splits into two disjoint parts
+pred splitsIntoTwoParts(i: IndexSet)
+/// the sum over the whole index set is the sum over one part plus the sum over the other
+pred sumRegroupsOverTheSplit(i: IndexSet)
+
+intheory sumsRegroupOverAPartitionedIndex
+
+/// A convergent sum over an index set that splits in two equals the sum over one part plus
+/// the sum over the other. Classical (absolute convergence permits arbitrary regrouping), and
+/// it is the content of the manuscript's "By (11.3.1.4), this reads:" — the strata indexed by
+/// k >= 0 are regrouped into those lying inside S (bundled as the single k_S term) and those
+/// involving a prime outside S (one k_p term each).
+hole sumsRegroupOverAPartitionedIndexSet
+  cites "standard: an absolutely convergent sum may be regrouped over any partition of its index set — Rudin, Principles of Mathematical Analysis Thm 3.55 (rearrangement) and §8 for double series; Halmos, Measure Theory §25 for the integral form. This is what the manuscript's 'By (11.3.1.4), this reads:' asserts at txt 31551":
+  forall i: IndexSet; splitsIntoTwoParts(i) -> sumRegroupsOverTheSplit(i)
+
+theorem sumsRegroupOverAPartitionedIndex:
+  forall i: IndexSet; splitsIntoTwoParts(i) -> sumRegroupsOverTheSplit(i)
+proof
+  @conclusion |
+    forall i: IndexSet; splitsIntoTwoParts(i) -> sumRegroupsOverTheSplit(i)
+    [by cite sumsRegroupOverAPartitionedIndexSet]
+qed
