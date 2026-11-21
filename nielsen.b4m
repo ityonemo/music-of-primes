@@ -40,11 +40,13 @@ pred montelApplies = objection.montelApplies
 pred isTheMasulloApproximantFamily = objection.isTheMasulloApproximantFamily
 fact montelNeedsAUniformBound = objection.montelNeedsAUniformBound
 fact theMasulloFamilyHasNoUniformBound = objection.theMasulloFamilyHasNoUniformBound
+fact masullosFamilyIsOfThisKind = objection.masullosFamilyIsOfThisKind
 
 pred theTwoStratumDescriptionsAgree = preimage.theTwoStratumDescriptionsAgree
 fact theStratumDescriptionsDisagree = preimage.theStratumDescriptionsDisagree
 
 intheory montelDoesNotApplyToTheMasulloFamily
+intheory someMasulloFamilyDefeatsMontel
 intheory theNormPreimageIdentificationIsFalse
 
 // ---------------------------------------------------------------------------------------
@@ -88,6 +90,43 @@ proof
     forall p: TestFunctionFamily;
       isTheMasulloApproximantFamily(p) -> (not montelApplies(p))
     [by generalize generalize-p]
+qed
+
+// ---------------------------------------------------------------------------------------
+// THE UNCONDITIONAL FORM. The theorem above is CONDITIONAL — "if p is such a family, Montel
+// fails for it" — which says nothing about Masullo's proof unless his family IS one. That
+// link is `masullosFamilyIsOfThisKind`, and without it this file would be vacuous in exactly
+// the way an audit found grh.b4m's GRH statement to be.
+//
+// Discharging it gives the objection's real content: SOME family of the kind §1.4.2
+// constructs defeats Montel. Note what the link costs — it is the only `assertion:` in this
+// chain, and it carries the nonnegativity assumption Fatou needs, which the manuscript does
+// not state.
+// ---------------------------------------------------------------------------------------
+
+/// Strategy: unpack the witness family, apply the conditional theorem to it.
+theorem someMasulloFamilyDefeatsMontel:
+  exists p: TestFunctionFamily; not montelApplies(p)
+proof
+  @a-masullo-family-exists |
+    exists p: TestFunctionFamily; isTheMasulloApproximantFamily(p)
+    [by cite masullosFamilyIsOfThisKind]
+  @from-the-witness |
+    unpack p: TestFunctionFamily from a-masullo-family-exists {
+      @is-the-masullo-family |
+        isTheMasulloApproximantFamily(p)
+        [by hypothesis from-the-witness]
+      @montel-fails-at-p |
+        not montelApplies(p)
+        [using specialize montelDoesNotApplyToTheMasulloFamily(p)
+          is-the-masullo-family]
+      @conclusion-some-family-defeats-montel |
+        exists p2: TestFunctionFamily; not montelApplies(p2)
+        [by witness(p) montel-fails-at-p]
+    }
+  @conclusion |
+    exists p: TestFunctionFamily; not montelApplies(p)
+    [by unpacked from-the-witness]
 qed
 
 // ---------------------------------------------------------------------------------------

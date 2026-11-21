@@ -341,6 +341,37 @@ qed
 // holomorphic limit, which needs local uniform boundedness.
 // ---------------------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------------------
+// THE LINK TO THE MANUSCRIPT. Everything above is CONDITIONAL on
+// `isTheMasulloApproximantFamily(p)`. Without a claim that Masullo's §1.4.2 family actually
+// satisfies that predicate, the chain proves nothing about his proof — the same vacuity that
+// an audit found in grh.b4m's GRH statement, where opaque predicates made the conclusion
+// independent of its antecedents.
+//
+// So the link is stated explicitly, and it is the one place Nielsen's objection touches the
+// manuscript's text rather than classical analysis. It carries TWO claims, and the second is
+// the hinge the whole objection turns on.
+// ---------------------------------------------------------------------------------------
+
+/// Masullo's §1.4.2 approximants form a family of the kind Prop 1 applies to.
+///
+/// THE TWO CLAIMS. (i) The construction's shape: phi_{h,eps,z}(t) = h(t)(rho_eps * phi_z)(t)
+/// with h supported in (1, infinity), valued in [0,1], approaching the indicator, and
+/// phi_n(t) -> t^{-z} pointwise for t > 1 — all of this is verbatim §1.4.2 (txt 1326-1333).
+/// (ii) NONNEGATIVITY of the approximants, which Fatou requires. Nielsen takes this as a
+/// hypothesis ("use a nonnegative mollifier"); Masullo's h is valued in [0,1] so the h
+/// factor is nonnegative, but whether his rho_eps is nonnegative is stated in NEITHER
+/// document.
+///
+/// (ii) IS THE NARROWEST PLACE THE OBJECTION COULD FAIL. A standard mollifier is a
+/// nonnegative bump, so the reading is strongly favoured and Nielsen is entitled to it as a
+/// stated hypothesis. But a signed mollifier would break Fatou's applicability and the
+/// objection would need rework. This is recorded as an `assertion:` rather than `standard:`
+/// precisely because it is a claim ABOUT THE MANUSCRIPT that the manuscript does not settle.
+hole masullosFamilyIsOfThisKind
+  cites "assertion: §1.4.2 (txt 1326-1333) gives the construction phi_{h,eps,z}(t) = h(t)(rho_eps * phi_z)(t) with h supported over (1, +infinity) and valued in [0,1] — so claim (i), the shape, is the manuscript's own. Claim (ii), that the approximants are NONNEGATIVE (which Fatou needs), is NOT stated there: Masullo does not say whether rho_eps is a nonnegative mollifier, and Nielsen assumes it ('Use a nonnegative mollifier, so that the approximants phi_n are nonnegative'). Standard mollifiers are nonnegative bumps, so this is very likely right, but it is an assumption about someone else's unstated choice and is the one place this objection could fail":
+  exists p: TestFunctionFamily; isTheMasulloApproximantFamily(p)
+
 hole montelNeedsAUniformBound
   cites "standard: Montel's theorem — a family of holomorphic functions locally uniformly bounded on a domain is relatively compact, so has a locally uniformly convergent subsequence. The boundedness hypothesis is not removable: without it no finite holomorphic limit is obtained. Conway, Functions of One Complex Variable Thm VII.2.9; Rudin, Real and Complex Analysis Thm 14.6. The manuscript applies it at §1.4.3 and §1.8.4.3":
   forall p: TestFunctionFamily;
