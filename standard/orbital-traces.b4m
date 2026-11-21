@@ -119,8 +119,10 @@ hole theStratumIndicatorPreservesTheValue
 /// The truncation process converges in W_I^s(C_F). "Then the process of multiplication by
 /// alpha_k in the second named variable converges within W_I^s(C_F) by Theorem 11.1.2.1"
 /// (txt 29991).
-hole theTruncationsConverge
-  cites "manuscript-proved: Theorem 11.1.2.1 (Existence of S-local carvings on the 0-line), txt 28976 — stated and proved in the released text. Transcribing it is future work; the interface here does not depend on how it is proved":
+// TRANSCRIBE: Theorem 11.1.2.1 (Existence of S-local carvings on the 0-line), txt 28976 — stated and
+// proved in the released text. Transcribing it is future work; the interface here does not
+// depend on how it is proved
+hole theTruncationsConverge:
   forall k: StratumIndex; forall f: TestFunction;
   indicatorPreservesTheValue(k, f) ->
   truncationsConvergeIn(theIndentedStratumKernel(k, f), thePaleyWienerLevel)
@@ -128,8 +130,10 @@ hole theTruncationsConverge
 /// The converged value IS a nuclear operator's trace. "by Proposition 12.2.2.2 the value
 /// (11.3.2.3) equals the value of the trace of the nuclear operator on W_I^s(C_F) which is
 /// the unique continuous extension that the kernel ... induces" (txt 29991-30008).
-hole theConvergedValueIsANuclearTrace
-  cites "manuscript-proved: Proposition 12.2.2.2 (regular points on the diagonal and indentations), Ch. 12 §12.2.2 — stated and proved in the released text. It is what identifies the convergent integral with an operator trace":
+// TRANSCRIBE: Proposition 12.2.2.2 (regular points on the diagonal and indentations), Ch. 12 §12.2.2 —
+// stated and proved in the released text. It is what identifies the convergent integral with
+// an operator trace
+hole theConvergedValueIsANuclearTrace:
   forall k: StratumIndex; forall f: TestFunction;
   truncationsConvergeIn(theIndentedStratumKernel(k, f), thePaleyWienerLevel) ->
   inducesAContinuousOperator(theIndentedStratumKernel(k, f), thePaleyWienerLevel)
@@ -137,8 +141,11 @@ hole theConvergedValueIsANuclearTrace
 /// That operator is a nuclear limit of finite-rank operators. "the same method used in the
 /// estimates from Theorem 10.3.2.1 shows that such operator is the limit of the finite rank
 /// kernels from (11.2.2.12) from the proof of Theorem 11.2.2.1" (txt 30031).
-hole theOperatorIsANuclearLimitOfFiniteRanks
-  cites "manuscript-proved: Theorems 10.3.2.1 (Spectral Nuclearity - II, txt 27293) and 11.2.2.1 (Orbital Nuclearity on the 0-line, txt 29599) — both stated and proved in the released text. The author says 'the same method used in the estimates from Theorem 10.3.2.1 shows ...', so this step reuses a proved estimate rather than introducing a new one":
+// TRANSCRIBE: Theorems 10.3.2.1 (Spectral Nuclearity - II, txt 27293) and 11.2.2.1 (Orbital Nuclearity on
+// the 0-line, txt 29599) — both stated and proved in the released text. The author says 'the
+// same method used in the estimates from Theorem 10.3.2.1 shows ...', so this step reuses a
+// proved estimate rather than introducing a new one
+hole theOperatorIsANuclearLimitOfFiniteRanks:
   forall k: StratumIndex; forall f: TestFunction;
   inducesAContinuousOperator(theIndentedStratumKernel(k, f), thePaleyWienerLevel) ->
   isTheNuclearLimitOfFiniteRanks(
@@ -149,8 +156,10 @@ hole theOperatorIsANuclearLimitOfFiniteRanks
 /// Prop 12.2.2.2 supplies: not merely that the kernel induces a continuous operator, but
 /// that the convergent integral (11.3.2.3) IS its trace. Stated as an equation, because the
 /// final assembly substitutes through it.
-hole theOrbitalIntegralIsTheTrace
-  cites "manuscript-proved: Proposition 12.2.2.2, Ch. 12 §12.2.2 — 'the value (11.3.2.3) equals the value of the trace of the nuclear operator on W_I^s(C_F) which is the unique continuous extension that the kernel induces' (txt 29991-30008). Stated and proved in the released text":
+// TRANSCRIBE: Proposition 12.2.2.2, Ch. 12 §12.2.2 — 'the value (11.3.2.3) equals the value of the trace
+// of the nuclear operator on W_I^s(C_F) which is the unique continuous extension that the
+// kernel induces' (txt 29991-30008). Stated and proved in the released text
+hole theOrbitalIntegralIsTheTrace:
   forall k: StratumIndex; forall f: TestFunction;
   isNuclearOn(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
   thePaleyWienerLevel) ->
@@ -165,8 +174,10 @@ hole theOrbitalIntegralIsTheTrace
 /// The limit value is the right side of (7.4.2.1). "which, as lambda' is large enough and
 /// for Lambda -> +infty in the regime eps*Lambda = o(1), attains the limit value (11.3.2.5)
 /// which is the right side of (7.4.2.1) from Theorem 7.4.2.1" (txt 30025-30033).
-hole theLimitValueIsTheZeroSide
-  cites "manuscript-proved: Theorem 7.4.2.1 (Strong Topologies and Nuclearity - II), txt 22021 — stated and proved in the released text, and it is where the trace is computed as a sum over the zeros of the local Euler factor product":
+// TRANSCRIBE: Theorem 7.4.2.1 (Strong Topologies and Nuclearity - II), txt 22021 — stated and proved in
+// the released text, and it is where the trace is computed as a sum over the zeros of the
+// local Euler factor product
+hole theLimitValueIsTheZeroSide:
   forall k: StratumIndex; forall f: TestFunction;
   isNuclearOn(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
   thePaleyWienerLevel) ->

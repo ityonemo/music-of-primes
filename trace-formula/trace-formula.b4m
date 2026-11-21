@@ -195,22 +195,32 @@ hole segmentNestingLiftsToTheStrata
 // finite place contained in S" (txt 31556). Two steps remain between that and the SUM over
 // p nmid S vanishing, both recorded below.
 
-/// 11.3.2.1 gives each off-S stratum's orbital trace as its local Euler contribution; for a
-/// prime outside S that contribution is zero, because phi is invariant under
-/// prod_{v not in S} O_Fv^x and so the sum over k of phi(pi_v^k) telescopes to nothing.
+/// S's admissibility here supplies 11.3.2.1's hypotheses (Archimedean + ramified places,
+/// Pic(O_{F,S}) = 1, phi invariant under prod_{v not in S} O_Fv^x, phi supported over C_F^{>1}).
+hole admissibilityGives11321Hypotheses
+  cites "assertion: `isAdmissibleFor` here bundles the conditions 11.3.2.1 lists separately (txt 29947-29957). The manuscript uses one S throughout §12.5.1 without restating them at the point of application":
+  forall f: TestFunction; forall s: PlaceSet;
+  isAdmissibleFor(s, f) ->
+  (orbital.isAdmissibleForOrbitalTraces(s, f) and orbital.isSupportedAboveOne(f))
+
+/// For a prime p outside S the LOCAL EULER CONTRIBUTION vanishes: phi is invariant under
+/// prod_{v not in S} O_Fv^x, so sum_{k in Z} phi(pi_v^k) contributes nothing at such a place.
+/// This is the half of txt 31556 that is NOT 11.3.2.1 — the vanishing of its right side.
 hole theOffSEulerContributionVanishes
-  cites "assertion: txt 31556 applies 11.3.2.1 and concludes 'each int k_p(x,x) dmu(x) = 0 for all prime numbers p that are not the prime residue characteristic of any finite place contained in S' in one move. That the local Euler contribution vanishes precisely off S follows from phi's invariance under prod_{v not in S} O_Fv^x — an admissibility hypothesis — but the author does not write the step out":
+  cites "assertion: txt 31556 applies 11.3.2.1 and concludes 'each int k_p(x,x) dmu(x) = 0 for all prime numbers p that are not the prime residue characteristic of any finite place contained in S' in one move. 11.3.2.1 supplies the EQUALITY of the integral with the local Euler contribution; that the contribution itself vanishes off S follows from phi's invariance under prod_{v not in S} O_Fv^x, which the author does not write out":
   forall f: TestFunction; forall s: PlaceSet; forall k: orbital.StratumIndex;
   isAdmissibleFor(s, f) ->
   orbital.theLocalEulerContribution(k, f) = noQuantity
 
-/// and that each piece vanishing makes their SUM vanish. The off-S pieces are indexed by the
-/// primes p nmid S; a sum of zeros is zero, which needs the sum's additivity over its index.
+/// and that every off-S orbital integral vanishing makes their SUM vanish.
 hole aSumOfVanishingPiecesVanishes
   cites "standard: a convergent sum all of whose terms are zero is zero — immediate from the definition of a sum as a limit of partial sums (Rudin, Principles of Mathematical Analysis Thm 3.1, 3.55 for the regrouped form). `Quantity` is opaque here, so the one fact the step needs is stated":
   forall f: TestFunction; forall s: PlaceSet;
-  (forall k: orbital.StratumIndex; orbital.theLocalEulerContribution(k, f) = noQuantity) ->
+  (forall k: orbital.StratumIndex; orbital.theOrbitalIntegral(k, f) = noQuantity) ->
   theOffSPieces(s, f) = noQuantity
+
+fact theOrbitalTraceIsTheEulerContribution =
+  orbital.theOrbitalTraceIsTheEulerContribution
 
 intheory theOrbitalTracesVanishOffS
 
@@ -230,21 +240,42 @@ proof
               @s-is-admissible |
                 isAdmissibleFor(s, f)
                 [by hypothesis given-s-is-admissible]
+              @the-11321-hypotheses-hold |
+                orbital.isAdmissibleForOrbitalTraces(s, f) and
+                  orbital.isSupportedAboveOne(f)
+                [using specialize admissibilityGives11321Hypotheses(f, s)
+                  s-is-admissible]
+              @s-is-admissible-for-orbital-traces |
+                orbital.isAdmissibleForOrbitalTraces(s, f)
+                [by and_lhs the-11321-hypotheses-hold]
+              @phi-is-supported-above-one |
+                orbital.isSupportedAboveOne(f)
+                [by and_rhs the-11321-hypotheses-hold]
               @generalize-k |
                 fix k: orbital.StratumIndex {
+                  // THE USE OF 11.3.2.1: the orbital integral IS the Euler contribution
+                  @the-orbital-integral-is-the-euler-contribution |
+                    orbital.theOrbitalIntegral(k, f) =
+                      orbital.theLocalEulerContribution(k, f)
+                    [using specialize theOrbitalTraceIsTheEulerContribution(f, s, k)
+                      s-is-admissible-for-orbital-traces phi-is-supported-above-one]
                   @the-off-s-contribution-vanishes-at-k |
                     orbital.theLocalEulerContribution(k, f) = noQuantity
                     [using specialize theOffSEulerContributionVanishes(f, s, k)
                       s-is-admissible]
+                  @the-orbital-integral-vanishes-at-k |
+                    orbital.theOrbitalIntegral(k, f) = noQuantity
+                    [by rewrite the-off-s-contribution-vanishes-at-k
+                      the-orbital-integral-is-the-euler-contribution]
                 }
-              @every-off-s-contribution-vanishes |
+              @every-off-s-orbital-integral-vanishes |
                 forall k: orbital.StratumIndex;
-                  orbital.theLocalEulerContribution(k, f) = noQuantity
+                  orbital.theOrbitalIntegral(k, f) = noQuantity
                 [by generalize generalize-k]
               @conclusion-the-off-s-pieces-vanish |
                 theOffSPieces(s, f) = noQuantity
                 [using specialize aSumOfVanishingPiecesVanishes(f, s)
-                  every-off-s-contribution-vanishes]
+                  every-off-s-orbital-integral-vanishes]
             }
           @admissible-implies-the-pieces-vanish |
             isAdmissibleFor(s, f) -> theOffSPieces(s, f) = noQuantity
@@ -353,10 +384,22 @@ hole theGlobalIntegralIsTheSpectralKernelValue
   spectral.theSpectralKernelValue(p, f) =
   spectral.sub(spectral.theConvolutionValue(p, f),
   spectral.theGeometricKernelValue(p, f)) ->
+  spectral.trace(spectral.theProjectedConvolution(f), spectral.theSpectralLevel) =
+  spectral.trace(spectral.theSpectralOperator(f), spectral.theSpectralLevel) ->
   theGlobalIntegral(f) = theSpectralSide(f)
+
+/// 10.4.2.8 needs both operators nuclear; this file's test-function hypothesis supplies it.
+hole theSpectralOperatorsAreNuclear
+  cites "assertion: Thm 10.4.2.8's statement (txt 27947) presumes the nuclearity its §10.3 predecessors establish (A_a^spec(phi) is 'the nuclear operator from (10.3.2.2)'); the author does not restate the hypothesis when applying it at txt 31569":
+  forall f: TestFunction;
+  isTestFunction(f) ->
+  (spectral.isNuclearOn(spectral.theProjectedConvolution(f), spectral.theSpectralLevel) and
+  spectral.isNuclearOn(spectral.theSpectralOperator(f), spectral.theSpectralLevel))
 
 fact theSpectralKernelIsTheConvolutionMinusTheGeometric =
   spectral.theSpectralKernelIsTheConvolutionMinusTheGeometric
+fact theProjectedTraceIsTheSpectralTrace =
+  spectral.theProjectedTraceIsTheSpectralTrace
 
 intheory theSpectralSideIsTheKernelIntegral
 
@@ -385,11 +428,33 @@ proof
               spectral.sub(spectral.theConvolutionValue(theGlobalKernelPoint, f),
               spectral.theGeometricKernelValue(theGlobalKernelPoint, f))
             [by apply_at(theGlobalKernelPoint, f) the-kernel-rearrangement]
+          @the-spectral-operators-are-nuclear |
+            spectral.isNuclearOn(spectral.theProjectedConvolution(f),
+              spectral.theSpectralLevel) and
+              spectral.isNuclearOn(spectral.theSpectralOperator(f),
+              spectral.theSpectralLevel)
+            [using specialize theSpectralOperatorsAreNuclear(f) phi-is-a-test-function]
+          @the-projected-convolution-is-nuclear |
+            spectral.isNuclearOn(spectral.theProjectedConvolution(f),
+              spectral.theSpectralLevel)
+            [by and_lhs the-spectral-operators-are-nuclear]
+          @the-spectral-operator-is-nuclear |
+            spectral.isNuclearOn(spectral.theSpectralOperator(f),
+              spectral.theSpectralLevel)
+            [by and_rhs the-spectral-operators-are-nuclear]
+          // THE USE OF 10.4.2.8: the two traces agree
+          @the-traces-agree |
+            spectral.trace(spectral.theProjectedConvolution(f),
+              spectral.theSpectralLevel) =
+              spectral.trace(spectral.theSpectralOperator(f), spectral.theSpectralLevel)
+            [using specialize theProjectedTraceIsTheSpectralTrace(f)
+              the-projected-convolution-is-nuclear the-spectral-operator-is-nuclear]
           @conclusion-the-global-integral |
             theGlobalIntegral(f) = theSpectralSide(f)
             [using specialize theGlobalIntegralIsTheSpectralKernelValue(f,
               theGlobalKernelPoint)
-              phi-is-a-test-function the-kernel-rearrangement-at-the-point]
+              phi-is-a-test-function the-kernel-rearrangement-at-the-point
+              the-traces-agree]
         }
       @test-function-implies-the-spectral-side |
         isTestFunction(f) -> theGlobalIntegral(f) = theSpectralSide(f)

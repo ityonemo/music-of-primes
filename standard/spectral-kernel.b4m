@@ -139,8 +139,12 @@ const theSpectralLevel: HardySobolevSpace
 
 /// Theorem 10.4.2.8 (Spectral side: convolution after projection), txt 27947. The traces
 /// agree up to o(1) as Lambda -> +infty in the regime eps*Lambda = o(1).
-hole theProjectedTraceIsTheSpectralTrace
-  cites "manuscript-proved: Theorem 10.4.2.8 (txt 27947), stated and proved in the released text over ~180 lines. The proof lifts a Spectral Markushevich basis (Thm 10.2.2.1), uses the S1 = S2 norm identity for finite-rank operators (citing [Cnw-b, Ch.3, §18, Thm 18.13, p.91]), and estimates the integral (10.4.2.26) in the regime eps*Lambda = o(1). Its trace is computed by Theorem 10.3.2.1's formula (10.3.2.3). Not transcribed here":
+// TRANSCRIBE: Theorem 10.4.2.8 (txt 27947), stated and proved in the released text over ~180 lines. The
+// proof lifts a Spectral Markushevich basis (Thm 10.2.2.1), uses the S1 = S2 norm identity for
+// finite-rank operators (citing [Cnw-b, Ch.3, §18, Thm 18.13, p.91]), and estimates the
+// integral (10.4.2.26) in the regime eps*Lambda = o(1). Its trace is computed by Theorem
+// 10.3.2.1's formula (10.3.2.3). Not transcribed here
+hole theProjectedTraceIsTheSpectralTrace:
   forall f: TestFunction;
   isNuclearOn(theProjectedConvolution(f), theSpectralLevel) ->
   isNuclearOn(theSpectralOperator(f), theSpectralLevel) ->
