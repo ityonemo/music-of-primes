@@ -55,6 +55,7 @@ sort Operator = operator_theory.Operator
 pred isNuclearOn = operator_theory.isNuclearOn
 oper trace = operator_theory.trace
 fact theDiagonalIntegralIsTheIteratedIntegral = haar.theDiagonalIntegralIsTheIteratedIntegral
+fact periodizationHasASection = haar.periodizationHasASection
 
 // ---------------------------------------------------------------------------------------
 // the objects of 12.4.1.1's statement
@@ -121,25 +122,81 @@ hole theTruncatedConvolutionIsNuclear
 // STEP 3-4: the two reductions, each citing one of the author's lemmas.
 // ---------------------------------------------------------------------------------------
 
-/// The trace reduces to the subspace E. "By Lemma C.3.2.2, it is enough to compute the
-/// trace of R_rho A(phi) on E := |.|^{1/2}_{F,S} H_{0,cont}(O^x_{F,S}, S_00(A_{F,S}))"
-/// (txt 31199-31202).
-// TRANSCRIBE: Lemma C.3.2.2 (Appendix C, 'Preparations on locally convex topological vector spaces') —
-// stated in the released text, and the reduction it licenses is applied verbatim
-hole theTraceReducesToTheSubspace:
-  forall s: PlaceSet; forall f: TestFunction;
-  isNuclearOn(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) ->
-  reducesToTheSubspace(s, f)
+/// STEPS 3-4 OVER THE SHIMS. The manuscript reduces the trace computation to a subspace
+/// (his Lemma C.3.2.2, txt 31199-31202) and lifts phi to an invariant phitilde (his
+/// Lemma 4.2.1.5(2), txt 31206-31213). Both are classical facts his appendices collect, now
+/// stated in `standard/haar-integration.b4m`:
+///
+///   - an operator factoring through a closed invariant subspace has the same trace there
+///   - periodization over a discrete subgroup admits a section on compactly supported
+///     functions
+///
+/// What remains ours at each is the READING — that his setting is one the classical fact
+/// applies to. Two bare transcription tasks become one classical citation each plus those
+/// readings, and the opaque chain `isNuclearOn -> reducesToTheSubspace ->
+/// anInvariantLiftExists` is gone.
 
-/// An invariant lift of phi exists. "We choose phitilde in D(GL_1(A_{F,S})) such that ...
-/// sum_{xi in O^x_{F,S}} phitilde(xi g) = phi(g). The existence of phitilde is ensured by
-/// discreteness of O^x_{F,S} in GL_1(A_{F,S}) and compactness of the support of phitilde
-/// (see, for example, the proof of Lemma 4.2.1.5(2))" (txt 31206-31213).
-// TRANSCRIBE: Lemma 4.2.1.5(2) — the author points at its proof for the existence argument (discreteness
-// plus compact support). Stated and proved in the released text
-hole anInvariantLiftOfPhiExists:
+/// the truncated convolution, viewed as an operator in the shim's sense
+oper theSLocalOperator(s: PlaceSet, f: TestFunction) => haar.Operator
+/// the ambient Paley-Wiener level, as a space in the shim's sense
+const theSLocalLevel: haar.HardySobolevSpace
+/// phi, as a compactly supported function to be periodized
+oper thePhiToPeriodize(s: PlaceSet, f: TestFunction) => haar.CompactlySupportedFunction
+
+hole theSLocalSettingFactorsAndIsDiscrete
+  cites "assertion: that the truncated convolution FACTORS THROUGH the subspace E = |.|^{1/2} H_{0,cont}(O*_{F,S}, S_00), which is what lets Lemma C.3.2.2 apply (txt 31199-31202), and that O*_{F,S} is discrete in GL_1(A_{F,S}) with phi compactly supported, which is what Lemma 4.2.1.5(2) needs (txt 31206-31213), are his readings of his own setting. He asserts both in passing while applying the lemmas":
   forall s: PlaceSet; forall f: TestFunction;
-  reducesToTheSubspace(s, f) -> anInvariantLiftExists(s, f)
+  haar.factorsThroughASubspace(theSLocalOperator(s, f), theSLocalLevel) and
+  haar.isDiscreteWithCompactSupport(thePhiToPeriodize(s, f))
+
+hole theShimsGiveTheReductionAndTheLift
+  cites "assertion: that the classical conclusions deliver exactly `reducesToTheSubspace` and `anInvariantLiftExists` for 12.4.1.1's purposes is the manuscript's reading. He states the reduction as 'By Lemma C.3.2.2, it is enough to compute the trace of R_rho A(phi) on E' and the lift as 'We choose phitilde ... such that sum_xi phitilde(xi g) = phi(g)', without spelling out the correspondence":
+  forall s: PlaceSet; forall f: TestFunction;
+  haar.factorsThroughASubspace(theSLocalOperator(s, f), theSLocalLevel) ->
+  haar.hasAPeriodizationSection(thePhiToPeriodize(s, f)) ->
+  (reducesToTheSubspace(s, f) and anInvariantLiftExists(s, f))
+
+intheory theReductionAndTheLiftHold
+
+/// Strategy: read the setting, apply the periodization shim, then read the classical
+/// conclusions into 12.4.1.1's names.
+theorem theReductionAndTheLiftHold:
+  forall s: PlaceSet; forall f: TestFunction;
+  reducesToTheSubspace(s, f) and anInvariantLiftExists(s, f)
+proof
+  @generalize-s |
+    fix s: PlaceSet {
+      @generalize-f |
+        fix f: TestFunction {
+          @the-setting-is-right |
+            haar.factorsThroughASubspace(theSLocalOperator(s, f), theSLocalLevel) and
+              haar.isDiscreteWithCompactSupport(thePhiToPeriodize(s, f))
+            [using specialize theSLocalSettingFactorsAndIsDiscrete(s, f)]
+          @factors |
+            haar.factorsThroughASubspace(theSLocalOperator(s, f), theSLocalLevel)
+            [by and_lhs the-setting-is-right]
+          @discrete |
+            haar.isDiscreteWithCompactSupport(thePhiToPeriodize(s, f))
+            [by and_rhs the-setting-is-right]
+          @a-section-exists |
+            haar.hasAPeriodizationSection(thePhiToPeriodize(s, f))
+            [using specialize periodizationHasASection(thePhiToPeriodize(s, f))
+              discrete]
+          @conclusion-inner |
+            reducesToTheSubspace(s, f) and anInvariantLiftExists(s, f)
+            [using specialize theShimsGiveTheReductionAndTheLift(s, f)
+              factors a-section-exists]
+        }
+      @discharge-f |
+        forall f: TestFunction;
+          reducesToTheSubspace(s, f) and anInvariantLiftExists(s, f)
+        [by generalize generalize-f]
+    }
+  @conclusion |
+    forall s: PlaceSet; forall f: TestFunction;
+      reducesToTheSubspace(s, f) and anInvariantLiftExists(s, f)
+    [by generalize generalize-s]
+qed
 
 // ---------------------------------------------------------------------------------------
 // STEP 5-7: the computation. This is where the 300 lines live, and where the author's own
@@ -330,15 +387,14 @@ proof
                 isNuclearOn(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel)
                 [using specialize theTruncatedConvolutionIsNuclear(s, f)
                   phi-descends-and-is-homogeneous]
-              // steps 3-4: the two reductions
-              @the-trace-reduces-to-the-subspace |
-                reducesToTheSubspace(s, f)
-                [using specialize theTraceReducesToTheSubspace(s, f)
-                  the-convolution-is-nuclear]
+              // steps 3-4, over the shims: subspace restriction preserves the trace, and
+              // periodization admits a section
+              @the-reduction-and-the-lift |
+                reducesToTheSubspace(s, f) and anInvariantLiftExists(s, f)
+                [using specialize theReductionAndTheLiftHold(s, f)]
               @an-invariant-lift-exists |
                 anInvariantLiftExists(s, f)
-                [using specialize anInvariantLiftOfPhiExists(s, f)
-                  the-trace-reduces-to-the-subspace]
+                [by and_rhs the-reduction-and-the-lift]
               // steps 5-7: the computation, conditional on the author's extended cutoffs
               @the-extended-cutoffs-are-available |
                 theExtendedCutoffsAreAvailable(s)
