@@ -44,6 +44,7 @@
 
 theory vocab <<< "../shared/vocabulary.b4m"
 theory operator_theory <<< "operator-theory.b4m"
+theory haar <<< "haar-integration.b4m"
 
 sort TestFunction = vocab.TestFunction
 sort Quantity = vocab.Quantity
@@ -53,6 +54,7 @@ sort HardySobolevSpace = operator_theory.HardySobolevSpace
 sort Operator = operator_theory.Operator
 pred isNuclearOn = operator_theory.isNuclearOn
 oper trace = operator_theory.trace
+fact theDiagonalIntegralIsTheIteratedIntegral = haar.theDiagonalIntegralIsTheIteratedIntegral
 
 // ---------------------------------------------------------------------------------------
 // the objects of 12.4.1.1's statement
@@ -165,16 +167,139 @@ hole theComputationGivesTheLocalIntegralSum:
   trace(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) =
   theLocalIntegralSum(s, f)
 
-/// and that the normalized kernel integral IS that trace — the identification the left side
-/// of (12.4.1.1) rests on.
-// TRANSCRIBE: Proposition 12.2.2.2, cited in this proof, identifies the diagonal kernel integral with the
-// operator trace — the same identification Theorem 11.3.2.1 uses. Stated and proved in the
-// released text
-hole theKernelIntegralIsTheTrace:
+/// THE KERNEL INTEGRAL IS THE TRACE — DERIVED from the Haar-integration shim, the same
+/// Prop 12.2.2.2 that Theorem 11.3.2.1 uses. This was a bare hole; it is now a theorem over
+/// a classical citation plus two located readings, exactly as in orbital-traces.b4m.
+///
+/// The shim is shared rather than duplicated: `standard/haar-integration.b4m` states
+/// 12.2.2.2's conclusion once, and both consumers derive from it. That is the payoff of
+/// shimming the FOUNDATION rather than the consumer — one citation now covers two of the
+/// manuscript's steps.
+
+/// the S-local kernel, viewed as a quotient kernel in Prop 12.2.2.2's sense
+oper theSLocalQuotientKernel(s: PlaceSet, f: TestFunction) => haar.QuotientKernel
+/// the ambient group and discrete subgroup of the S-local setting (J_{F,S} and its lattice)
+const theSLocalIdeleGroup: haar.LcaGroup
+const theSLocalLattice: haar.DiscreteSubgroup
+
+hole theSLocalPropositionsHypothesesHold
+  cites "assertion: that the S-local setting satisfies Situation 12.2.2.1, carries an indentation, and has almost every diagonal point regular with an absolutely integrable diagonal, is what 12.4.1.1's proof presumes when it invokes Prop 12.2.2.2. The hypotheses are not restated at the application site":
+  forall s: PlaceSet; forall f: TestFunction;
+  haar.satisfiesSituation(theSLocalIdeleGroup, theSLocalLattice) and
+  haar.hasAnIndentation(theSLocalIdeleGroup, theSLocalLattice) and
+  haar.almostEveryDiagonalPointIsRegular(theSLocalQuotientKernel(s, f)) and
+  haar.theDiagonalIsAbsolutelyIntegrable(theSLocalQuotientKernel(s, f))
+
+hole theSLocalIntegralAndTraceAreTheTwoSides
+  cites "assertion: that the normalized S-local kernel integral (the left side of (12.4.1.1)) IS Prop 12.2.2.2's diagonal integral, and that the truncated convolution's trace IS its iterated integral, are the manuscript's identifications of the two settings. 12.4.1.1's proof applies 12.2.2.2 on that reading without arguing it":
+  forall s: PlaceSet; forall f: TestFunction;
+  isNuclearOn(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) ->
+  (theSLocalKernelIntegral(s, f) =
+  haar.theDiagonalIntegral(theSLocalQuotientKernel(s, f)) and
+  trace(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) =
+  haar.theIteratedIndentedIntegral(
+  haar.theIndentation(theSLocalQuotientKernel(s, f), theSLocalIdeleGroup,
+  theSLocalLattice)))
+
+intheory theKernelIntegralIsTheTrace
+
+/// Strategy: Prop 12.2.2.2's hypotheses, then the shim for diagonal = iterated, then read
+/// both sides into 12.4.1.1's names and substitute.
+theorem theKernelIntegralIsTheTrace:
   forall s: PlaceSet; forall f: TestFunction;
   isNuclearOn(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) ->
   theSLocalKernelIntegral(s, f) =
   trace(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel)
+proof
+  @generalize-s |
+    fix s: PlaceSet {
+      @generalize-f |
+        fix f: TestFunction {
+          @given-nuclear |
+            assume isNuclearOn(theTruncatedConvolution(s, f),
+              theInvariantPaleyWienerLevel) {
+              @nuclear |
+                isNuclearOn(theTruncatedConvolution(s, f),
+                  theInvariantPaleyWienerLevel)
+                [by hypothesis given-nuclear]
+              @the-hypotheses-hold |
+                haar.satisfiesSituation(theSLocalIdeleGroup, theSLocalLattice) and
+                  haar.hasAnIndentation(theSLocalIdeleGroup, theSLocalLattice) and
+                  haar.almostEveryDiagonalPointIsRegular(
+                  theSLocalQuotientKernel(s, f)) and
+                  haar.theDiagonalIsAbsolutelyIntegrable(
+                  theSLocalQuotientKernel(s, f))
+                [using specialize theSLocalPropositionsHypothesesHold(s, f)]
+              @situation |
+                haar.satisfiesSituation(theSLocalIdeleGroup, theSLocalLattice)
+                [using tautology the-hypotheses-hold]
+              @indentation |
+                haar.hasAnIndentation(theSLocalIdeleGroup, theSLocalLattice)
+                [using tautology the-hypotheses-hold]
+              @regular |
+                haar.almostEveryDiagonalPointIsRegular(theSLocalQuotientKernel(s, f))
+                [using tautology the-hypotheses-hold]
+              @integrable |
+                haar.theDiagonalIsAbsolutelyIntegrable(theSLocalQuotientKernel(s, f))
+                [using tautology the-hypotheses-hold]
+              // THE SHARED SHIM: Prop 12.2.2.2's conclusion
+              @diagonal-is-iterated |
+                haar.theDiagonalIntegral(theSLocalQuotientKernel(s, f)) =
+                  haar.theIteratedIndentedIntegral(
+                  haar.theIndentation(theSLocalQuotientKernel(s, f),
+                  theSLocalIdeleGroup, theSLocalLattice))
+                [using specialize theDiagonalIntegralIsTheIteratedIntegral(
+                  theSLocalQuotientKernel(s, f), theSLocalIdeleGroup, theSLocalLattice)
+                  situation indentation regular integrable]
+              @the-two-readings |
+                theSLocalKernelIntegral(s, f) =
+                  haar.theDiagonalIntegral(theSLocalQuotientKernel(s, f)) and
+                  trace(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) =
+                  haar.theIteratedIndentedIntegral(
+                  haar.theIndentation(theSLocalQuotientKernel(s, f),
+                  theSLocalIdeleGroup, theSLocalLattice))
+                [using specialize theSLocalIntegralAndTraceAreTheTwoSides(s, f) nuclear]
+              @integral-is-diagonal |
+                theSLocalKernelIntegral(s, f) =
+                  haar.theDiagonalIntegral(theSLocalQuotientKernel(s, f))
+                [by and_lhs the-two-readings]
+              @trace-is-iterated |
+                trace(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) =
+                  haar.theIteratedIndentedIntegral(
+                  haar.theIndentation(theSLocalQuotientKernel(s, f),
+                  theSLocalIdeleGroup, theSLocalLattice))
+                [by and_rhs the-two-readings]
+              @integral-is-iterated |
+                theSLocalKernelIntegral(s, f) =
+                  haar.theIteratedIndentedIntegral(
+                  haar.theIndentation(theSLocalQuotientKernel(s, f),
+                  theSLocalIdeleGroup, theSLocalLattice))
+                [by rewrite diagonal-is-iterated integral-is-diagonal]
+              @conclusion-the-integral-is-the-trace |
+                theSLocalKernelIntegral(s, f) =
+                  trace(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel)
+                [by rewrite trace-is-iterated integral-is-iterated]
+            }
+          @nuclear-implies-the-identity |
+            isNuclearOn(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) ->
+              theSLocalKernelIntegral(s, f) =
+              trace(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel)
+            [by discharge given-nuclear]
+        }
+      @discharge-f |
+        forall f: TestFunction;
+          isNuclearOn(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) ->
+          theSLocalKernelIntegral(s, f) =
+          trace(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel)
+        [by generalize generalize-f]
+    }
+  @conclusion |
+    forall s: PlaceSet; forall f: TestFunction;
+      isNuclearOn(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) ->
+      theSLocalKernelIntegral(s, f) =
+      trace(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel)
+    [by generalize generalize-s]
+qed
 
 // ---------------------------------------------------------------------------------------
 // THE THEOREM. The ASSEMBLY of 12.4.1.1's seven stages, kernel-checked.
