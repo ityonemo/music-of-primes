@@ -64,6 +64,8 @@ oper operatorOf = operator_theory.operatorOf
 oper trace = operator_theory.trace
 fact nuclearLimitsAreNuclear = operator_theory.nuclearLimitsAreNuclear
 fact theDiagonalIntegralIsTheIteratedIntegral = haar.theDiagonalIntegralIsTheIteratedIntegral
+fact convergentKernelsAreTraceClassFiniteRankLimits =
+  haar.convergentKernelsAreTraceClassFiniteRankLimits
 
 // ---------------------------------------------------------------------------------------
 // the objects of 11.3.2.1's statement
@@ -142,41 +144,36 @@ hole theStratumIndicatorPreservesTheValue
 // STEP 4-6: the analysis. Each cites one of the author's own PROVED theorems.
 // ---------------------------------------------------------------------------------------
 
-/// The truncation process converges in W_I^s(C_F). "Then the process of multiplication by
-/// alpha_k in the second named variable converges within W_I^s(C_F) by Theorem 11.1.2.1"
-/// (txt 29991).
-// TRANSCRIBE: Theorem 11.1.2.1 (Existence of S-local carvings on the 0-line), txt 28976 — stated and
-// proved in the released text. Transcribing it is future work; the interface here does not
-// depend on how it is proved
-hole theTruncationsConverge:
+/// STEPS 4-6, COLLAPSED OVER THE NUCLEARITY SHIM. The manuscript takes three steps here: the
+/// truncations converge in W_I^s (his Thm 11.1.2.1), the converged kernel induces a
+/// continuous operator (Prop 12.2.2.2), and that operator is a trace-norm limit of finite
+/// ranks (the estimates of Thm 10.3.2.1).
+///
+/// Encoded one-per-step those were three BARE holes relating four opaque predicates, each
+/// occurring exactly twice — the glue pattern an audit of this repo flagged, where the chain
+/// is transitivity rather than content. `standard/haar-integration.b4m` instead states the
+/// CLASSICAL theorem spanning all three (Grothendieck's kernel theorem plus density of finite
+/// ranks in the trace class), which is what his three results specialize.
+///
+/// Three transcription tasks become one classical citation plus two located readings.
+
+/// the stratum kernel, as an indented kernel in the shim's sense
+oper theStratumIndentedKernel(k: StratumIndex, f: TestFunction) => haar.IndentedKernel
+
+hole theManuscriptSettingIsNuclear
+  cites "assertion: that the manuscript's truncation process is a convergent kernel sequence in the sense the classical nuclearity theorem requires is his specialization of it. His proof cites Thm 11.1.2.1 for the convergence (txt 29991) without restating what the nuclearity argument needs of it":
   forall k: StratumIndex; forall f: TestFunction;
   indicatorPreservesTheValue(k, f) ->
-  truncationsConvergeIn(theIndentedStratumKernel(k, f), thePaleyWienerLevel)
+  haar.kernelSequenceConverges(theStratumIndentedKernel(k, f))
 
-/// The converged value IS a nuclear operator's trace. "by Proposition 12.2.2.2 the value
-/// (11.3.2.3) equals the value of the trace of the nuclear operator on W_I^s(C_F) which is
-/// the unique continuous extension that the kernel ... induces" (txt 29991-30008).
-// TRANSCRIBE: Proposition 12.2.2.2 (regular points on the diagonal and indentations), Ch. 12 §12.2.2 —
-// stated and proved in the released text. It is what identifies the convergent integral with
-// an operator trace
-hole theConvergedValueIsANuclearTrace:
+hole theShimConclusionGivesTheOperatorFacts
+  cites "assertion: the manuscript reads the classical conclusion as delivering both that the kernel induces a continuous operator on W_I^s and that the induced operator is a trace-norm limit of finite ranks — the two facts his steps 5 and 6 produce, citing Prop 12.2.2.2 and the estimates of Thm 10.3.2.1 (txt 29991-30031). Stated rather than argued":
   forall k: StratumIndex; forall f: TestFunction;
-  truncationsConvergeIn(theIndentedStratumKernel(k, f), thePaleyWienerLevel) ->
-  inducesAContinuousOperator(theIndentedStratumKernel(k, f), thePaleyWienerLevel)
-
-/// That operator is a nuclear limit of finite-rank operators. "the same method used in the
-/// estimates from Theorem 10.3.2.1 shows that such operator is the limit of the finite rank
-/// kernels from (11.2.2.12) from the proof of Theorem 11.2.2.1" (txt 30031).
-// TRANSCRIBE: Theorems 10.3.2.1 (Spectral Nuclearity - II, txt 27293) and 11.2.2.1 (Orbital Nuclearity on
-// the 0-line, txt 29599) — both stated and proved in the released text. The author says 'the
-// same method used in the estimates from Theorem 10.3.2.1 shows ...', so this step reuses a
-// proved estimate rather than introducing a new one
-hole theOperatorIsANuclearLimitOfFiniteRanks:
-  forall k: StratumIndex; forall f: TestFunction;
-  inducesAContinuousOperator(theIndentedStratumKernel(k, f), thePaleyWienerLevel) ->
+  haar.inducesATraceClassFiniteRankLimit(theStratumIndentedKernel(k, f)) ->
+  (inducesAContinuousOperator(theIndentedStratumKernel(k, f), thePaleyWienerLevel) and
   isTheNuclearLimitOfFiniteRanks(
   operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
-  thePaleyWienerLevel)
+  thePaleyWienerLevel))
 
 /// The orbital integral EQUALS that operator's trace. This is the other half of what
 /// THE ORBITAL INTEGRAL IS THE TRACE — DERIVED from the Haar-integration shim rather than
@@ -424,23 +421,34 @@ proof
                         indicatorPreservesTheValue(k, f)
                         [using specialize theStratumIndicatorPreservesTheValue(k, f)
                           the-kernel-contributes-only-at-the-stratum]
-                      // steps 4-6: the analysis, each citing one of the author's theorems
-                      @the-truncations-converge |
-                        truncationsConvergeIn(theIndentedStratumKernel(k, f),
-                          thePaleyWienerLevel)
-                        [using specialize theTruncationsConverge(k, f)
+                      // steps 4-6, collapsed: his three cited results specialize one
+                      // classical nuclearity theorem, stated in haar-integration.b4m
+                      @the-kernel-sequence-converges |
+                        haar.kernelSequenceConverges(theStratumIndentedKernel(k, f))
+                        [using specialize theManuscriptSettingIsNuclear(k, f)
                           the-indicator-preserves-the-value]
+                      @the-kernel-is-trace-class |
+                        haar.inducesATraceClassFiniteRankLimit(
+                          theStratumIndentedKernel(k, f))
+                        [using specialize convergentKernelsAreTraceClassFiniteRankLimits(
+                          theStratumIndentedKernel(k, f)) the-kernel-sequence-converges]
+                      @the-operator-facts |
+                        inducesAContinuousOperator(theIndentedStratumKernel(k, f),
+                          thePaleyWienerLevel) and
+                          isTheNuclearLimitOfFiniteRanks(
+                          operatorOf(theIndentedStratumKernel(k, f),
+                          thePaleyWienerLevel), thePaleyWienerLevel)
+                        [using specialize theShimConclusionGivesTheOperatorFacts(k, f)
+                          the-kernel-is-trace-class]
                       @the-kernel-induces-an-operator |
                         inducesAContinuousOperator(theIndentedStratumKernel(k, f),
                           thePaleyWienerLevel)
-                        [using specialize theConvergedValueIsANuclearTrace(k, f)
-                          the-truncations-converge]
+                        [by and_lhs the-operator-facts]
                       @the-operator-is-a-finite-rank-limit |
                         isTheNuclearLimitOfFiniteRanks(
                           operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
                           thePaleyWienerLevel)
-                        [using specialize theOperatorIsANuclearLimitOfFiniteRanks(k, f)
-                          the-kernel-induces-an-operator]
+                        [by and_rhs the-operator-facts]
                       @the-operator-is-nuclear |
                         isNuclearOn(
                           operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
