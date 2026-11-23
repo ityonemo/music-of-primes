@@ -6,7 +6,9 @@ different and much larger question. Structure means: do the steps compose, does 
 assume what it sets out to prove, do two parts of the text contradict each other, is a claim
 stated with the quantifiers it needs.
 
-Four findings, ordered by how much they threaten the argument. Each is verified against
+Five findings, ordered by how much they threaten the argument — the fifth is listed last
+because it came from outside this formalization, not because it matters least; it is in fact
+the one that breaks the deduction. Each is verified against
 `the-music-of-the-primes.txt` with line numbers, so a reader can check every quotation.
 
 **What was NOT found, stated first, because it bounds everything below.** No circularity. No
@@ -131,6 +133,54 @@ is the obvious next piece of work on this finding.
 
 ---
 
+## 5. The Montel step has no uniform bound — the one that breaks the deduction
+
+**The most consequential of the five, because it attacks the argument rather than its
+presentation, and it holds even granting the Trace Formula.**
+
+§1.4.3 invokes **Montel's theorem** to extract a convergent subsequence with a finite
+holomorphic limit from the Archimedean integrals. Montel requires those integrals to be
+locally uniformly bounded. Nielsen (`NIEIOM.pdf`, Prop 1) shows they are not.
+
+For the trivial character over ℚ, the positive-real part of the §1.4.3 integral contains, up
+to a fixed positive factor,
+
+    A_n  =  ∫₁^{1+δ}  φ_n(t) · t^{−1/2} / (t − 1)  dt
+
+and `liminf A_n = +∞` by Fatou's lemma, because the pointwise limit `t^{−z−1/2}/(t−1)` has a
+logarithmic singularity at `t = 1`. Each individual `φ_n` vanishes on a neighbourhood of 1,
+so its own integral is finite — but that neighbourhood shrinks, and finiteness for every `n`
+is not a uniform bound.
+
+Since §1.4.5 and §1.8.5.1 use Montel's holomorphic limit to obtain the analytic continuation
+of the logarithmic derivative and hence the zero-free region, **the deduction of GRH does not
+follow by the argument presented.** This is the step Masullo himself calls *"the source of all
+the difficulties"*.
+
+**What was checked here, and what was granted.** Nielsen's argument is formalized in
+`nielsen.b4m`, which passes a strict check on citations that are all classical. What the
+kernel verifies is that her stated facts COMPOSE into the conclusion — including the step from
+"the sequence exceeds every bound" to "no uniform bound exists", which her paper joins in the
+two words *"In particular"* and which is where a quantifier error would hide. It holds.
+
+Granted by decision, as classical: Fatou's lemma, the divergence of `∫dt/(t−1)`, and the
+standard meaning of *mollifier* (nonnegative, smooth, compactly supported, unit mass) — a term
+Masullo uses three times in 940 pages and never defines.
+
+**Both of Nielsen's hypotheses are Masullo's own text, not additions of hers.** She writes
+"use a nonnegative mollifier", which reads as an added assumption; in fact he calls `ρ_ε` a
+mollifier, his `h` is explicitly "valued in [0, 1]", and `φ_z = t^{−z} > 0` for `t > 1`, so
+nonnegativity follows from his construction. Her other hypothesis, pointwise convergence
+`φ_n(t) → t^{−z}`, is verbatim his (txt 1336). Her paper skips the one-line step connecting
+her hypothesis to his text — an expository gap, and it goes in her favour.
+
+A worry checked and dismissed: because each `φ_n` vanishes near `t = 1`, one might fear Fatou
+is applied with the quantifiers swapped. It is not — `δ` is fixed FIRST and the liminf taken
+over `n`, and at each fixed `t > 1` the pointwise limit is `t^{−z} > 0`.
+
+**A repaired test-function family would need a new argument**, including its effect on the
+trace formula's other terms. That cannot be presumed.
+
 ## Provenance of these findings
 
 Findings 1-3 came out of **this formalization**, not from reading for errors. The method
@@ -146,16 +196,14 @@ quoting it, before her counterexample was published** — the hole
 `segmentNestingLiftsToTheStrata` could not be proved, was not assumed quietly, and the step
 it could not prove turned out to be false.
 
-Her Prop 1 — the failure of uniform boundedness in the Montel step — is the fifth logical
-defect, and the one that breaks the GRH deduction outright. It is documented in `README.md`
-and `DEPENDENCY-MAP.md` rather than repeated here.
+Finding 5 is also Nielsen's Prop 1, formalized in `nielsen.b4m` the same way.
 
 ## What a reader should take from this
 
 The manuscript's **Trace Formula is a real achievement** with a real proof, modulo finding 2.
 Its **deduction of GRH is not established**: finding 1 undermines the only written derivation
-of Theorem 13.3.1.2, finding 3 leaves a load-bearing step unlocated, and Nielsen's Prop 1
-refutes the Montel argument that the §1.4 outline runs on.
+of Theorem 13.3.1.2, finding 3 leaves a load-bearing step unlocated, and finding 5 refutes the
+Montel argument the §1.4 outline runs on.
 
 None of this disproves GRH, and none of it impugns the 513 proofs beneath Chapter 12. The
 draft was announced roughly a year before the author planned to, and these are the findings a
