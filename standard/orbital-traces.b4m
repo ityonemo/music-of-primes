@@ -66,6 +66,8 @@ fact nuclearLimitsAreNuclear = operator_theory.nuclearLimitsAreNuclear
 fact theDiagonalIntegralIsTheIteratedIntegral = haar.theDiagonalIntegralIsTheIteratedIntegral
 fact convergentKernelsAreTraceClassFiniteRankLimits =
   haar.convergentKernelsAreTraceClassFiniteRankLimits
+fact theTraceIsTheSpectralSum = haar.theTraceIsTheSpectralSum
+pred hasAnAbsolutelySummableSpectrum = haar.hasAnAbsolutelySummableSpectrum
 
 // ---------------------------------------------------------------------------------------
 // the objects of 11.3.2.1's statement
@@ -362,18 +364,95 @@ qed
 // STEP 7: the limit value, and Poisson summation.
 // ---------------------------------------------------------------------------------------
 
-/// The limit value is the right side of (7.4.2.1). "which, as lambda' is large enough and
-/// for Lambda -> +infty in the regime eps*Lambda = o(1), attains the limit value (11.3.2.5)
-/// which is the right side of (7.4.2.1) from Theorem 7.4.2.1" (txt 30025-30033).
-// TRANSCRIBE: Theorem 7.4.2.1 (Strong Topologies and Nuclearity - II), txt 22021 — stated and proved in
-// the released text, and it is where the trace is computed as a sum over the zeros of the
-// local Euler factor product
-hole theLimitValueIsTheZeroSide:
+/// THE LIMIT VALUE IS THE ZERO SIDE — derived over Lidskii's theorem. "which, as lambda' is
+/// large enough and for Lambda -> +infty in the regime eps*Lambda = o(1), attains the limit
+/// value (11.3.2.5) which is the right side of (7.4.2.1) from Theorem 7.4.2.1"
+/// (txt 30025-30033).
+///
+/// Thm 7.4.2.1 computes Trace(A_geom) as a sum over the zeros eps_p of a local Euler factor
+/// product. That a nuclear operator's trace IS its spectral sum is classical (Lidskii), so
+/// what the manuscript contributes is the IDENTIFICATION of the spectrum — that the
+/// eigenvalues are indexed by those zeros with their multiplicities. That identification is
+/// his, and stays an assertion.
+
+hole theSpectrumIsIndexedByTheEulerZeros
+  cites "assertion: Thm 7.4.2.1 (txt 22028-22033) states Trace(A_geom,p,chi(phi)) as a sum over the complex numbers eps_p for which chi|.|^{eps_p} is a zero of the local Euler factor product, with multiplicity N(chi|.|^{eps_p}). That his convolution operator's spectrum IS that zero set is the content of his theorem, not of Lidskii's; he states the resulting formula rather than exhibiting the spectral decomposition":
   forall k: StratumIndex; forall f: TestFunction;
   isNuclearOn(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
   thePaleyWienerLevel) ->
-  trace(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
-  thePaleyWienerLevel) = theZeroSideValue(f)
+  haar.theSpectralSum(
+  operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel)) =
+  theZeroSideValue(f)
+
+intheory theLimitValueIsTheZeroSide
+
+/// Strategy: Lidskii gives trace = spectral sum; the manuscript's identification gives
+/// spectral sum = the zero side; substitute.
+theorem theLimitValueIsTheZeroSide:
+  forall k: StratumIndex; forall f: TestFunction;
+  inducesAContinuousOperator(theIndentedStratumKernel(k, f), thePaleyWienerLevel) ->
+  (isNuclearOn(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel), thePaleyWienerLevel) ->
+  trace(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel), thePaleyWienerLevel) = theZeroSideValue(f))
+proof
+  @generalize-k |
+    fix k: StratumIndex {
+      @generalize-f |
+        fix f: TestFunction {
+          @given-induces |
+            assume inducesAContinuousOperator(theIndentedStratumKernel(k, f),
+              thePaleyWienerLevel) {
+              @induces |
+                inducesAContinuousOperator(theIndentedStratumKernel(k, f),
+                  thePaleyWienerLevel)
+                [by hypothesis given-induces]
+              @given-nuclear |
+                assume isNuclearOn(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel), thePaleyWienerLevel) {
+                  @nuclear |
+                    isNuclearOn(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel), thePaleyWienerLevel)
+                    [by hypothesis given-nuclear]
+                  @lidskii-here |
+                    hasAnAbsolutelySummableSpectrum(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel)) and
+                      trace(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel), thePaleyWienerLevel) = haar.theSpectralSum(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel))
+                    [using specialize theTraceIsTheSpectralSum(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+                      thePaleyWienerLevel) nuclear]
+                  @trace-is-the-spectral-sum |
+                    trace(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel), thePaleyWienerLevel) = haar.theSpectralSum(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel))
+                    [by and_rhs lidskii-here]
+                  @spectral-sum-is-the-zero-side |
+                    haar.theSpectralSum(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel)) = theZeroSideValue(f)
+                    [using specialize theSpectrumIsIndexedByTheEulerZeros(k, f)
+                      induces nuclear]
+                  @conclusion-the-trace-is-the-zero-side |
+                    trace(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel), thePaleyWienerLevel) = theZeroSideValue(f)
+                    [by rewrite spectral-sum-is-the-zero-side trace-is-the-spectral-sum]
+                }
+              @nuclear-implies-the-zero-side |
+                isNuclearOn(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel), thePaleyWienerLevel) ->
+                  trace(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel), thePaleyWienerLevel) = theZeroSideValue(f)
+                [by discharge given-nuclear]
+            }
+          @induces-implies-the-zero-side |
+            inducesAContinuousOperator(theIndentedStratumKernel(k, f),
+              thePaleyWienerLevel) ->
+              (isNuclearOn(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel), thePaleyWienerLevel) ->
+              trace(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel), thePaleyWienerLevel) = theZeroSideValue(f))
+            [by discharge given-induces]
+        }
+      @discharge-f |
+        forall f: TestFunction;
+          inducesAContinuousOperator(theIndentedStratumKernel(k, f),
+          thePaleyWienerLevel) ->
+          (isNuclearOn(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel), thePaleyWienerLevel) ->
+          trace(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel), thePaleyWienerLevel) = theZeroSideValue(f))
+        [by generalize generalize-f]
+    }
+  @conclusion |
+    forall k: StratumIndex; forall f: TestFunction;
+      inducesAContinuousOperator(theIndentedStratumKernel(k, f), thePaleyWienerLevel) ->
+      (isNuclearOn(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel), thePaleyWienerLevel) ->
+      trace(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel), thePaleyWienerLevel) = theZeroSideValue(f))
+    [by generalize generalize-k]
+qed
 
 /// Poisson summation converts the zero side into the local Euler contribution. "The Theorem
 /// follows from the Poisson Summation Formula (see Proposition B.4.1.2)" (txt 30035).
@@ -461,7 +540,7 @@ proof
                         trace(operatorOf(theIndentedStratumKernel(k, f),
                           thePaleyWienerLevel), thePaleyWienerLevel) = theZeroSideValue(f)
                         [using specialize theLimitValueIsTheZeroSide(k, f)
-                          the-operator-is-nuclear]
+                          the-kernel-induces-an-operator the-operator-is-nuclear]
                       @the-zero-side-is-the-euler-contribution |
                         theZeroSideValue(f) = theLocalEulerContribution(k, f)
                         [using specialize poissonSummationGivesTheEulerContribution(f, k)

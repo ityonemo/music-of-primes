@@ -145,3 +145,53 @@ proof
       kernelSequenceConverges(k) -> inducesATraceClassFiniteRankLimit(k)
     [by cite convergentKernelsInduceTraceClassOperators]
 qed
+
+// ---------------------------------------------------------------------------------------
+// THE TRACE OF A NUCLEAR OPERATOR IS ITS SPECTRAL SUM — Lidskii's theorem.
+//
+// Two of the manuscript's steps compute a nuclear operator's trace by summing over a
+// spectrum: Thm 7.4.2.1 gives Trace(A_geom) as a sum over the zeros eps_p of a local Euler
+// factor product (7.4.2.1), and Thm 10.4.2.8 compares two traces up to o(1), the second
+// being computed by Thm 10.3.2.1's spectral formula (10.3.2.3).
+//
+// Both specialize ONE classical fact: for a trace-class operator the trace equals the sum of
+// the eigenvalues with multiplicity. That is Lidskii's theorem, and it is what licenses
+// reading an operator trace off a spectral sum at all.
+//
+// What the manuscript supplies beyond it is the IDENTIFICATION of the spectrum — that the
+// eigenvalues of his convolution operator are indexed by the zeros of the Hecke L-function
+// with their multiplicities. That is his contribution and stays an `assertion:` at each use.
+
+/// an operator's spectrum, summed with multiplicity
+oper theSpectralSum(o: Operator) => Quantity
+/// the operator's eigenvalues are absolutely summable (automatic for trace class)
+pred hasAnAbsolutelySummableSpectrum(o: Operator)
+
+/// an operator on a Hardy-Sobolev space — shared by ORIGIN with operator-theory.b4m, so a
+/// trace named there is the same term as one named here
+theory operator_theory <<< "operator-theory.b4m"
+sort Operator = operator_theory.Operator
+sort HardySobolevSpace = operator_theory.HardySobolevSpace
+pred isNuclearOn = operator_theory.isNuclearOn
+oper trace = operator_theory.trace
+
+intheory theTraceIsTheSpectralSum
+
+/// Lidskii's theorem: a trace-class operator's trace is its eigenvalue sum.
+hole lidskiisTheorem
+  cites "standard: Lidskii's theorem — for a trace-class operator on a separable Hilbert space the trace equals the sum of the eigenvalues counted with algebraic multiplicity, and that sum converges absolutely. Simon, Trace Ideals and Their Applications Thm 3.7; Gohberg-Krein, Introduction to the Theory of Linear Nonselfadjoint Operators Ch. III; Reed-Simon, Functional Analysis I §VI.6. This is what licenses computing an operator trace as a spectral sum at all, which the manuscript does in Thms 7.4.2.1 and 10.3.2.1":
+  forall o: Operator; forall w: HardySobolevSpace;
+  isNuclearOn(o, w) ->
+  (hasAnAbsolutelySummableSpectrum(o) and trace(o, w) = theSpectralSum(o))
+
+theorem theTraceIsTheSpectralSum:
+  forall o: Operator; forall w: HardySobolevSpace;
+  isNuclearOn(o, w) ->
+  (hasAnAbsolutelySummableSpectrum(o) and trace(o, w) = theSpectralSum(o))
+proof
+  @conclusion |
+    forall o: Operator; forall w: HardySobolevSpace;
+      isNuclearOn(o, w) ->
+      (hasAnAbsolutelySummableSpectrum(o) and trace(o, w) = theSpectralSum(o))
+    [by cite lidskiisTheorem]
+qed
