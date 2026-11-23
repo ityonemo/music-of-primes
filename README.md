@@ -14,10 +14,10 @@ author asserts, and what he still owes.
 and one of them breaks the deduction of GRH** — see §3.
 
 **Checked against 2b4m
-[`aa4b28f`](https://github.com/ityonemo/2b4m/commit/aa4b28f) (2026-11-20).** 2b4m is under
-active development and its surface syntax is not yet stable, so these files are pinned to that
-checkout. If they fail to parse against a later version, the language moved — check the
-2b4m repo's history rather than the mathematics here.
+[`aa4b28f`](https://github.com/ityonemo/2b4m/commit/aa4b28f) (2026-11-20), built with Zig
+0.16.** 2b4m is under active development and its surface syntax is not yet stable, so these
+files are pinned to that checkout. If they fail to parse against a later version, the language
+moved — check the 2b4m repo's history rather than the mathematics here.
 
 ---
 
@@ -67,9 +67,11 @@ from…"* — collected textbook material rather than his contribution. Citing t
 reproving them is what makes the task finite, and it understates the ratio, since appendix
 material enters that count only where it is cited by id.
 
-Build the pinned checker, then run it against this repo:
+Build the pinned checker — it needs **Zig 0.16** (`build.zig.zon` declares
+`minimum_zig_version = "0.16.0"`) — then run it against this repo:
 
 ```sh
+zig version                                   # 0.16.0
 git clone https://github.com/ityonemo/2b4m && cd 2b4m
 git checkout aa4b28f && zig build             # the checker these files were written for
 cd /path/to/music-of-primes
@@ -122,8 +124,8 @@ Chapter 12. The Trace Formula is a real achievement with a real proof; it is the
 
 ## 4. Next steps
 
-These are the next steps for the semi-formalization of the work, which do not necessarily
-incur any LLM-assisted proving or reconciliation.
+These would be the next steps for the semi-formalization of the work, not including
+steps that substantially add proofs or arguments to the work..
 
 ### a. Patch the assertions into implications
 
