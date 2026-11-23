@@ -96,6 +96,37 @@ not pass.
 Chapter 12. The Trace Formula is a real achievement with a real proof; it is the deduction
 *from* it that does not hold.
 
+## 4. Next steps
+
+### a. Patch the assertions into implications
+
+The 28 `assertion:` entries are the live surface. Each is a step the author states without
+proving, and most are plausibly consequences of results he proves elsewhere.
+
+The pass: for each assertion, assume good faith — that it *is* a consequence of an earlier
+theorem — and rewrite the hole as an **implication** from that theorem to the asserted step.
+The assertion then stops being a free-standing assumption and becomes a named dependency on
+something the manuscript establishes. Where no such theorem exists, that absence is itself the
+finding, and the hole becomes a `gap:`.
+
+This needs no new foundations, which is what makes it the next move rather than a later one.
+
+### b. Thread the classical tier down to `std`
+
+The `standard:` citations currently bottom out in prose: a formula plus a textbook reference a
+human checks. Each could instead be *proved* from [2b4m's standard
+library](https://github.com/ityonemo/2b4m/tree/main/std), turning a citation into a derivation.
+
+The dependency shape is already right for this. A `standard:` hole presents a fixed interface
+to its consumers, so replacing its citation with a proof changes nothing downstream — which is
+what made citing-first reversible rather than a shortcut. The order to attack it in is cheapest
+first: the order and arithmetic facts are reachable from `std/real.b4m` today; Haar measure,
+nuclear operators and trace-class theory are a foundations project, measured in
+[`WHAT-IT-WOULD-TAKE.md`](WHAT-IT-WOULD-TAKE.md).
+
+Done fully, the artifact would rest on nothing but `std` and the author's own assertions — and
+the second list is the one worth sending him.
+
 ---
 
 ## Files
