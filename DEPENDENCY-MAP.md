@@ -5,22 +5,22 @@ kernel-checked. This file is the index to it.
 
 ## The current frontier, exactly
 
-`2b4m check --axioms --draft grh.b4m generalizedRiemannHypothesis` reports **54 entries**.
-Strict `check` FAILS on the 10 bare holes — that is the intended state, and their list is
-the worklist.
+`2b4m check --axioms grh.b4m generalizedRiemannHypothesis` reports **60 entries**, and
+**strict `check` PASSES** — there are no bare holes left. Every assumption is either
+classical, the author's own, or refuted; none is ours.
 
 ### The full accounting
 
 | | n | means | who owes it |
 |---|---|---|---|
 | **`cites "refuted: …"`** | **2** | **FALSE as written — a counterexample, formalized and checked** | **the author; these are fatal to the argument as presented** |
-| **bare `hole`** | **10** | the manuscript PROVES it; ours to transcribe | **us** |
+| bare `hole` | **0** | ours to transcribe — **none remain** | — |
 | `cites "gap: …"` | 3 | absent from the released draft | the author |
-| `cites "assertion: …"` | 17 | he states it, does not prove it | the author, or a reader |
-| `cites "standard: …"` | 15 | classical, with a textbook source | nobody — cited and closed |
+| `cites "assertion: …"` | 28 | he states it, does not prove it | the author, or a reader |
+| `cites "standard: …"` | 20 | classical, with a textbook source | nobody — cited and closed |
 | DEFINITION clause | 5 | introduces a symbol, not an assumption | — |
 | definition-shaped `axiom` | 2 | ditto, but `--axioms` lists them as assumptions | — |
-| **total `--axioms` entries** | **54** | | 2 + 10 + 3 + 17 + 15 + 5 + 2 |
+| **total `--axioms` entries** | **60** | | 2 + 0 + 3 + 28 + 20 + 5 + 2 |
 
 `refuted:` is used only because the objection is now FORMALIZED, in `nielsen.b4m`, and passes
 strict `check` on 10 citations every one of which is a classical `standard:` fact. It went

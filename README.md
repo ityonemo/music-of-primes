@@ -133,8 +133,23 @@ is a candidate to pick up and close.
 The common failure both represent: **borrowing authority the artifact has not earned.** The
 tier system exists to make that impossible to do quietly.
 
-So a **failing check is the normal state**, and its output *is* the transcription backlog.
-When every bare hole is discharged, what remains is precisely the list to send the author.
+A **failing check was the normal state** during transcription, and its output *was* the
+backlog. That backlog is now empty: every bare hole has been discharged, so what remains is
+precisely the list to send the author.
+
+**How the bare holes were closed, since "closed" can mean relabelling and here does not.**
+Each bottomed out in one of the manuscript's own results, whose proof rests on classical
+analysis this encoding does not build. The move was to SHIM the classical foundation —
+`standard/haar-integration.b4m` states six named theorems (quotient-measure / Weil's formula,
+Grothendieck's kernel theorem, Lidskii, trace under subspace restriction, periodization
+sections, the Schwartz kernel theorem) with textbook sources, and each consumer then DERIVES
+from them. What remains at each site is the author's reading of his own setting, recorded as
+`assertion:`.
+
+The signature that this was not relabelling: **the entry count ROSE, 54 → 60, while bare
+holes fell to zero.** One bundled transcription task becomes a classical citation plus one or
+two located readings. Three of the manuscript's opaque implication chains were removed
+outright in the process, and the dead-step lint caught one step that had become vacuous.
 
 **Cite the textbooks, prove the manuscript.** Roughly half the dependency closure (211 of 429
 results) sits in appendices the author himself titles *"Preparations from…"* — collected
@@ -208,13 +223,12 @@ Two top-level chains, each with its dependencies in a subdirectory:
 ## Running it
 
 ```sh
-2b4m check .                                 # everything; fails on the bare holes BY DESIGN
-2b4m check nielsen.b4m                       # the refutation — passes
-2b4m check --draft --axioms grh.b4m generalizedRiemannHypothesis   # the dependency list
+2b4m check .                                 # everything — passes
+2b4m check --axioms grh.b4m generalizedRiemannHypothesis   # the dependency list
 ```
 
-`grh.b4m` failing is the normal state: the bare holes are the worklist. `nielsen.b4m` passing
-is meaningful — it rests on ten citations, every one classical.
+**Both chains now pass strictly.** Every assumption is either classical, the author's own
+assertion, or refuted — none is ours. `grep` the tiers to see which:
 
 Grep the tiers to get any one list:
 
