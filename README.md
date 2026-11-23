@@ -98,6 +98,9 @@ Chapter 12. The Trace Formula is a real achievement with a real proof; it is the
 
 ## 4. Next steps
 
+These are the next steps for the semi-formalization of the work, which do not necessarily
+incur any LLM-assisted proving or reconciliation.
+
 ### a. Patch the assertions into implications
 
 The 28 `assertion:` entries are the live surface. Each is a step the author states without
