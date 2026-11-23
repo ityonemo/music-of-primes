@@ -275,3 +275,36 @@ proof
       isDiscreteWithCompactSupport(c) -> hasAPeriodizationSection(c)
     [by cite periodizationAdmitsASection]
 qed
+
+// ---------------------------------------------------------------------------------------
+// THE SCHWARTZ KERNEL THEOREM — Appendix C's Thm C.2.4.19.
+//
+// 12.4.1.1's computation turns an integral into an operator by the identification
+// S(X, S(X)'_beta) ~= S(X) tensor-pi S(X)'_beta ~= L_beta(S(X)) (txt 31281-31284, "which is
+// in turn linearly and topologically isomorphic, by Theorem C.2.4.19, to ... L_beta(S(A_F,S))").
+//
+// That is the Schwartz kernel theorem for nuclear spaces, which the manuscript collects in
+// Appendix C ("Preparations on locally convex topological vector spaces"). It is the step
+// that licenses computing with a kernel and reading off an operator, which is what the whole
+// S-local calculation does.
+
+/// a vector-valued Schwartz function, in the role of the computation's K
+sort SchwartzKernelFunction
+/// the continuous linear endomorphism it corresponds to
+oper theCorrespondingEndomorphism(k: SchwartzKernelFunction) => Operator
+/// the correspondence is a linear topological isomorphism at this kernel
+pred correspondsToAnEndomorphism(k: SchwartzKernelFunction)
+
+intheory schwartzKernelsAreEndomorphisms
+
+hole theSchwartzKernelTheorem
+  cites "standard: the Schwartz kernel theorem for nuclear spaces — S(X, S(X)'_beta) is linearly and topologically isomorphic to S(X) tensor-pi S(X)'_beta, hence to L_beta(S(X)), so every such vector-valued Schwartz function IS a continuous linear endomorphism. Treves, Topological Vector Spaces, Distributions and Kernels Thm 51.6 and §50; Grothendieck, Produits tensoriels topologiques Ch. II; Schwartz, Theorie des distributions. The manuscript collects it as Thm C.2.4.19 and applies it at txt 31281-31284":
+  forall k: SchwartzKernelFunction; correspondsToAnEndomorphism(k)
+
+theorem schwartzKernelsAreEndomorphisms:
+  forall k: SchwartzKernelFunction; correspondsToAnEndomorphism(k)
+proof
+  @conclusion |
+    forall k: SchwartzKernelFunction; correspondsToAnEndomorphism(k)
+    [by cite theSchwartzKernelTheorem]
+qed

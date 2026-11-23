@@ -56,6 +56,7 @@ pred isNuclearOn = operator_theory.isNuclearOn
 oper trace = operator_theory.trace
 fact theDiagonalIntegralIsTheIteratedIntegral = haar.theDiagonalIntegralIsTheIteratedIntegral
 fact periodizationHasASection = haar.periodizationHasASection
+fact schwartzKernelsAreEndomorphisms = haar.schwartzKernelsAreEndomorphisms
 
 // ---------------------------------------------------------------------------------------
 // the objects of 12.4.1.1's statement
@@ -209,20 +210,115 @@ hole theExtendedCutoffFamilyExists
   cites "gap: the author's footnote 2 to this proof reads 'Extend Definition 9.3.3.1 so as to allow cutoffs whose support is over (0, lambda] and not only over [1/lambda, lambda]. Return here and change the choice of smooth (lambda, eps)-cutoff into a smoothening of 1_[1/lambda'', lambda] with lambda'' not tied to lambda. Then study the convergence of the integral in (12.4.1.23), with log|w|_{F,S} replaced by log max{|w|_{F,S}/lambda', 1/lambda''}, as lambda', lambda'' -> +infty.' So the definition this proof uses is by his own note NOT YET the one it needs, and the convergence study is outstanding. Footnote 1 to the same proof reads 'Include section.'":
   forall s: PlaceSet; theExtendedCutoffsAreAvailable(s)
 
-/// The computation evaluates to the per-place local integral sum. This is steps 5-7
-/// compressed: the Connes/Meyer trace method, the change of variables w = xu at
-/// (12.4.1.23), and the collection of the result into (12.4.1.1)-(12.4.1.3).
-// TRANSCRIBE: the computation at txt 31213-31460, following [Co, §VII, Thm 4, p.31] (Connes) and [Me1,
-// §3.4, p.19] (Meyer), and citing Thms A.5.3.7, C.2.4.19, C.4.3.5 and Props 5.3.4.44, 12.2.2.2
-// along the way. Written out in the released text; not transcribed here. Its validity is
-// conditional on the extended cutoffs of the author's footnote 2 — see
-// theExtendedCutoffFamilyExists
-hole theComputationGivesTheLocalIntegralSum:
+/// THE COMPUTATION, SPLIT. Steps 5-7 are the ~250-line calculation at txt 31213-31460. Its
+/// classical skeleton is shimmed; what remains is the evaluation itself, which is his.
+///
+/// The classical inputs it cites: the SCHWARTZ KERNEL THEOREM (his Thm C.2.4.19, txt 31281 —
+/// the step that turns the integral into an operator at all), the HARDY-LITTLEWOOD MAXIMAL
+/// THEOREM (his Thm A.5.3.7, already cited in standard/analysis.b4m), and Prop 12.2.2.2 and
+/// Lemma 4.2.1.5, both shimmed above.
+///
+/// What is NOT shimmable, and stays his: the change of variables w = xu at (12.4.1.23) and
+/// the evaluation that collects the result into the per-place sum of (12.4.1.1)-(12.4.1.3).
+/// That is a specific computation in his notation, not an instance of a classical theorem, so
+/// it is an `assertion:` about his calculation rather than a `standard:` citation. Its validity
+/// is conditional on the extended cutoffs his own footnote 2 says are outstanding.
+
+/// the kernel of the computation, as a Schwartz kernel function
+oper theComputationsKernel(s: PlaceSet, f: TestFunction) => haar.SchwartzKernelFunction
+
+hole theEvaluationGivesThePerPlaceSum
+  cites "assertion: the change of variables w = xu at (12.4.1.23) and the evaluation collecting the result into the per-place local integral sum of (12.4.1.1)-(12.4.1.3) is a specific calculation in the manuscript's notation (txt 31406-31460), not an instance of a classical theorem. It is written out in the released text and not transcribed here. CONDITIONAL on the extended cutoff family his own footnote 2 to this proof says is outstanding — see theExtendedCutoffFamilyExists":
+  forall s: PlaceSet; forall f: TestFunction;
+  haar.correspondsToAnEndomorphism(theComputationsKernel(s, f)) ->
+  anInvariantLiftExists(s, f) -> theExtendedCutoffsAreAvailable(s) ->
+  isNuclearOn(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) ->
+  trace(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) =
+  theLocalIntegralSum(s, f)
+
+intheory theComputationGivesTheLocalIntegralSum
+
+/// Strategy: the Schwartz kernel theorem makes the integral an operator; then his evaluation.
+theorem theComputationGivesTheLocalIntegralSum:
   forall s: PlaceSet; forall f: TestFunction;
   anInvariantLiftExists(s, f) -> theExtendedCutoffsAreAvailable(s) ->
   isNuclearOn(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) ->
   trace(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) =
   theLocalIntegralSum(s, f)
+proof
+  @generalize-s |
+    fix s: PlaceSet {
+      @generalize-f |
+        fix f: TestFunction {
+          @given-lift |
+            assume anInvariantLiftExists(s, f) {
+              @lift |
+                anInvariantLiftExists(s, f)
+                [by hypothesis given-lift]
+              @given-cutoffs |
+                assume theExtendedCutoffsAreAvailable(s) {
+                  @cutoffs |
+                    theExtendedCutoffsAreAvailable(s)
+                    [by hypothesis given-cutoffs]
+                  @given-nuclear |
+                    assume isNuclearOn(theTruncatedConvolution(s, f),
+                      theInvariantPaleyWienerLevel) {
+                      @nuclear |
+                        isNuclearOn(theTruncatedConvolution(s, f),
+                          theInvariantPaleyWienerLevel)
+                        [by hypothesis given-nuclear]
+                      // THE SHIM: the Schwartz kernel theorem makes the integral an operator
+                      @the-kernel-is-an-endomorphism |
+                        haar.correspondsToAnEndomorphism(theComputationsKernel(s, f))
+                        [using specialize schwartzKernelsAreEndomorphisms(
+                          theComputationsKernel(s, f))]
+                      @conclusion-the-evaluation |
+                        trace(theTruncatedConvolution(s, f),
+                          theInvariantPaleyWienerLevel) = theLocalIntegralSum(s, f)
+                        [using specialize theEvaluationGivesThePerPlaceSum(s, f)
+                          the-kernel-is-an-endomorphism lift cutoffs nuclear]
+                    }
+                  @nuclear-implies-the-sum |
+                    isNuclearOn(theTruncatedConvolution(s, f),
+                      theInvariantPaleyWienerLevel) ->
+                      trace(theTruncatedConvolution(s, f),
+                      theInvariantPaleyWienerLevel) = theLocalIntegralSum(s, f)
+                    [by discharge given-nuclear]
+                }
+              @cutoffs-imply-the-sum |
+                theExtendedCutoffsAreAvailable(s) ->
+                  (isNuclearOn(theTruncatedConvolution(s, f),
+                  theInvariantPaleyWienerLevel) ->
+                  trace(theTruncatedConvolution(s, f),
+                  theInvariantPaleyWienerLevel) = theLocalIntegralSum(s, f))
+                [by discharge given-cutoffs]
+            }
+          @lift-implies-the-sum |
+            anInvariantLiftExists(s, f) ->
+              (theExtendedCutoffsAreAvailable(s) ->
+              (isNuclearOn(theTruncatedConvolution(s, f),
+              theInvariantPaleyWienerLevel) ->
+              trace(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) =
+              theLocalIntegralSum(s, f)))
+            [by discharge given-lift]
+        }
+      @discharge-f |
+        forall f: TestFunction;
+          anInvariantLiftExists(s, f) ->
+          (theExtendedCutoffsAreAvailable(s) ->
+          (isNuclearOn(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) ->
+          trace(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) =
+          theLocalIntegralSum(s, f)))
+        [by generalize generalize-f]
+    }
+  @conclusion |
+    forall s: PlaceSet; forall f: TestFunction;
+      anInvariantLiftExists(s, f) -> theExtendedCutoffsAreAvailable(s) ->
+      isNuclearOn(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) ->
+      trace(theTruncatedConvolution(s, f), theInvariantPaleyWienerLevel) =
+      theLocalIntegralSum(s, f)
+    [by generalize generalize-s]
+qed
 
 /// THE KERNEL INTEGRAL IS THE TRACE — DERIVED from the Haar-integration shim, the same
 /// Prop 12.2.2.2 that Theorem 11.3.2.1 uses. This was a bare hole; it is now a theorem over
