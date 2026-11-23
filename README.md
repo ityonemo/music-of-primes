@@ -13,11 +13,28 @@ author asserts, and what he still owes.
 **Status:** `2b4m check .` passes. **Five logical defects in the argument are catalogued,
 and one of them breaks the deduction of GRH** — see §3.
 
-**Checked against 2b4m
-[`aa4b28f`](https://github.com/ityonemo/2b4m/commit/aa4b28f) (2026-11-20), built with Zig
-0.16.** 2b4m is under active development and its surface syntax is not yet stable, so these
-files are pinned to that checkout. If they fail to parse against a later version, the language
-moved — check the 2b4m repo's history rather than the mathematics here.
+> ### Running it
+>
+> Checked against 2b4m [`aa4b28f`](https://github.com/ityonemo/2b4m/commit/aa4b28f)
+> (2026-11-20), built with **Zig 0.16** (`build.zig.zon` declares
+> `minimum_zig_version = "0.16.0"`).
+>
+> ```sh
+> zig version                                  # 0.16.0
+> git clone https://github.com/ityonemo/2b4m && cd 2b4m
+> git checkout aa4b28f && zig build
+>
+> cd /path/to/music-of-primes
+> /path/to/2b4m/2b4m check .                   # passes
+> ```
+>
+> 2b4m is under active development and its surface syntax is not yet stable, so these files
+> are pinned to that checkout. If they stop parsing against a later version, the language
+> moved — check the 2b4m repo's history, not the mathematics here.
+>
+> (2b4m's own `examples/music-of-primes` is a submodule of this repo, so a checkout of
+> `aa4b28f` carries an older snapshot of these files. Clone this repo separately and point
+> the pinned binary at it.)
 
 ---
 
@@ -67,23 +84,13 @@ from…"* — collected textbook material rather than his contribution. Citing t
 reproving them is what makes the task finite, and it understates the ratio, since appendix
 material enters that count only where it is cited by id.
 
-Build the pinned checker — it needs **Zig 0.16** (`build.zig.zon` declares
-`minimum_zig_version = "0.16.0"`) — then run it against this repo:
+Reproduce the table, or pull out any one tier:
 
 ```sh
-zig version                                   # 0.16.0
-git clone https://github.com/ityonemo/2b4m && cd 2b4m
-git checkout aa4b28f && zig build             # the checker these files were written for
-cd /path/to/music-of-primes
-
-/path/to/2b4m/2b4m check .                    # everything — passes
-/path/to/2b4m/2b4m check --axioms grh.b4m generalizedRiemannHypothesis
-grep -rn 'cites "assertion:' .                # the 28 candidates to close
+2b4m check --axioms grh.b4m generalizedRiemannHypothesis
+grep -rn 'cites "assertion:' .                # the candidates to close
+grep -rn 'cites "refuted:'   .                # the two false steps
 ```
-
-(2b4m's own `examples/music-of-primes` is a submodule of this repo, so a checkout of
-`aa4b28f` carries an older snapshot of these files — clone this repo separately and point the
-pinned binary at it.)
 
 **`--axioms` is the deliverable, not the green checkmark.** Read the statements it lists, not
 their names.
