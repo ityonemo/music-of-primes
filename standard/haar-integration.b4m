@@ -97,8 +97,8 @@ theorem theDiagonalIntegralIsTheIteratedIntegral:
 proof
   @conclusion |
     forall u: QuotientKernel; forall g: LcaGroup; forall h: DiscreteSubgroup;
-    satisfiesSituation(g, h) -> hasAnIndentation(g, h) ->
-    almostEveryDiagonalPointIsRegular(u) -> theDiagonalIsAbsolutelyIntegrable(u) ->
-    theDiagonalIntegral(u) = theIteratedIndentedIntegral(theIndentation(u, g, h))
+      satisfiesSituation(g, h) -> hasAnIndentation(g, h) ->
+      almostEveryDiagonalPointIsRegular(u) -> theDiagonalIsAbsolutelyIntegrable(u) ->
+      theDiagonalIntegral(u) = theIteratedIndentedIntegral(theIndentation(u, g, h))
     [by cite thediagonalIntegralIdentity]
 qed

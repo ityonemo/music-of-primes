@@ -46,6 +46,7 @@
 
 theory vocab <<< "../shared/vocabulary.b4m"
 theory operator_theory <<< "operator-theory.b4m"
+theory haar <<< "haar-integration.b4m"
 
 sort TestFunction = vocab.TestFunction
 sort Quantity = vocab.Quantity
@@ -62,6 +63,7 @@ pred inducesAContinuousOperator = operator_theory.inducesAContinuousOperator
 oper operatorOf = operator_theory.operatorOf
 oper trace = operator_theory.trace
 fact nuclearLimitsAreNuclear = operator_theory.nuclearLimitsAreNuclear
+fact theDiagonalIntegralIsTheIteratedIntegral = haar.theDiagonalIntegralIsTheIteratedIntegral
 
 // ---------------------------------------------------------------------------------------
 // the objects of 11.3.2.1's statement
@@ -177,19 +179,187 @@ hole theOperatorIsANuclearLimitOfFiniteRanks:
   thePaleyWienerLevel)
 
 /// The orbital integral EQUALS that operator's trace. This is the other half of what
-/// Prop 12.2.2.2 supplies: not merely that the kernel induces a continuous operator, but
-/// that the convergent integral (11.3.2.3) IS its trace. Stated as an equation, because the
-/// final assembly substitutes through it.
-// TRANSCRIBE: Proposition 12.2.2.2, Ch. 12 §12.2.2 — 'the value (11.3.2.3) equals the value of the trace
-// of the nuclear operator on W_I^s(C_F) which is the unique continuous extension that the
-// kernel induces' (txt 29991-30008). Stated and proved in the released text
-hole theOrbitalIntegralIsTheTrace:
+/// THE ORBITAL INTEGRAL IS THE TRACE — DERIVED from the Haar-integration shim rather than
+/// assumed. Prop 12.2.2.2 identifies a diagonal kernel integral with the iterated integral
+/// of its indentation; the manuscript's step (txt 29991-30008) reads the orbital integral as
+/// the former and the operator trace as the latter. With the shim stating that identity, this
+/// becomes a substitution the kernel checks.
+///
+/// WHAT MOVED AND WHAT DID NOT. This was a BARE hole — a transcription task, since the
+/// manuscript proves Prop 12.2.2.2 at txt 30775-30998. It is now a theorem over
+/// `standard/haar-integration.b4m`, whose own content is a single `standard:` citation to
+/// classical quotient-measure theory (Folland, Hewitt-Ross, Bourbaki). What remains ours is
+/// only the two READINGS below: that the manuscript's sum-over-xi integral is a diagonal
+/// integral in 12.2.2.2's sense, and that the nuclear trace is the iterated one. Those are
+/// his identifications of the two settings, so they are `assertion:`.
+///
+/// Net: one transcription task becomes one classical citation plus two located assertions.
+
+/// the stratum's kernel, viewed as a quotient kernel in Prop 12.2.2.2's sense
+oper theStratumQuotientKernel(k: StratumIndex, f: TestFunction) => haar.QuotientKernel
+/// the ambient group and discrete subgroup of the §11.3 setting
+const theIdeleClassGroup: haar.LcaGroup
+const theRationalLattice: haar.DiscreteSubgroup
+
+hole thePropositionsHypothesesHold
+  cites "assertion: that the manuscript's §11.3 setting satisfies Situation 12.2.2.1, carries an indentation (his u_0 of (11.3.2.2)), and has almost every diagonal point regular with an absolutely integrable diagonal, is what applying Prop 12.2.2.2 at txt 29991-30008 presumes. He applies it without restating the hypotheses":
   forall k: StratumIndex; forall f: TestFunction;
+  haar.satisfiesSituation(theIdeleClassGroup, theRationalLattice) and
+  haar.hasAnIndentation(theIdeleClassGroup, theRationalLattice) and
+  haar.almostEveryDiagonalPointIsRegular(theStratumQuotientKernel(k, f)) and
+  haar.theDiagonalIsAbsolutelyIntegrable(theStratumQuotientKernel(k, f))
+
+hole theOrbitalIntegralAndTraceAreTheTwoSides
+  cites "assertion: the manuscript equates the orbital integral with Prop 12.2.2.2's diagonal integral and the nuclear operator's trace with its iterated integral — 'the value (11.3.2.3) equals the value of the trace of the nuclear operator on W_I^s(C_F) which is the unique continuous extension that the kernel induces' (txt 29991-30008). Those two readings are his identification of the two settings, stated rather than argued":
+  forall k: StratumIndex; forall f: TestFunction;
+  inducesAContinuousOperator(theIndentedStratumKernel(k, f), thePaleyWienerLevel) ->
+  isNuclearOn(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+  thePaleyWienerLevel) ->
+  (theOrbitalIntegral(k, f) = haar.theDiagonalIntegral(theStratumQuotientKernel(k, f)) and
+  trace(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+  thePaleyWienerLevel) =
+  haar.theIteratedIndentedIntegral(
+  haar.theIndentation(theStratumQuotientKernel(k, f), theIdeleClassGroup,
+  theRationalLattice)))
+
+intheory theOrbitalIntegralIsTheTrace
+
+/// Strategy: get Prop 12.2.2.2's hypotheses, apply the shim for diagonal = iterated, read
+/// both sides into the manuscript's names, and substitute.
+theorem theOrbitalIntegralIsTheTrace:
+  forall k: StratumIndex; forall f: TestFunction;
+  inducesAContinuousOperator(theIndentedStratumKernel(k, f), thePaleyWienerLevel) ->
   isNuclearOn(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
   thePaleyWienerLevel) ->
   theOrbitalIntegral(k, f) =
   trace(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
   thePaleyWienerLevel)
+proof
+  @generalize-k |
+    fix k: StratumIndex {
+      @generalize-f |
+        fix f: TestFunction {
+          @given-induces |
+            assume inducesAContinuousOperator(theIndentedStratumKernel(k, f),
+              thePaleyWienerLevel) {
+              @induces |
+                inducesAContinuousOperator(theIndentedStratumKernel(k, f),
+                  thePaleyWienerLevel)
+                [by hypothesis given-induces]
+              @given-nuclear |
+                assume isNuclearOn(
+                  operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+                  thePaleyWienerLevel) {
+                  @nuclear |
+                    isNuclearOn(
+                      operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+                      thePaleyWienerLevel)
+                    [by hypothesis given-nuclear]
+                  @the-hypotheses-hold |
+                    haar.satisfiesSituation(theIdeleClassGroup, theRationalLattice) and
+                      haar.hasAnIndentation(theIdeleClassGroup, theRationalLattice) and
+                      haar.almostEveryDiagonalPointIsRegular(
+                      theStratumQuotientKernel(k, f)) and
+                      haar.theDiagonalIsAbsolutelyIntegrable(
+                      theStratumQuotientKernel(k, f))
+                    [using specialize thePropositionsHypothesesHold(k, f)]
+                  @situation |
+                    haar.satisfiesSituation(theIdeleClassGroup, theRationalLattice)
+                    [using tautology the-hypotheses-hold]
+                  @indentation |
+                    haar.hasAnIndentation(theIdeleClassGroup, theRationalLattice)
+                    [using tautology the-hypotheses-hold]
+                  @regular |
+                    haar.almostEveryDiagonalPointIsRegular(
+                      theStratumQuotientKernel(k, f))
+                    [using tautology the-hypotheses-hold]
+                  @integrable |
+                    haar.theDiagonalIsAbsolutelyIntegrable(
+                      theStratumQuotientKernel(k, f))
+                    [using tautology the-hypotheses-hold]
+                  // THE SHIM: Prop 12.2.2.2's conclusion, cited to classical measure theory
+                  @diagonal-is-iterated |
+                    haar.theDiagonalIntegral(theStratumQuotientKernel(k, f)) =
+                      haar.theIteratedIndentedIntegral(
+                      haar.theIndentation(theStratumQuotientKernel(k, f),
+                      theIdeleClassGroup, theRationalLattice))
+                    [using specialize theDiagonalIntegralIsTheIteratedIntegral(
+                      theStratumQuotientKernel(k, f), theIdeleClassGroup,
+                      theRationalLattice) situation indentation regular integrable]
+                  @the-two-readings |
+                    theOrbitalIntegral(k, f) =
+                      haar.theDiagonalIntegral(theStratumQuotientKernel(k, f)) and
+                      trace(operatorOf(theIndentedStratumKernel(k, f),
+                      thePaleyWienerLevel), thePaleyWienerLevel) =
+                      haar.theIteratedIndentedIntegral(
+                      haar.theIndentation(theStratumQuotientKernel(k, f),
+                      theIdeleClassGroup, theRationalLattice))
+                    [using specialize theOrbitalIntegralAndTraceAreTheTwoSides(k, f)
+                      induces nuclear]
+                  @orbital-is-diagonal |
+                    theOrbitalIntegral(k, f) =
+                      haar.theDiagonalIntegral(theStratumQuotientKernel(k, f))
+                    [by and_lhs the-two-readings]
+                  @trace-is-iterated |
+                    trace(operatorOf(theIndentedStratumKernel(k, f),
+                      thePaleyWienerLevel), thePaleyWienerLevel) =
+                      haar.theIteratedIndentedIntegral(
+                      haar.theIndentation(theStratumQuotientKernel(k, f),
+                      theIdeleClassGroup, theRationalLattice))
+                    [by and_rhs the-two-readings]
+                  @orbital-is-iterated |
+                    theOrbitalIntegral(k, f) =
+                      haar.theIteratedIndentedIntegral(
+                      haar.theIndentation(theStratumQuotientKernel(k, f),
+                      theIdeleClassGroup, theRationalLattice))
+                    [by rewrite diagonal-is-iterated orbital-is-diagonal]
+                  @conclusion-the-integral-is-the-trace |
+                    theOrbitalIntegral(k, f) =
+                      trace(operatorOf(theIndentedStratumKernel(k, f),
+                      thePaleyWienerLevel), thePaleyWienerLevel)
+                    [by rewrite trace-is-iterated orbital-is-iterated]
+                }
+              @nuclear-implies-the-identity |
+                isNuclearOn(
+                  operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+                  thePaleyWienerLevel) ->
+                  theOrbitalIntegral(k, f) =
+                  trace(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+                  thePaleyWienerLevel)
+                [by discharge given-nuclear]
+            }
+          @induces-implies-the-identity |
+            inducesAContinuousOperator(theIndentedStratumKernel(k, f),
+              thePaleyWienerLevel) ->
+              (isNuclearOn(
+              operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+              thePaleyWienerLevel) ->
+              theOrbitalIntegral(k, f) =
+              trace(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+              thePaleyWienerLevel))
+            [by discharge given-induces]
+        }
+      @discharge-f |
+        forall f: TestFunction;
+          inducesAContinuousOperator(theIndentedStratumKernel(k, f),
+          thePaleyWienerLevel) ->
+          (isNuclearOn(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+          thePaleyWienerLevel) ->
+          theOrbitalIntegral(k, f) =
+          trace(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+          thePaleyWienerLevel))
+        [by generalize generalize-f]
+    }
+  @conclusion |
+    forall k: StratumIndex; forall f: TestFunction;
+      inducesAContinuousOperator(theIndentedStratumKernel(k, f), thePaleyWienerLevel) ->
+      (isNuclearOn(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+      thePaleyWienerLevel) ->
+      theOrbitalIntegral(k, f) =
+      trace(operatorOf(theIndentedStratumKernel(k, f), thePaleyWienerLevel),
+      thePaleyWienerLevel))
+    [by generalize generalize-k]
+qed
 
 // ---------------------------------------------------------------------------------------
 // STEP 7: the limit value, and Poisson summation.
@@ -293,7 +463,7 @@ proof
                           trace(operatorOf(theIndentedStratumKernel(k, f),
                           thePaleyWienerLevel), thePaleyWienerLevel)
                         [using specialize theOrbitalIntegralIsTheTrace(k, f)
-                          the-operator-is-nuclear]
+                          the-kernel-induces-an-operator the-operator-is-nuclear]
                       @the-integral-is-the-zero-side |
                         theOrbitalIntegral(k, f) = theZeroSideValue(f)
                         [by rewrite the-trace-is-the-zero-side the-integral-is-the-trace]
