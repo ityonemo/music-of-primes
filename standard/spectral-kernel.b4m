@@ -137,16 +137,103 @@ oper theSpectralOperator(f: TestFunction) => Operator
 /// the ambient space on which both act
 const theSpectralLevel: HardySobolevSpace
 
-/// Theorem 10.4.2.8 (Spectral side: convolution after projection), txt 27947. The traces
-/// agree up to o(1) as Lambda -> +infty in the regime eps*Lambda = o(1).
-// TRANSCRIBE: Theorem 10.4.2.8 (txt 27947), stated and proved in the released text over ~180 lines. The
-// proof lifts a Spectral Markushevich basis (Thm 10.2.2.1), uses the S1 = S2 norm identity for
-// finite-rank operators (citing [Cnw-b, Ch.3, §18, Thm 18.13, p.91]), and estimates the
-// integral (10.4.2.26) in the regime eps*Lambda = o(1). Its trace is computed by Theorem
-// 10.3.2.1's formula (10.3.2.3). Not transcribed here
-hole theProjectedTraceIsTheSpectralTrace:
+/// THEOREM 10.4.2.8 — derived over Lidskii's theorem. "Trace(M_rho o A(phi) o P_a^spec) =
+/// Trace(A_a^spec(phi)) + o(1) as Lambda -> +infinity" (txt 27950), in the regime
+/// eps*Lambda = o(1).
+///
+/// Both operators are nuclear, so each trace IS its spectral sum (Lidskii, classical). The
+/// manuscript's content is therefore that the two SPECTRA agree in the limit — which is what
+/// his ~180-line proof establishes, by lifting a Spectral Markushevich basis (Thm 10.2.2.1),
+/// using the S1 = S2 norm identity for finite-rank operators (he cites Conway Ch.3 §18
+/// Thm 18.13), and estimating the integral (10.4.2.26).
+///
+/// So this splits as: Lidskii twice, cited; the spectral agreement, his assertion.
+
+theory haar <<< "haar-integration.b4m"
+fact theTraceIsTheSpectralSum = haar.theTraceIsTheSpectralSum
+pred hasAnAbsolutelySummableSpectrum = haar.hasAnAbsolutelySummableSpectrum
+
+hole theTwoSpectraAgreeInTheLimit
+  cites "assertion: Thm 10.4.2.8's content is that the projected convolution and the spectral operator have the same spectral sum in the limit regime eps*Lambda = o(1) — his proof (txt 27950-28130) establishes it via a Markushevich basis lift and an estimate of (10.4.2.26), and states the conclusion with an o(1) term rather than exhibiting the two spectra as equal. Reading the o(1) comparison as an equality of spectral sums is this encoding's simplification, since no asymptotics are modelled at this altitude":
+  forall f: TestFunction;
+  haar.theSpectralSum(theProjectedConvolution(f)) =
+  haar.theSpectralSum(theSpectralOperator(f))
+
+intheory theProjectedTraceIsTheSpectralTrace
+
+/// Strategy: Lidskii on each operator, then the manuscript's spectral agreement, then
+/// substitute both ways.
+theorem theProjectedTraceIsTheSpectralTrace:
   forall f: TestFunction;
   isNuclearOn(theProjectedConvolution(f), theSpectralLevel) ->
-  isNuclearOn(theSpectralOperator(f), theSpectralLevel) ->
+  (isNuclearOn(theSpectralOperator(f), theSpectralLevel) ->
   trace(theProjectedConvolution(f), theSpectralLevel) =
-  trace(theSpectralOperator(f), theSpectralLevel)
+  trace(theSpectralOperator(f), theSpectralLevel))
+proof
+  @generalize-f |
+    fix f: TestFunction {
+      @given-projected-nuclear |
+        assume isNuclearOn(theProjectedConvolution(f), theSpectralLevel) {
+          @projected-nuclear |
+            isNuclearOn(theProjectedConvolution(f), theSpectralLevel)
+            [by hypothesis given-projected-nuclear]
+          @given-spectral-nuclear |
+            assume isNuclearOn(theSpectralOperator(f), theSpectralLevel) {
+              @spectral-nuclear |
+                isNuclearOn(theSpectralOperator(f), theSpectralLevel)
+                [by hypothesis given-spectral-nuclear]
+              @lidskii-projected |
+                hasAnAbsolutelySummableSpectrum(theProjectedConvolution(f)) and
+                  trace(theProjectedConvolution(f), theSpectralLevel) =
+                  haar.theSpectralSum(theProjectedConvolution(f))
+                [using specialize theTraceIsTheSpectralSum(theProjectedConvolution(f),
+                  theSpectralLevel) projected-nuclear]
+              @projected-trace-is-its-spectral-sum |
+                trace(theProjectedConvolution(f), theSpectralLevel) =
+                  haar.theSpectralSum(theProjectedConvolution(f))
+                [by and_rhs lidskii-projected]
+              @lidskii-spectral |
+                hasAnAbsolutelySummableSpectrum(theSpectralOperator(f)) and
+                  trace(theSpectralOperator(f), theSpectralLevel) =
+                  haar.theSpectralSum(theSpectralOperator(f))
+                [using specialize theTraceIsTheSpectralSum(theSpectralOperator(f),
+                  theSpectralLevel) spectral-nuclear]
+              @spectral-trace-is-its-spectral-sum |
+                trace(theSpectralOperator(f), theSpectralLevel) =
+                  haar.theSpectralSum(theSpectralOperator(f))
+                [by and_rhs lidskii-spectral]
+              @the-spectra-agree |
+                haar.theSpectralSum(theProjectedConvolution(f)) =
+                  haar.theSpectralSum(theSpectralOperator(f))
+                [using specialize theTwoSpectraAgreeInTheLimit(f)]
+              @projected-trace-is-the-spectral-sum |
+                trace(theProjectedConvolution(f), theSpectralLevel) =
+                  haar.theSpectralSum(theSpectralOperator(f))
+                [by rewrite the-spectra-agree projected-trace-is-its-spectral-sum]
+              @conclusion-the-traces-agree |
+                trace(theProjectedConvolution(f), theSpectralLevel) =
+                  trace(theSpectralOperator(f), theSpectralLevel)
+                [by rewrite spectral-trace-is-its-spectral-sum
+                  projected-trace-is-the-spectral-sum]
+            }
+          @spectral-nuclear-implies-agreement |
+            isNuclearOn(theSpectralOperator(f), theSpectralLevel) ->
+              trace(theProjectedConvolution(f), theSpectralLevel) =
+              trace(theSpectralOperator(f), theSpectralLevel)
+            [by discharge given-spectral-nuclear]
+        }
+      @projected-nuclear-implies-agreement |
+        isNuclearOn(theProjectedConvolution(f), theSpectralLevel) ->
+          (isNuclearOn(theSpectralOperator(f), theSpectralLevel) ->
+          trace(theProjectedConvolution(f), theSpectralLevel) =
+          trace(theSpectralOperator(f), theSpectralLevel))
+        [by discharge given-projected-nuclear]
+    }
+  @conclusion |
+    forall f: TestFunction;
+      isNuclearOn(theProjectedConvolution(f), theSpectralLevel) ->
+      (isNuclearOn(theSpectralOperator(f), theSpectralLevel) ->
+      trace(theProjectedConvolution(f), theSpectralLevel) =
+      trace(theSpectralOperator(f), theSpectralLevel))
+    [by generalize generalize-f]
+qed
