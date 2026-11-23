@@ -40,7 +40,7 @@
 //
 // The honest summary: the SEQUENCE of the author's argument is recorded and checked; the
 // CONTENT of each step is assumed. Closing that gap means defining the predicates, which
-// needs the measure theory and functional analysis WHAT-IT-WOULD-TAKE.md measures.
+// needs real measure theory and functional analysis, which this encoding does not build.
 //
 // ALTITUDE: opaque. No measure theory, no topology. These are the INTERFACES.
 

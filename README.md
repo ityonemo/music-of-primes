@@ -61,9 +61,11 @@ up — without pretending the analysis is verified.
 | `refuted:` | 2 | the author's — false as written |
 | definitional | 7 | introduce symbols, not assumptions |
 
-Roughly half the dependency closure (211 of 429 results) sits in appendices the author titles
-*"Preparations from…"* — textbook material, cited rather than reproved, which is what makes
-the job finite.
+**Roughly half the job is citation, not proof.** The transitive closure of the Trace Formula
+is 429 results; 211 of them (49%) sit in appendices the author himself titles *"Preparations
+from…"* — collected textbook material rather than his contribution. Citing those rather than
+reproving them is what makes the task finite, and it understates the ratio, since appendix
+material enters that count only where it is cited by id.
 
 Build the pinned checker, then run it against this repo:
 
@@ -145,9 +147,9 @@ library](https://github.com/ityonemo/2b4m/tree/main/std), turning a citation int
 The dependency shape is already right for this. A `standard:` hole presents a fixed interface
 to its consumers, so replacing its citation with a proof changes nothing downstream — which is
 what made citing-first reversible rather than a shortcut. The order to attack it in is cheapest
-first: the order and arithmetic facts are reachable from `std/real.b4m` today; Haar measure,
-nuclear operators and trace-class theory are a foundations project, measured in
-[`WHAT-IT-WOULD-TAKE.md`](WHAT-IT-WOULD-TAKE.md).
+first: the order and arithmetic facts are reachable from `std/real.b4m` today, while Haar
+measure, nuclear operators and trace-class theory are a foundations project in their own
+right.
 
 Done fully, the artifact would rest on nothing but `std` and the author's own assertions — and
 the second list is the one worth sending him.
@@ -164,7 +166,5 @@ the second list is the one worth sending him.
 | `nielsen-objection/`, `standard/`, `shared/` | dependencies: her two propositions; the classical tier; shared vocabulary |
 | [`LOGICAL-FINDINGS.md`](LOGICAL-FINDINGS.md) | the five defects, with line references |
 | `DEPENDENCY-MAP.md` | the full frontier, with manuscript locations |
-| `ASSESSMENT.md` | what the draft contains, chapter by chapter |
-| `WHAT-IT-WOULD-TAKE.md` | measured scope of a real formalization |
 | `the-music-of-the-primes.{pdf,txt}` | the draft; the text extraction citations index by line |
 | `NIEIOM.pdf` | Nielsen, *A Failure of Uniform Boundedness…* (Nov 2026) |

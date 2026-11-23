@@ -299,8 +299,7 @@ which checks nothing and makes the artifact look deeper than it is.
 
 The honest statement: the STRUCTURE of the derivation from Trace Formula to GRH is
 machine-checked end to end. The ANALYSIS underneath it is cited, and closing it needs the
-measure theory and functional analysis [`WHAT-IT-WOULD-TAKE.md`](WHAT-IT-WOULD-TAKE.md)
-measures.
+measure theory and functional analysis that would require.
 
 ### The `assertion:` tier (18) — where the author asserts rather than proves
 
