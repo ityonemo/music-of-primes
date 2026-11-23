@@ -70,6 +70,12 @@ about topological vector spaces.
 Unresolved `??` cross-references appear on **14 lines**, six of them in labelled form
 (3 × `Theorem ??`, 2 × `Lemma ??`, 1 × `Definition ??`).
 
+`LOGICAL-FINDINGS.md` has the structural pass in full: the positivity contradiction, the
+footnote-flagged incompleteness inside Thm 12.4.1.1, the stale §5.1 reference, and the false
+set identification — each with the quotations and line numbers to check it. Also what the pass
+did NOT find, which bounds the rest: no circularity, and the Trace Formula's own derivation is
+sound as structure.
+
 See `DEPENDENCY-MAP.md` for the full frontier and `ASSESSMENT.md` for the chapter-by-chapter
 evidence.
 
@@ -190,6 +196,7 @@ Two top-level chains, each with its dependencies in a subdirectory:
 
 | document | |
 |---|---|
+| `LOGICAL-FINDINGS.md` | **the structural pass** — four defects in the argument's logic, each verified with line references |
 | `DEPENDENCY-MAP.md` | the current frontier — who owes what, with manuscript locations |
 | `ASSESSMENT.md` | what the draft contains, chapter by chapter with page counts |
 | `WHAT-IT-WOULD-TAKE.md` | measured scope of a real formalization |

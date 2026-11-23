@@ -1,0 +1,104 @@
+// The `standard:` tier — HAAR MEASURE AND THE DIAGONAL INTEGRAL.
+//
+// WHY THIS FILE EXISTS. Three of the bare holes under Theorems 11.3.2.1 and 12.4.1.1 consume
+// the SAME result — Proposition 12.2.2.2, which identifies a diagonal kernel integral with an
+// operator trace. Rather than leave three separate transcription tasks, this file declares the
+// interface that proposition presents and states its conclusions, so each consumer becomes a
+// derivation from a shared, cited foundation.
+//
+// WHAT THIS IS. A SHIM over measure theory on locally compact abelian groups. The sorts are
+// opaque — no topology, no sigma-algebras, no construction of Haar measure — but the
+// STATEMENTS are the real ones, written in the manuscript's own terms, with classical sources.
+// A reader who grants Haar integration gets everything below.
+//
+// WHY A SHIM IS LEGITIMATE HERE, AND WHEN IT WOULD NOT BE. The test is not whether the sorts
+// carry structure; it is whether the STEPS CHECK. A shim earns its place when its statements
+// are the ones the argument actually uses and its consumers derive from them. It degenerates
+// into GLUE when a hole relates two opaque predicates that mean the same thing at this
+// altitude, moving an assumption while checking nothing. The difference is visible: below,
+// every consumer gets an EQUATION between named terms that the kernel substitutes through,
+// not an implication between opaque predicates.
+//
+// Prop 12.2.2.2 itself (txt 30712-30998, ~290 lines) is Fubini-type interchange on G x H plus
+// regularity of diagonal points. That proof is not transcribed; its CONCLUSIONS are stated.
+
+// ---------------------------------------------------------------------------------------
+// the setting of Prop 12.2.2.2 / Situation 12.2.2.1
+// ---------------------------------------------------------------------------------------
+
+/// a second countable Hausdorff locally compact abelian group — the manuscript's G
+sort LcaGroup
+
+/// a discrete subgroup H of such a group
+sort DiscreteSubgroup
+
+/// a measurable function on the quotient G/H x G/H, in the role of the manuscript's u
+sort QuotientKernel
+
+/// a kernel on G x G obtained by indenting along u_0 — the manuscript's Psi^Delta_{u_0}(u)
+sort IndentedKernel
+
+/// a value of an integral, or of a trace. Shared with the trace-formula layer by ORIGIN:
+/// this is `Quantity` from shared/vocabulary.b4m, so an equation proved here substitutes
+/// into a proof there. Declaring a fresh sort would make them different sorts that merely
+/// look alike.
+theory vocab <<< "../shared/vocabulary.b4m"
+sort Quantity = vocab.Quantity
+
+/// the group-with-subgroup pair satisfies Situation 12.2.2.1's conditions
+pred satisfiesSituation(g: LcaGroup, h: DiscreteSubgroup)
+
+/// u_0 is an H-indentation on G
+pred hasAnIndentation(g: LcaGroup, h: DiscreteSubgroup)
+
+/// almost every diagonal point is REGULAR for u, in the Lebesgue-differentiation sense of
+/// (12.2.2.9): the averages over shrinking neighbourhoods converge
+pred almostEveryDiagonalPointIsRegular(u: QuotientKernel)
+
+/// u's diagonal restriction is absolutely integrable over G/H
+pred theDiagonalIsAbsolutelyIntegrable(u: QuotientKernel)
+
+/// the indentation of u along u_0
+oper theIndentation(u: QuotientKernel, g: LcaGroup, h: DiscreteSubgroup) => IndentedKernel
+
+/// int_{G/H} u~(x,x) dmu_{G/H}(x) — the DIAGONAL INTEGRAL, the left side of (12.2.2.4)
+oper theDiagonalIntegral(u: QuotientKernel) => Quantity
+
+/// the iterated integral of the indented kernel over G x H — the right side of (12.2.2.4)
+oper theIteratedIndentedIntegral(k: IndentedKernel) => Quantity
+
+intheory theDiagonalIntegralIsTheIteratedIntegral
+
+// ---------------------------------------------------------------------------------------
+// PROP 12.2.2.2's CONCLUSION, cited. This is (12.2.2.4)-(12.2.2.7): the diagonal integral
+// equals the iterated integral of the indented kernel, with all four orders agreeing.
+// ---------------------------------------------------------------------------------------
+
+/// Proposition 12.2.2.2(2), txt 30729-30744. Under the stated hypotheses the two-fold
+/// integrals converge absolutely and the diagonal integral equals the iterated one.
+///
+/// The manuscript PROVES this (txt 30775-30998). It is cited rather than transcribed because
+/// the proof is Fubini-type interchange on G x H together with Lebesgue differentiation at
+/// regular diagonal points, which needs Haar measure and integration this encoding does not
+/// build. What is used downstream is exactly the EQUATION, which is stated faithfully.
+hole thediagonalIntegralIdentity
+  cites "standard: Fubini-Tonelli for the iterated integral over G x H with H discrete and mu_H counting measure, plus Lebesgue differentiation at regular points of the diagonal — Folland, A Course in Abstract Harmonic Analysis §2.5 (Weil's formula / quotient integral formula); Hewitt-Ross, Abstract Harmonic Analysis I §15, §28; Bourbaki, Integration Ch. IV §5 and Ch. VII (quotient measures). The manuscript collects it as Prop 12.2.2.2 and proves it at txt 30775-30998, citing Thm D.1.2.1 for the quotient Haar measure; the result itself is classical":
+  forall u: QuotientKernel; forall g: LcaGroup; forall h: DiscreteSubgroup;
+  satisfiesSituation(g, h) -> hasAnIndentation(g, h) ->
+  almostEveryDiagonalPointIsRegular(u) -> theDiagonalIsAbsolutelyIntegrable(u) ->
+  theDiagonalIntegral(u) = theIteratedIndentedIntegral(theIndentation(u, g, h))
+
+/// and the shim's export: the identity in the form consumers use.
+theorem theDiagonalIntegralIsTheIteratedIntegral:
+  forall u: QuotientKernel; forall g: LcaGroup; forall h: DiscreteSubgroup;
+  satisfiesSituation(g, h) -> hasAnIndentation(g, h) ->
+  almostEveryDiagonalPointIsRegular(u) -> theDiagonalIsAbsolutelyIntegrable(u) ->
+  theDiagonalIntegral(u) = theIteratedIndentedIntegral(theIndentation(u, g, h))
+proof
+  @conclusion |
+    forall u: QuotientKernel; forall g: LcaGroup; forall h: DiscreteSubgroup;
+    satisfiesSituation(g, h) -> hasAnIndentation(g, h) ->
+    almostEveryDiagonalPointIsRegular(u) -> theDiagonalIsAbsolutelyIntegrable(u) ->
+    theDiagonalIntegral(u) = theIteratedIndentedIntegral(theIndentation(u, g, h))
+    [by cite thediagonalIntegralIdentity]
+qed
