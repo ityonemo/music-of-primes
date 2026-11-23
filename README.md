@@ -92,6 +92,12 @@ surfaces defects of this kind because encoding a step forces its justification t
 *located*, and a step whose justification cannot be located becomes a hole the checker will
 not pass.
 
+**The draft was released in haste** — the announcement says the plan had been a year at
+Stanford to polish it first — and it carries 34 of the author's own to-do markers (`Finish!`,
+`Insert statement`, `Return here`). Several of the issues above may therefore already be
+settled by Masullo and his associates, in notes not in the released text. This catalogue
+records what the *released draft* supports, which is the only thing a reader can check.
+
 **None of this disproves GRH**, and none of it impugns the 513 completed proofs beneath
 Chapter 12. The Trace Formula is a real achievement with a real proof; it is the deduction
 *from* it that does not hold.

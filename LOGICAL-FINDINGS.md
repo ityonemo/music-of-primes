@@ -205,6 +205,15 @@ Its **deduction of GRH is not established**: finding 1 undermines the only writt
 of Theorem 13.3.1.2, finding 3 leaves a load-bearing step unlocated, and finding 5 refutes the
 Montel argument the §1.4 outline runs on.
 
-None of this disproves GRH, and none of it impugns the 513 proofs beneath Chapter 12. The
-draft was announced roughly a year before the author planned to, and these are the findings a
-structural pass produces on a draft in that state.
+None of this disproves GRH, and none of it impugns the 513 proofs beneath Chapter 12.
+
+**And it bears repeating that the draft was released in haste.** The announcement says the
+plan had been a year at Stanford to polish it first, and the text carries 34 of the author's
+own to-do markers — `Finish!`, `Insert statement`, `Include section`, and 30 instances of
+`Return here`. He is marking open work in dozens of places, so several of the findings above
+may already be settled by Masullo and his associates in material that is not in the released
+draft. Finding 2 is explicitly of that kind: the footnote IS him recording what remains.
+
+What this document records is therefore what the *released text* supports — the only thing a
+reader can check — not a claim about what its authors know. These are the findings a
+structural pass produces on a draft in this state.
